@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 
-const API = 'http://localhost:3000/citas'
-const API_PAC = 'http://localhost:3000/pacientes'
-const API_PRO = 'http://localhost:3000/profesionales'
+const API = 'https://centro-medico-saberes-production.up.railway.app/citas'
+const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
+const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
 
 const estadoColor = {
   pendiente: 'bg-yellow-100 text-yellow-700',

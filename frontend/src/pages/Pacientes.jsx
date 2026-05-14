@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import Fichas from './Fichas'
 
-const API = 'http://localhost:3000/pacientes'
+const API = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
 
 export default function Pacientes() {
   const [pacientes, setPacientes] = useState([])

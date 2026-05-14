@@ -6,7 +6,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 import axios from 'axios'
 import dayjs from 'dayjs'
 
-const API = 'http://localhost:3000/citas'
+const API = 'https://centro-medico-saberes-production.up.railway.app/citas'
 
 const locales = { es }
 
