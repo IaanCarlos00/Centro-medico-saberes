@@ -38,7 +38,7 @@ export default function Citas() {
     const e = {}
     if (!form.paciente_id) e.paciente_id = 'Selecciona un paciente'
     if (!form.profesional_id) e.profesional_id = 'Selecciona un profesional'
-    if (!form.fecha_hora) e.fecha_hora = 'La fecha y hora es obligatoria'
+    if (!form.fecha_hora) e.fecha_hora = 'La hora de la cita es obligatoria'
     return e
   }
 
@@ -103,6 +103,7 @@ export default function Citas() {
           </div>
 
           <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Hora de la cita</label>
             <input
               className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.fecha_hora ? 'border-red-400' : 'border-gray-300'}`}
               name="fecha_hora" type="datetime-local" value={form.fecha_hora} onChange={handleChange}
@@ -180,7 +181,7 @@ export default function Citas() {
               <div>
                 <p className="font-semibold text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</p>
                 <p className="text-sm text-gray-500">{c.profesional_nombre} {c.profesional_apellido}</p>
-                <p className="text-sm text-gray-500 mt-1">{c.fecha_hora?.slice(0,16).replace('T',' ')}</p>
+                <p className="text-sm text-gray-500 mt-1">🕐 {c.fecha_hora?.slice(0,16).replace('T',' ')}</p>
               </div>
               <span className={`px-2 py-1 rounded-full text-xs font-semibold ${estadoColor[c.estado]}`}>{c.estado}</span>
             </div>

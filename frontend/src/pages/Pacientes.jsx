@@ -90,7 +90,15 @@ export default function Pacientes() {
           {campo('rut', 'RUT')}
           {campo('nombre', 'Nombre')}
           {campo('apellido', 'Apellido')}
-          {campo('fecha_nacimiento', 'Fecha de nacimiento', 'date')}
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Fecha de nacimiento</label>
+            <input
+              className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.fecha_nacimiento ? 'border-red-400' : 'border-gray-300'}`}
+              name="fecha_nacimiento" type="date"
+              value={form.fecha_nacimiento} onChange={handleChange}
+            />
+            {errores.fecha_nacimiento && <span className="text-red-500 text-xs mt-1">{errores.fecha_nacimiento}</span>}
+          </div>
           {campo('telefono', 'Teléfono')}
           {campo('email', 'Email', 'email')}
         </div>
@@ -159,7 +167,7 @@ export default function Pacientes() {
               </div>
             </div>
             <div className="text-sm text-gray-500 flex flex-col gap-1">
-              {p.fecha_nacimiento && <span>📅 {p.fecha_nacimiento?.slice(0,10)}</span>}
+              {p.fecha_nacimiento && <span>📅 Nac: {p.fecha_nacimiento?.slice(0,10)}</span>}
               {p.telefono && <span>📞 {p.telefono}</span>}
               {p.email && <span>✉️ {p.email}</span>}
             </div>
