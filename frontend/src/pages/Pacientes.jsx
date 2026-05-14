@@ -84,9 +84,9 @@ export default function Pacientes() {
     <div>
       <h2 className="text-2xl font-bold text-green-800 mb-6">Pacientes</h2>
 
-      <div className="bg-white rounded-xl shadow p-6 mb-6">
+      <div className="bg-white rounded-xl shadow p-4 md:p-6 mb-6">
         <h3 className="text-lg font-semibold text-gray-700 mb-4">{editando ? 'Editar paciente' : 'Agregar paciente'}</h3>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {campo('rut', 'RUT')}
           {campo('nombre', 'Nombre')}
           {campo('apellido', 'Apellido')}
@@ -106,7 +106,8 @@ export default function Pacientes() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      {/* Tabla escritorio */}
+      <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-green-50 text-green-800 uppercase text-xs">
             <tr>
@@ -140,6 +141,33 @@ export default function Pacientes() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Tarjetas móvil */}
+      <div className="md:hidden flex flex-col gap-3">
+        {pacientes.map(p => (
+          <div key={p.id} className="bg-white rounded-xl shadow p-4">
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <p className="font-semibold text-gray-800">{p.nombre} {p.apellido}</p>
+                <p className="text-sm text-gray-500">{p.rut}</p>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => setPacienteSeleccionado(p)} className="text-blue-600 text-sm font-medium">Fichas</button>
+                <button onClick={() => editar(p)} className="text-green-700 text-sm font-medium">Editar</button>
+                <button onClick={() => eliminar(p.id)} className="text-red-500 text-sm font-medium">Eliminar</button>
+              </div>
+            </div>
+            <div className="text-sm text-gray-500 flex flex-col gap-1">
+              {p.fecha_nacimiento && <span>📅 {p.fecha_nacimiento?.slice(0,10)}</span>}
+              {p.telefono && <span>📞 {p.telefono}</span>}
+              {p.email && <span>✉️ {p.email}</span>}
+            </div>
+          </div>
+        ))}
+        {pacientes.length === 0 && (
+          <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">No hay pacientes registrados</div>
+        )}
       </div>
     </div>
   )

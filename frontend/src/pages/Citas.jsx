@@ -76,15 +76,15 @@ export default function Citas() {
   }
 
   const selectClass = name =>
-    `border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores[name] ? 'border-red-400' : 'border-gray-300'}`
+    `border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 w-full ${errores[name] ? 'border-red-400' : 'border-gray-300'}`
 
   return (
     <div>
       <h2 className="text-2xl font-bold text-green-800 mb-6">Citas</h2>
 
-      <div className="bg-white rounded-xl shadow p-6 mb-6">
+      <div className="bg-white rounded-xl shadow p-4 md:p-6 mb-6">
         <h3 className="text-lg font-semibold text-gray-700 mb-4">{editando ? 'Editar cita' : 'Agendar cita'}</h3>
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 
           <div className="flex flex-col">
             <select className={selectClass('paciente_id')} name="paciente_id" value={form.paciente_id} onChange={handleChange}>
@@ -118,7 +118,7 @@ export default function Citas() {
           </select>
 
           <input
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 col-span-2"
+            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 sm:col-span-2"
             name="observaciones" placeholder="Observaciones (opcional)"
             value={form.observaciones} onChange={handleChange}
           />
@@ -136,7 +136,8 @@ export default function Citas() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      {/* Tabla escritorio */}
+      <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-green-50 text-green-800 uppercase text-xs">
             <tr>
@@ -155,9 +156,7 @@ export default function Citas() {
                 <td className="px-4 py-3 text-gray-600">{c.profesional_nombre} {c.profesional_apellido}</td>
                 <td className="px-4 py-3 text-gray-600">{c.fecha_hora?.slice(0,16).replace('T',' ')}</td>
                 <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${estadoColor[c.estado]}`}>
-                    {c.estado}
-                  </span>
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${estadoColor[c.estado]}`}>{c.estado}</span>
                 </td>
                 <td className="px-4 py-3 text-gray-500">{c.observaciones}</td>
                 <td className="px-4 py-3 flex gap-2">
@@ -171,6 +170,30 @@ export default function Citas() {
             )}
           </tbody>
         </table>
+      </div>
+
+      {/* Tarjetas móvil */}
+      <div className="md:hidden flex flex-col gap-3">
+        {citas.map(c => (
+          <div key={c.id} className="bg-white rounded-xl shadow p-4">
+            <div className="flex justify-between items-start mb-2">
+              <div>
+                <p className="font-semibold text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</p>
+                <p className="text-sm text-gray-500">{c.profesional_nombre} {c.profesional_apellido}</p>
+                <p className="text-sm text-gray-500 mt-1">{c.fecha_hora?.slice(0,16).replace('T',' ')}</p>
+              </div>
+              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${estadoColor[c.estado]}`}>{c.estado}</span>
+            </div>
+            {c.observaciones && <p className="text-sm text-gray-400 mb-2">{c.observaciones}</p>}
+            <div className="flex gap-3">
+              <button onClick={() => editar(c)} className="text-green-700 text-sm font-medium">Editar</button>
+              <button onClick={() => eliminar(c.id)} className="text-red-500 text-sm font-medium">Eliminar</button>
+            </div>
+          </div>
+        ))}
+        {citas.length === 0 && (
+          <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">No hay citas registradas</div>
+        )}
       </div>
     </div>
   )
