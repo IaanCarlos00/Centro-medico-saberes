@@ -6,6 +6,7 @@ import Citas from './pages/Citas'
 import Inicio from './pages/Inicio'
 import Login from './pages/Login'
 import Agenda from './pages/Citas'
+import Pagos from './pages/Pagos'
 
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
@@ -57,6 +58,7 @@ function Layout({ usuario, onLogout }) {
             <NavLink to="/pacientes">Pacientes</NavLink>
             <NavLink to="/profesionales">Profesionales</NavLink>
             <NavLink to="/citas">Citas</NavLink>
+            <NavLink to="/pagos">Pagos</NavLink>
             <div className="ml-4 flex items-center gap-3 border-l border-green-600 pl-4">
               <span className="text-green-200 text-sm">Hola, {usuario.nombre}</span>
               <button
@@ -74,6 +76,7 @@ function Layout({ usuario, onLogout }) {
             <NavLink to="/pacientes" onClick={() => setMenuAbierto(false)}>Pacientes</NavLink>
             <NavLink to="/profesionales" onClick={() => setMenuAbierto(false)}>Profesionales</NavLink>
             <NavLink to="/citas" onClick={() => setMenuAbierto(false)}>Citas</NavLink>
+            <NavLink to="/pagos" onClick={() => setMenuAbierto(false)}>Pagos</NavLink>
             <div className="border-t border-green-700 pt-2 mt-1">
               <span className="text-green-200 text-sm block px-4 py-1">Hola, {usuario.nombre}</span>
               <button
@@ -93,6 +96,7 @@ function Layout({ usuario, onLogout }) {
           <Route path="/pacientes" element={<Pacientes />} />
           <Route path="/profesionales" element={<Profesionales />} />
           <Route path="/citas" element={<Citas />} />
+          <Route path="/pagos" element={<Pagos />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
