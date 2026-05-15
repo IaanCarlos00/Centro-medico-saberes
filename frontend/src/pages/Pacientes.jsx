@@ -13,11 +13,14 @@ const HORA_MAX = '19:30'
 function validarFechaHora(fechaHora) {
   if (!fechaHora) return 'La hora de la cita es obligatoria'
   const fecha = new Date(fechaHora)
+  const ahora = new Date()
   const diaSemana = fecha.getDay()
-  const hora = fecha.toTimeString().slice(0, 5)
+  const hora = fechaHora.slice(11, 16)
+
+  if (fecha < ahora) return 'No puedes agendar en una fecha u hora que ya pasó'
   if (diaSemana === 0) return 'No se pueden agendar citas los domingos'
-  if (hora < HORA_MIN) return 'La primera hora disponible es 08:30'
-  if (hora > HORA_MAX) return 'La última hora disponible es 19:30'
+  if (hora < '08:30') return 'La primera hora disponible es 08:30'
+  if (hora > '19:30') return 'La última hora disponible es 19:30'
   return null
 }
 
