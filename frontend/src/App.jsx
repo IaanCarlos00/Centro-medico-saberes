@@ -6,6 +6,7 @@ import Citas from './pages/Citas'
 import Calendario from './pages/Calendario'
 import Inicio from './pages/Inicio'
 import Login from './pages/Login'
+import Agenda from './pages/Citas'
 
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
