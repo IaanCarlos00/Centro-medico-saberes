@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
+import FichaIngreso1 from './FichaIngreso1'
+import FichaIngreso2 from './FichaIngreso2'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/fichas'
 const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
 
 export default function Fichas({ paciente, onVolver }) {
+  const [vista, setVista] = useState(null) // null = menu, 'control', 'ingreso1', 'ingreso2'
   const [fichas, setFichas] = useState([])
   const [profesionales, setProfesionales] = useState([])
   const [form, setForm] = useState({ motivo_consulta: '', diagnostico: '', tratamiento: '', observaciones: '', profesional_id: '' })
@@ -21,7 +24,7 @@ export default function Fichas({ paciente, onVolver }) {
     setProfesionales(pr.data)
   }
 
-  useEffect(() => { cargar() }, [])
+  useEffect(() => { if (vista === 'control') cargar() }, [vista])
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -51,13 +54,7 @@ export default function Fichas({ paciente, onVolver }) {
   }
 
   const editar = f => {
-    setForm({
-      motivo_consulta: f.motivo_consulta,
-      diagnostico: f.diagnostico || '',
-      tratamiento: f.tratamiento || '',
-      observaciones: f.observaciones || '',
-      profesional_id: f.profesional_id
-    })
+    setForm({ motivo_consulta: f.motivo_consulta, diagnostico: f.diagnostico || '', tratamiento: f.tratamiento || '', observaciones: f.observaciones || '', profesional_id: f.profesional_id })
     setEditando(f.id)
     setMostrarForm(true)
   }
@@ -76,26 +73,70 @@ export default function Fichas({ paciente, onVolver }) {
     setMostrarForm(false)
   }
 
+  // Vistas de fichas de ingreso
+  if (vista === 'ingreso1') return <FichaIngreso1 paciente={paciente} onVolver={() => setVista(null)} />
+  if (vista === 'ingreso2') return <FichaIngreso2 paciente={paciente} onVolver={() => setVista(null)} />
+
+  // Menú de selección de tipo de ficha
+  if (vista === null) return (
+    <div>
+      <div className="flex items-center gap-4 mb-8">
+        <button onClick={onVolver} className="text-green-700 hover:underline font-medium text-sm">← Volver a pacientes</button>
+        <h2 className="text-2xl font-bold text-green-800">Fichas — {paciente.nombre} {paciente.apellido}</h2>
+      </div>
+
+      <p className="text-gray-500 mb-6">Selecciona el tipo de ficha que deseas ver o crear:</p>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <button
+          onClick={() => setVista('control')}
+          className="bg-white rounded-2xl shadow p-6 border-t-4 border-green-600 hover:shadow-md transition-shadow text-left"
+        >
+          <div className="text-3xl mb-3">📋</div>
+          <h3 className="text-lg font-bold text-green-800 mb-1">Ficha Control</h3>
+          <p className="text-gray-500 text-sm">Registro de controles periódicos, diagnósticos y tratamientos</p>
+        </button>
+
+        <button
+          onClick={() => setVista('ingreso1')}
+          className="bg-white rounded-2xl shadow p-6 border-t-4 border-orange-500 hover:shadow-md transition-shadow text-left"
+        >
+          <div className="text-3xl mb-3">📝</div>
+          <h3 className="text-lg font-bold text-green-800 mb-1">Ficha de Ingreso — Matrona 1</h3>
+          <p className="text-gray-500 text-sm">Anamnesis completa con parámetros clínicos y exploración</p>
+        </button>
+
+        <button
+          onClick={() => setVista('ingreso2')}
+          className="bg-white rounded-2xl shadow p-6 border-t-4 border-blue-500 hover:shadow-md transition-shadow text-left"
+        >
+          <div className="text-3xl mb-3">🗂️</div>
+          <h3 className="text-lg font-bold text-green-800 mb-1">Ficha de Ingreso — Matrona 2</h3>
+          <p className="text-gray-500 text-sm">Ficha clínica con antecedentes gineco-obstétricos</p>
+        </button>
+      </div>
+    </div>
+  )
+
+  // Vista ficha control
   return (
     <div>
-      <div className="flex items-center gap-4 mb-6">
-        <button onClick={onVolver} className="text-green-700 hover:underline font-medium text-sm">← Volver a pacientes</button>
-        <h2 className="text-2xl font-bold text-green-800">
-          Fichas clínicas — {paciente.nombre} {paciente.apellido}
-        </h2>
+      <div className="flex items-center gap-3 mb-6">
+        <button onClick={() => setVista(null)} className="text-green-700 hover:underline font-medium text-sm">← Volver</button>
+        <h2 className="text-xl font-bold text-green-800">Ficha Control</h2>
+        <span className="text-gray-400 text-sm">/ {paciente.nombre} {paciente.apellido}</span>
       </div>
 
       {!mostrarForm && (
-        <button onClick={() => setMostrarForm(true)} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 transition-colors font-medium mb-6">
+        <button onClick={() => setMostrarForm(true)} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium mb-6">
           + Nueva ficha
         </button>
       )}
 
       {mostrarForm && (
         <div className="bg-white rounded-xl shadow p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">{editando ? 'Editar ficha' : 'Nueva ficha clínica'}</h3>
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">{editando ? 'Editar ficha' : 'Nueva ficha de control'}</h3>
           <div className="grid grid-cols-1 gap-4">
-
             <div className="flex flex-col">
               <select
                 className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.profesional_id ? 'border-red-400' : 'border-gray-300'}`}
@@ -106,7 +147,6 @@ export default function Fichas({ paciente, onVolver }) {
               </select>
               {errores.profesional_id && <span className="text-red-500 text-xs mt-1">{errores.profesional_id}</span>}
             </div>
-
             <div className="flex flex-col">
               <textarea
                 className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.motivo_consulta ? 'border-red-400' : 'border-gray-300'}`}
@@ -115,30 +155,15 @@ export default function Fichas({ paciente, onVolver }) {
               />
               {errores.motivo_consulta && <span className="text-red-500 text-xs mt-1">{errores.motivo_consulta}</span>}
             </div>
-
-            <textarea
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
-              name="diagnostico" placeholder="Diagnóstico" rows={2}
-              value={form.diagnostico} onChange={handleChange}
-            />
-            <textarea
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
-              name="tratamiento" placeholder="Tratamiento" rows={2}
-              value={form.tratamiento} onChange={handleChange}
-            />
-            <textarea
-              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
-              name="observaciones" placeholder="Observaciones" rows={2}
-              value={form.observaciones} onChange={handleChange}
-            />
+            <textarea className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="diagnostico" placeholder="Diagnóstico" rows={2} value={form.diagnostico} onChange={handleChange} />
+            <textarea className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="tratamiento" placeholder="Tratamiento" rows={2} value={form.tratamiento} onChange={handleChange} />
+            <textarea className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="observaciones" placeholder="Observaciones" rows={2} value={form.observaciones} onChange={handleChange} />
           </div>
           <div className="flex gap-3 mt-4">
-            <button onClick={guardar} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 transition-colors font-medium">
+            <button onClick={guardar} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">
               {editando ? 'Actualizar' : 'Guardar ficha'}
             </button>
-            <button onClick={cancelar} className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium">
-              Cancelar
-            </button>
+            <button onClick={cancelar} className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 font-medium">Cancelar</button>
           </div>
         </div>
       )}
@@ -165,7 +190,7 @@ export default function Fichas({ paciente, onVolver }) {
           </div>
         ))}
         {fichas.length === 0 && (
-          <div className="bg-white rounded-xl shadow p-8 text-center text-gray-400">No hay fichas clínicas registradas</div>
+          <div className="bg-white rounded-xl shadow p-8 text-center text-gray-400">No hay fichas de control registradas</div>
         )}
       </div>
     </div>
