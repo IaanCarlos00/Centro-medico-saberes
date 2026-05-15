@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react
 import Pacientes from './pages/Pacientes'
 import Profesionales from './pages/Profesionales'
 import Citas from './pages/Citas'
-import Calendario from './pages/Calendario'
 import Inicio from './pages/Inicio'
 import Login from './pages/Login'
 import Agenda from './pages/Citas'
@@ -58,7 +57,6 @@ function Layout({ usuario, onLogout }) {
             <NavLink to="/pacientes">Pacientes</NavLink>
             <NavLink to="/profesionales">Profesionales</NavLink>
             <NavLink to="/citas">Citas</NavLink>
-            <NavLink to="/calendario">Calendario</NavLink>
             <div className="ml-4 flex items-center gap-3 border-l border-green-600 pl-4">
               <span className="text-green-200 text-sm">Hola, {usuario.nombre}</span>
               <button
@@ -76,7 +74,6 @@ function Layout({ usuario, onLogout }) {
             <NavLink to="/pacientes" onClick={() => setMenuAbierto(false)}>Pacientes</NavLink>
             <NavLink to="/profesionales" onClick={() => setMenuAbierto(false)}>Profesionales</NavLink>
             <NavLink to="/citas" onClick={() => setMenuAbierto(false)}>Citas</NavLink>
-            <NavLink to="/calendario" onClick={() => setMenuAbierto(false)}>Calendario</NavLink>
             <div className="border-t border-green-700 pt-2 mt-1">
               <span className="text-green-200 text-sm block px-4 py-1">Hola, {usuario.nombre}</span>
               <button
@@ -96,7 +93,6 @@ function Layout({ usuario, onLogout }) {
           <Route path="/pacientes" element={<Pacientes />} />
           <Route path="/profesionales" element={<Profesionales />} />
           <Route path="/citas" element={<Citas />} />
-          <Route path="/calendario" element={<Calendario />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>
