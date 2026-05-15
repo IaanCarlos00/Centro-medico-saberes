@@ -25,30 +25,45 @@ router.get('/:id', async (req, res) => {
 
 // Crear paciente
 router.post('/', async (req, res) => {
-  const { rut, nombre, apellido, fecha_nacimiento, telefono, email } = req.body;
+  const { rut, nombre, apellido, fecha_nacimiento, telefono, email } = req.body
   try {
     const result = await pool.query(
       'INSERT INTO paciente (rut, nombre, apellido, fecha_nacimiento, telefono, email) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *',
-      [rut, nombre, apellido, fecha_nacimiento, telefono, email]
-    );
-    res.status(201).json(result.rows[0]);
+      [
+        rut || null,
+        nombre,
+        apellido,
+        fecha_nacimiento || null,
+        telefono || null,
+        email || null
+      ]
+    )
+    res.status(201).json(result.rows[0])
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message })
   }
-});
+})
 
 // Actualizar paciente
 router.put('/:id', async (req, res) => {
-  const { rut, nombre, apellido, fecha_nacimiento, telefono, email } = req.body;
+  const { rut, nombre, apellido, fecha_nacimiento, telefono, email } = req.body
   try {
     const result = await pool.query(
       'UPDATE paciente SET rut=$1, nombre=$2, apellido=$3, fecha_nacimiento=$4, telefono=$5, email=$6 WHERE id=$7 RETURNING *',
-      [rut, nombre, apellido, fecha_nacimiento, telefono, email, req.params.id]
-    );
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Paciente no encontrado' });
-    res.json(result.rows[0]);
+      [
+        rut || null,
+        nombre,
+        apellido,
+        fecha_nacimiento || null,
+        telefono || null,
+        email || null,
+        req.params.id
+      ]
+    )
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Paciente no encontrado' })
+    res.json(result.rows[0])
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: error.message })
   }
 });
 
