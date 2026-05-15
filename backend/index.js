@@ -8,6 +8,7 @@ const citasRouter = require('./routes/citas');
 const fichasRouter = require('./routes/fichas');
 const authRouter = require('./routes/auth');
 const dashboardRouter = require('./routes/dashboard');
+const fichasIngresoRouter = require('./routes/fichasIngreso');
 
 const app = express();
 const PORT = 3000;
@@ -22,6 +23,7 @@ app.use('/citas', citasRouter);
 app.use('/fichas', fichasRouter);
 app.use('/auth', authRouter);
 app.use('/dashboard', dashboardRouter);
+app.use('/fichas-ingreso', fichasIngresoRouter);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
