@@ -14,11 +14,12 @@ router.get('/', async (req, res) => {
       citasConfirmadas,
       citasRealizadas,
       citasCanceladas,
-      proximasCitas
+      proximasCitas,
+      pacientesDeuda
     ] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM paciente'),
       pool.query('SELECT COUNT(*) FROM profesional'),
-      pool.query("SELECT COUNT(*) FROM cita WHERE DATE(fecha_hora) = $1", [hoy]),
+      pool.query('SELECT COUNT(*) FROM cita WHERE DATE(fecha_hora) = $1', [hoy]),
       pool.query("SELECT COUNT(*) FROM cita WHERE estado = 'pendiente'"),
       pool.query("SELECT COUNT(*) FROM cita WHERE estado = 'confirmada'"),
       pool.query("SELECT COUNT(*) FROM cita WHERE estado = 'realizada'"),
@@ -32,7 +33,17 @@ router.get('/', async (req, res) => {
         JOIN profesional pr ON c.profesional_id = pr.id
         WHERE DATE(c.fecha_hora) = $1
         ORDER BY c.fecha_hora ASC
-      `, [hoy])
+      `, [hoy]),
+      pool.query(`
+        SELECT pa.id, pa.nombre, pa.apellido, pa.rut, pa.telefono,
+               COUNT(pg.id) AS cantidad_pendiente,
+               COALESCE(SUM(pg.monto), 0) AS monto_pendiente
+        FROM paciente pa
+        JOIN pago pg ON pg.paciente_id = pa.id
+        WHERE pg.estado = 'pendiente'
+        GROUP BY pa.id, pa.nombre, pa.apellido, pa.rut, pa.telefono
+        ORDER BY monto_pendiente DESC
+      `)
     ])
 
     res.json({
@@ -45,7 +56,8 @@ router.get('/', async (req, res) => {
         realizada: parseInt(citasRealizadas.rows[0].count),
         cancelada: parseInt(citasCanceladas.rows[0].count),
       },
-      proximasCitas: proximasCitas.rows
+      proximasCitas: proximasCitas.rows,
+      pacientesDeuda: pacientesDeuda.rows
     })
   } catch (error) {
     res.status(500).json({ error: error.message })

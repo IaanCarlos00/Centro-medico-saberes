@@ -5,6 +5,7 @@ import Fichas from './Fichas'
 const API = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
 const API_CITAS = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
+const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 
 const HORA_MIN = '08:30'
 const HORA_MAX = '19:30'
@@ -160,6 +161,7 @@ function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
 export default function Pacientes() {
   const [pacientes, setPacientes] = useState([])
   const [profesionales, setProfesionales] = useState([])
+  const [deudores, setDeudores] = useState([])
   const [busqueda, setBusqueda] = useState('')
   const [form, setForm] = useState({ nombre: '', apellido: '', rut: '', fecha_nacimiento: '', telefono: '', email: '' })
   const [editando, setEditando] = useState(null)
@@ -170,9 +172,11 @@ export default function Pacientes() {
   const [pendienteConfirmar, setPendienteConfirmar] = useState(null)
 
   const cargar = async () => {
-    const [p, pr] = await Promise.all([axios.get(API), axios.get(API_PRO)])
+    const [p, pr, pg] = await Promise.all([axios.get(API), axios.get(API_PRO), axios.get(API_PAGOS)])
     setPacientes(p.data)
     setProfesionales(pr.data)
+    const ids = pg.data.filter(p => p.estado === 'pendiente').map(p => p.paciente_id)
+    setDeudores([...new Set(ids)])
   }
 
   useEffect(() => { cargar() }, [])
@@ -351,10 +355,15 @@ export default function Pacientes() {
                 <td className="px-4 py-3 text-gray-600">{p.rut || <span className="text-yellow-600 text-xs">Pendiente</span>}</td>
                 <td className="px-4 py-3 text-gray-600">{p.telefono || <span className="text-yellow-600 text-xs">Pendiente</span>}</td>
                 <td className="px-4 py-3">
-                  {necesitaCompletar(p)
-                    ? <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">Datos incompletos</span>
-                    : <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Completo</span>
-                  }
+                  <div className="flex flex-col gap-1">
+                    {necesitaCompletar(p)
+                      ? <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">Datos incompletos</span>
+                      : <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Completo</span>
+                    }
+                    {deudores.includes(p.id) && (
+                      <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">💰 Pago pendiente</span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-4 py-3 flex gap-2 flex-wrap">
                   <button onClick={() => setPacienteSeleccionado(p)} className="text-blue-600 hover:underline text-sm font-medium">Fichas</button>
@@ -380,6 +389,7 @@ export default function Pacientes() {
                 <p className="font-semibold text-gray-800">{p.nombre} {p.apellido}</p>
                 <p className="text-sm text-gray-500">{p.rut || <span className="text-yellow-600">RUT pendiente</span>}</p>
                 {necesitaCompletar(p) && <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full mt-1 inline-block">Datos incompletos</span>}
+                {deudores.includes(p.id) && <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full mt-1 ml-1 inline-block">💰 Pago pendiente</span>}
               </div>
               <div className="flex gap-2 flex-wrap justify-end">
                 <button onClick={() => setPacienteSeleccionado(p)} className="text-blue-600 text-sm font-medium">Fichas</button>

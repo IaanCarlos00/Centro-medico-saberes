@@ -5,10 +5,10 @@ import axios from 'axios'
 const API = 'https://centro-medico-saberes-production.up.railway.app/dashboard'
 
 const estadoBadge = {
-  pendiente: 'bg-yellow-100 text-yellow-700 border border-yellow-200',
-  confirmada: 'bg-blue-100 text-blue-700 border border-blue-200',
-  realizada: 'bg-green-100 text-green-700 border border-green-200',
-  cancelada: 'bg-red-100 text-red-700 border border-red-200',
+  pendiente: 'bg-yellow-100 text-yellow-700',
+  confirmada: 'bg-blue-100 text-blue-700',
+  realizada: 'bg-green-100 text-green-700',
+  cancelada: 'bg-red-100 text-red-700',
 }
 
 const estadoIcono = {
@@ -16,6 +16,10 @@ const estadoIcono = {
   confirmada: '✅',
   realizada: '🏥',
   cancelada: '❌',
+}
+
+function formatCLP(n) {
+  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(n)
 }
 
 export default function Inicio() {
@@ -35,7 +39,6 @@ export default function Inicio() {
 
   return (
     <div>
-      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-green-800">Bienvenido, {nombre} 👋</h2>
@@ -82,13 +85,13 @@ export default function Inicio() {
               <p className="text-gray-500 text-sm mt-1">Citas programadas</p>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-yellow-500 hover:shadow-md transition-shadow">
+            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-red-400 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-2xl">⏳</span>
-                <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-medium">Pendiente</span>
+                <span className="text-2xl">💰</span>
+                <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-medium">Deuda</span>
               </div>
-              <p className="text-4xl font-bold text-gray-800">{datos.estados.pendiente}</p>
-              <p className="text-gray-500 text-sm mt-1">Por confirmar</p>
+              <p className="text-4xl font-bold text-gray-800">{datos.pacientesDeuda.length}</p>
+              <p className="text-gray-500 text-sm mt-1">Con pago pendiente</p>
             </div>
           </div>
 
@@ -142,9 +145,7 @@ export default function Inicio() {
                             estado === 'confirmada' ? 'bg-blue-400' :
                             estado === 'realizada' ? 'bg-green-500' : 'bg-red-400'
                           }`}
-                          style={{
-                            width: `${Math.min(100, (count / Math.max(1, Object.values(datos.estados).reduce((a,b) => a+b, 0))) * 100)}%`
-                          }}
+                          style={{ width: `${Math.min(100, (count / Math.max(1, Object.values(datos.estados).reduce((a,b) => a+b, 0))) * 100)}%` }}
                         />
                       </div>
                       <span className="font-bold text-gray-800 w-6 text-right">{count}</span>
@@ -154,6 +155,30 @@ export default function Inicio() {
               </div>
             </div>
           </div>
+
+          {/* Pacientes con deuda */}
+          {datos.pacientesDeuda.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-sm p-5 mb-6 border-l-4 border-red-400">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-800">⚠️ Pacientes con pago pendiente</h3>
+                <Link to="/pagos" className="text-red-500 text-sm hover:underline font-medium">Ver pagos →</Link>
+              </div>
+              <div className="flex flex-col gap-2">
+                {datos.pacientesDeuda.map(p => (
+                  <div key={p.id} className="flex items-center justify-between p-3 rounded-xl bg-red-50 hover:bg-red-100 transition-colors">
+                    <div>
+                      <p className="font-semibold text-gray-800">{p.nombre} {p.apellido}</p>
+                      <p className="text-xs text-gray-500">{p.rut || 'Sin RUT'} {p.telefono ? `· ${p.telefono}` : ''}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-red-600">{formatCLP(p.monto_pendiente)}</p>
+                      <p className="text-xs text-gray-400">{p.cantidad_pendiente} pago{p.cantidad_pendiente > 1 ? 's' : ''}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Accesos rápidos */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -171,11 +196,11 @@ export default function Inicio() {
                 <p className="text-orange-100 text-sm">Gestionar equipo</p>
               </div>
             </Link>
-            <Link to="/citas" className="bg-blue-600 text-white rounded-2xl p-5 hover:bg-blue-700 transition-colors flex items-center gap-4 shadow-sm">
-              <span className="text-4xl">📅</span>
+            <Link to="/pagos" className="bg-blue-600 text-white rounded-2xl p-5 hover:bg-blue-700 transition-colors flex items-center gap-4 shadow-sm">
+              <span className="text-4xl">💰</span>
               <div>
-                <p className="font-bold text-lg">Agendar cita</p>
-                <p className="text-blue-100 text-sm">Nueva o editar</p>
+                <p className="font-bold text-lg">Pagos</p>
+                <p className="text-blue-100 text-sm">Registrar o revisar</p>
               </div>
             </Link>
           </div>
