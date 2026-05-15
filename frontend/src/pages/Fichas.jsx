@@ -102,7 +102,7 @@ export default function Fichas({ paciente, onVolver }) {
           className="bg-white rounded-2xl shadow p-6 border-t-4 border-orange-500 hover:shadow-md transition-shadow text-left"
         >
           <div className="text-3xl mb-3">📝</div>
-          <h3 className="text-lg font-bold text-green-800 mb-1">Ficha de Ingreso — Matrona 1</h3>
+          <h3 className="text-lg font-bold text-green-800 mb-1">Ficha de Ingreso 1</h3>
           <p className="text-gray-500 text-sm">Anamnesis completa con parámetros clínicos y exploración</p>
         </button>
 
@@ -111,7 +111,7 @@ export default function Fichas({ paciente, onVolver }) {
           className="bg-white rounded-2xl shadow p-6 border-t-4 border-blue-500 hover:shadow-md transition-shadow text-left"
         >
           <div className="text-3xl mb-3">🗂️</div>
-          <h3 className="text-lg font-bold text-green-800 mb-1">Ficha de Ingreso — Matrona 2</h3>
+          <h3 className="text-lg font-bold text-green-800 mb-1">Ficha de Ingreso 2</h3>
           <p className="text-gray-500 text-sm">Ficha clínica con antecedentes gineco-obstétricos</p>
         </button>
       </div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import axios from 'axios'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/citas'
@@ -12,6 +12,21 @@ const estadoColor = {
   cancelada: 'bg-red-100 text-red-700',
 }
 
+const HORA_MIN = '08:30'
+const HORA_MAX = '19:30'
+
+function validarFechaHora(fechaHora) {
+  if (!fechaHora) return 'La hora de la cita es obligatoria'
+  const fecha = new Date(fechaHora)
+  const diaSemana = fecha.getDay() // 0=domingo, 6=sábado
+  const hora = fecha.toTimeString().slice(0, 5)
+
+  if (diaSemana === 0) return 'No se pueden agendar citas los domingos'
+  if (hora < HORA_MIN) return 'La primera hora disponible es 08:30'
+  if (hora > HORA_MAX) return 'La última hora disponible es 19:30'
+  return null
+}
+
 export default function Citas() {
   const [citas, setCitas] = useState([])
   const [pacientes, setPacientes] = useState([])
@@ -22,6 +37,12 @@ export default function Citas() {
   const [editando, setEditando] = useState(null)
   const [errores, setErrores] = useState({})
 
+  // Buscador de pacientes en el formulario
+  const [busquedaPaciente, setBusquedaPaciente] = useState('')
+  const [mostrarDropdown, setMostrarDropdown] = useState(false)
+  const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null)
+  const dropdownRef = useRef(null)
+
   const cargar = async () => {
     const [c, p, pr] = await Promise.all([axios.get(API), axios.get(API_PAC), axios.get(API_PRO)])
     setCitas(c.data)
@@ -30,6 +51,34 @@ export default function Citas() {
   }
 
   useEffect(() => { cargar() }, [])
+
+  // Cerrar dropdown al hacer clic afuera
+  useEffect(() => {
+    const handleClick = e => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setMostrarDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const pacientesFiltrados = pacientes.filter(p => {
+    const q = busquedaPaciente.toLowerCase()
+    return (
+      p.nombre.toLowerCase().includes(q) ||
+      p.apellido.toLowerCase().includes(q) ||
+      p.rut.toLowerCase().includes(q)
+    )
+  }).slice(0, 8)
+
+  const seleccionarPaciente = p => {
+    setPacienteSeleccionado(p)
+    setForm({ ...form, paciente_id: p.id })
+    setBusquedaPaciente(`${p.nombre} ${p.apellido} — ${p.rut}`)
+    setMostrarDropdown(false)
+    setErrores({ ...errores, paciente_id: '' })
+  }
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -40,7 +89,8 @@ export default function Citas() {
     const e = {}
     if (!form.paciente_id) e.paciente_id = 'Selecciona un paciente'
     if (!form.profesional_id) e.profesional_id = 'Selecciona un profesional'
-    if (!form.fecha_hora) e.fecha_hora = 'La hora de la cita es obligatoria'
+    const errorFecha = validarFechaHora(form.fecha_hora)
+    if (errorFecha) e.fecha_hora = errorFecha
     return e
   }
 
@@ -54,12 +104,15 @@ export default function Citas() {
       await axios.post(API, form)
     }
     setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+    setBusquedaPaciente('')
+    setPacienteSeleccionado(null)
     setErrores({})
     cargar()
   }
 
   const editar = c => {
     setForm({ paciente_id: c.paciente_id, profesional_id: c.profesional_id, fecha_hora: c.fecha_hora?.slice(0,16), estado: c.estado, observaciones: c.observaciones || '' })
+    setBusquedaPaciente(`${c.paciente_nombre} ${c.paciente_apellido}`)
     setEditando(c.id)
     setErrores({})
   }
@@ -74,6 +127,8 @@ export default function Citas() {
   const cancelar = () => {
     setEditando(null)
     setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+    setBusquedaPaciente('')
+    setPacienteSeleccionado(null)
     setErrores({})
   }
 
@@ -98,15 +153,46 @@ export default function Citas() {
         <h3 className="text-lg font-semibold text-gray-700 mb-4">{editando ? 'Editar cita' : 'Agendar cita'}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
 
-          <div className="flex flex-col">
-            <select className={selectClass('paciente_id')} name="paciente_id" value={form.paciente_id} onChange={handleChange}>
-              <option value="">Seleccionar paciente</option>
-              {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
-            </select>
+          {/* Buscador de paciente */}
+          <div className="flex flex-col relative" ref={dropdownRef}>
+            <label className="text-sm text-gray-600 mb-1">Paciente</label>
+            <input
+              className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.paciente_id ? 'border-red-400' : 'border-gray-300'}`}
+              placeholder="Buscar por nombre, apellido o RUT..."
+              value={busquedaPaciente}
+              onChange={e => {
+                setBusquedaPaciente(e.target.value)
+                setMostrarDropdown(true)
+                setForm({ ...form, paciente_id: '' })
+                setPacienteSeleccionado(null)
+                setErrores({ ...errores, paciente_id: '' })
+              }}
+              onFocus={() => setMostrarDropdown(true)}
+            />
             {errores.paciente_id && <span className="text-red-500 text-xs mt-1">{errores.paciente_id}</span>}
+            {mostrarDropdown && busquedaPaciente.length > 0 && (
+              <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto mt-1">
+                {pacientesFiltrados.length === 0 ? (
+                  <p className="px-3 py-2 text-sm text-gray-400">No se encontraron pacientes</p>
+                ) : (
+                  pacientesFiltrados.map(p => (
+                    <button
+                      key={p.id}
+                      className="w-full text-left px-3 py-2 hover:bg-green-50 text-sm border-b border-gray-100 last:border-0"
+                      onClick={() => seleccionarPaciente(p)}
+                    >
+                      <span className="font-medium text-gray-800">{p.nombre} {p.apellido}</span>
+                      <span className="text-gray-400 ml-2 text-xs">{p.rut}</span>
+                    </button>
+                  ))
+                )}
+              </div>
+            )}
           </div>
 
+          {/* Profesional */}
           <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Profesional</label>
             <select className={selectClass('profesional_id')} name="profesional_id" value={form.profesional_id} onChange={handleChange}>
               <option value="">Seleccionar profesional</option>
               {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
@@ -114,15 +200,19 @@ export default function Citas() {
             {errores.profesional_id && <span className="text-red-500 text-xs mt-1">{errores.profesional_id}</span>}
           </div>
 
+          {/* Fecha y hora */}
           <div className="flex flex-col">
-            <label className="text-sm text-gray-600 mb-1">Hora de la cita</label>
+            <label className="text-sm text-gray-600 mb-1">Hora de la cita <span className="text-gray-400 text-xs">(Lun-Vie 08:30-19:30 / Sáb AM o PM)</span></label>
             <input
               className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.fecha_hora ? 'border-red-400' : 'border-gray-300'}`}
-              name="fecha_hora" type="datetime-local" value={form.fecha_hora} onChange={handleChange}
+              name="fecha_hora" type="datetime-local"
+              min={`${new Date().toISOString().slice(0,10)}T08:30`}
+              value={form.fecha_hora} onChange={handleChange}
             />
             {errores.fecha_hora && <span className="text-red-500 text-xs mt-1">{errores.fecha_hora}</span>}
           </div>
 
+          {/* Estado */}
           <select className={selectClass('estado')} name="estado" value={form.estado} onChange={handleChange}>
             <option value="pendiente">Pendiente</option>
             <option value="confirmada">Confirmada</option>
@@ -130,6 +220,7 @@ export default function Citas() {
             <option value="cancelada">Cancelada</option>
           </select>
 
+          {/* Observaciones */}
           <input
             className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 sm:col-span-2"
             name="observaciones" placeholder="Observaciones (opcional)"
@@ -159,14 +250,11 @@ export default function Citas() {
             onChange={e => setBusqueda(e.target.value)}
           />
           <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
-          {busqueda && (
-            <button onClick={() => setBusqueda('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">✕</button>
-          )}
+          {busqueda && <button onClick={() => setBusqueda('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">✕</button>}
         </div>
         <select
           className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
-          value={filtroEstado}
-          onChange={e => setFiltroEstado(e.target.value)}
+          value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}
         >
           <option value="">Todos los estados</option>
           <option value="pendiente">Pendiente</option>
