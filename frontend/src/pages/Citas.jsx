@@ -16,6 +16,8 @@ export default function Citas() {
   const [citas, setCitas] = useState([])
   const [pacientes, setPacientes] = useState([])
   const [profesionales, setProfesionales] = useState([])
+  const [busqueda, setBusqueda] = useState('')
+  const [filtroEstado, setFiltroEstado] = useState('')
   const [form, setForm] = useState({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
   const [editando, setEditando] = useState(null)
   const [errores, setErrores] = useState({})
@@ -78,6 +80,16 @@ export default function Citas() {
   const selectClass = name =>
     `border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 w-full ${errores[name] ? 'border-red-400' : 'border-gray-300'}`
 
+  const filtradas = citas.filter(c => {
+    const q = busqueda.toLowerCase()
+    const coincideBusqueda = !busqueda ||
+      `${c.paciente_nombre} ${c.paciente_apellido}`.toLowerCase().includes(q) ||
+      `${c.profesional_nombre} ${c.profesional_apellido}`.toLowerCase().includes(q) ||
+      (c.observaciones && c.observaciones.toLowerCase().includes(q))
+    const coincideEstado = !filtroEstado || c.estado === filtroEstado
+    return coincideBusqueda && coincideEstado
+  })
+
   return (
     <div>
       <h2 className="text-2xl font-bold text-green-800 mb-6">Citas</h2>
@@ -137,6 +149,36 @@ export default function Citas() {
         </div>
       </div>
 
+      {/* Búsqueda y filtros */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <div className="relative flex-1">
+          <input
+            className="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-green-400"
+            placeholder="Buscar por paciente, profesional u observaciones..."
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+          />
+          <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
+          {busqueda && (
+            <button onClick={() => setBusqueda('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">✕</button>
+          )}
+        </div>
+        <select
+          className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
+          value={filtroEstado}
+          onChange={e => setFiltroEstado(e.target.value)}
+        >
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="confirmada">Confirmada</option>
+          <option value="realizada">Realizada</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+      </div>
+      {(busqueda || filtroEstado) && (
+        <p className="text-sm text-gray-500 mb-3">{filtradas.length} cita{filtradas.length !== 1 ? 's' : ''} encontrada{filtradas.length !== 1 ? 's' : ''}</p>
+      )}
+
       {/* Tabla escritorio */}
       <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm">
@@ -151,7 +193,7 @@ export default function Citas() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {citas.map(c => (
+            {filtradas.map(c => (
               <tr key={c.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-4 py-3 font-medium text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</td>
                 <td className="px-4 py-3 text-gray-600">{c.profesional_nombre} {c.profesional_apellido}</td>
@@ -166,8 +208,8 @@ export default function Citas() {
                 </td>
               </tr>
             ))}
-            {citas.length === 0 && (
-              <tr><td colSpan="6" className="px-4 py-6 text-center text-gray-400">No hay citas registradas</td></tr>
+            {filtradas.length === 0 && (
+              <tr><td colSpan="6" className="px-4 py-6 text-center text-gray-400">{busqueda || filtroEstado ? 'No se encontraron resultados' : 'No hay citas registradas'}</td></tr>
             )}
           </tbody>
         </table>
@@ -175,7 +217,7 @@ export default function Citas() {
 
       {/* Tarjetas móvil */}
       <div className="md:hidden flex flex-col gap-3">
-        {citas.map(c => (
+        {filtradas.map(c => (
           <div key={c.id} className="bg-white rounded-xl shadow p-4">
             <div className="flex justify-between items-start mb-2">
               <div>
@@ -192,8 +234,8 @@ export default function Citas() {
             </div>
           </div>
         ))}
-        {citas.length === 0 && (
-          <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">No hay citas registradas</div>
+        {filtradas.length === 0 && (
+          <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">{busqueda || filtroEstado ? 'No se encontraron resultados' : 'No hay citas registradas'}</div>
         )}
       </div>
     </div>

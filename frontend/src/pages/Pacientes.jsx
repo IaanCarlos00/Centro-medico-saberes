@@ -6,6 +6,7 @@ const API = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
 
 export default function Pacientes() {
   const [pacientes, setPacientes] = useState([])
+  const [busqueda, setBusqueda] = useState('')
   const [form, setForm] = useState({ rut: '', nombre: '', apellido: '', fecha_nacimiento: '', telefono: '', email: '' })
   const [editando, setEditando] = useState(null)
   const [errores, setErrores] = useState({})
@@ -76,6 +77,17 @@ export default function Pacientes() {
     </div>
   )
 
+  const filtrados = pacientes.filter(p => {
+    const q = busqueda.toLowerCase()
+    return (
+      p.nombre.toLowerCase().includes(q) ||
+      p.apellido.toLowerCase().includes(q) ||
+      p.rut.toLowerCase().includes(q) ||
+      (p.telefono && p.telefono.includes(q)) ||
+      (p.email && p.email.toLowerCase().includes(q))
+    )
+  })
+
   if (pacienteSeleccionado) {
     return <Fichas paciente={pacienteSeleccionado} onVolver={() => setPacienteSeleccionado(null)} />
   }
@@ -114,6 +126,21 @@ export default function Pacientes() {
         </div>
       </div>
 
+      {/* Barra de búsqueda */}
+      <div className="mb-4 relative">
+        <input
+          className="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-green-400"
+          placeholder="Buscar por nombre, apellido, RUT, teléfono o email..."
+          value={busqueda}
+          onChange={e => setBusqueda(e.target.value)}
+        />
+        <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
+        {busqueda && (
+          <button onClick={() => setBusqueda('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">✕</button>
+        )}
+      </div>
+      {busqueda && <p className="text-sm text-gray-500 mb-3">{filtrados.length} resultado{filtrados.length !== 1 ? 's' : ''} encontrado{filtrados.length !== 1 ? 's' : ''}</p>}
+
       {/* Tabla escritorio */}
       <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm">
@@ -129,7 +156,7 @@ export default function Pacientes() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {pacientes.map(p => (
+            {filtrados.map(p => (
               <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-4 py-3 text-gray-600">{p.rut}</td>
                 <td className="px-4 py-3 font-medium text-gray-800">{p.nombre}</td>
@@ -144,8 +171,8 @@ export default function Pacientes() {
                 </td>
               </tr>
             ))}
-            {pacientes.length === 0 && (
-              <tr><td colSpan="7" className="px-4 py-6 text-center text-gray-400">No hay pacientes registrados</td></tr>
+            {filtrados.length === 0 && (
+              <tr><td colSpan="7" className="px-4 py-6 text-center text-gray-400">{busqueda ? 'No se encontraron resultados' : 'No hay pacientes registrados'}</td></tr>
             )}
           </tbody>
         </table>
@@ -153,7 +180,7 @@ export default function Pacientes() {
 
       {/* Tarjetas móvil */}
       <div className="md:hidden flex flex-col gap-3">
-        {pacientes.map(p => (
+        {filtrados.map(p => (
           <div key={p.id} className="bg-white rounded-xl shadow p-4">
             <div className="flex justify-between items-start mb-2">
               <div>
@@ -173,8 +200,8 @@ export default function Pacientes() {
             </div>
           </div>
         ))}
-        {pacientes.length === 0 && (
-          <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">No hay pacientes registrados</div>
+        {filtrados.length === 0 && (
+          <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">{busqueda ? 'No se encontraron resultados' : 'No hay pacientes registrados'}</div>
         )}
       </div>
     </div>
