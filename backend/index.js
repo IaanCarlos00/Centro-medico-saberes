@@ -7,6 +7,7 @@ const profesionalesRouter = require('./routes/profesionales');
 const citasRouter = require('./routes/citas');
 const fichasRouter = require('./routes/fichas');
 const authRouter = require('./routes/auth');
+const dashboardRouter = require('./routes/dashboard');
 
 const app = express();
 const PORT = 3000;
@@ -20,6 +21,7 @@ app.use('/profesionales', profesionalesRouter);
 app.use('/citas', citasRouter);
 app.use('/fichas', fichasRouter);
 app.use('/auth', authRouter);
+app.use('/dashboard', dashboardRouter);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
