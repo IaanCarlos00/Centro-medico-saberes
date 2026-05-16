@@ -259,27 +259,27 @@ export default function FichaIngreso1({ paciente, onVolver }) {
         </div>
       )}
 
-      {!mostrarForm && (
-        <div className="flex flex-col gap-4">
-          {fichas.map(f => (
-            <div key={f.id} className="bg-white rounded-xl shadow p-5 border-l-4 border-green-600">
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <p className="text-xs text-gray-400">{new Date(f.fecha).toLocaleDateString('es-CL')}</p>
-                  <p className="text-sm text-gray-600 mt-0.5">Atendido por: <span className="font-medium">{f.profesional_nombre} {f.profesional_apellido}</span></p>
-                  {f.motivo_consulta && <p className="text-sm text-gray-700 mt-1"><span className="font-semibold">Motivo:</span> {f.motivo_consulta}</p>}
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => imprimirPDF(f)} className="text-blue-600 hover:underline text-sm font-medium">PDF</button>
-                  <button onClick={() => editar(f)} className="text-green-700 hover:underline text-sm font-medium">Editar</button>
-                  <button onClick={() => eliminar(f.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
+      {fichas.length > 0 && (
+        <div>
+          <h3 className="text-lg font-bold text-gray-700 mb-3">Fichas anteriores</h3>
+          <div className="flex flex-col gap-4">
+            {fichas.map(f => (
+              <div key={f.id} className="bg-white rounded-xl shadow p-5 border-l-4 border-orange-500">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <p className="text-xs text-gray-400">{new Date(f.fecha).toLocaleDateString('es-CL')}</p>
+                    <p className="text-sm text-gray-600 mt-0.5">Atendido por: <span className="font-medium">{f.profesional_nombre} {f.profesional_apellido}</span></p>
+                    {f.motivo_consulta && <p className="text-sm text-gray-700 mt-1"><span className="font-semibold">Motivo:</span> {f.motivo_consulta}</p>}
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => imprimirPDF(f)} className="text-blue-600 hover:underline text-sm font-medium">PDF</button>
+                    <button onClick={() => editar(f)} className="text-green-700 hover:underline text-sm font-medium">Editar</button>
+                    <button onClick={() => eliminar(f.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-          {fichas.length === 0 && (
-            <div className="bg-white rounded-xl shadow p-8 text-center text-gray-400">No hay fichas de ingreso registradas</div>
-          )}
+            ))}
+          </div>
         </div>
       )}
     </div>
