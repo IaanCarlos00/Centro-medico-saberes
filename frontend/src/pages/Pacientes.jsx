@@ -181,22 +181,28 @@ export default function Pacientes() {
   }
 
   const guardar = async () => {
-    const e = validar()
-    if (Object.keys(e).length > 0) { setErrores(e); return }
-    if (editando) {
-      await axios.put(`${API}/${editando}`, form)
-      setEditando(null)
-      setForm({ nombre: '', apellido: '', rut: '', fecha_nacimiento: '', telefono: '', email: '' })
-      setErrores({})
-      cargar()
-    } else {
-      const res = await axios.post(API, form)
-      setForm({ nombre: '', apellido: '', rut: '', fecha_nacimiento: '', telefono: '', email: '' })
-      setErrores({})
-      cargar()
-      setModalAgendar(res.data)
-    }
+  const e = validar()
+  if (Object.keys(e).length > 0) { setErrores(e); return }
+  
+  // Compensar UTC-4 de Chile sumando 4 horas
+  const fecha = new Date(form.fecha_hora)
+  fecha.setHours(fecha.getHours() + 4)
+  const fechaCorregida = fecha.toISOString().slice(0, 16)
+  const formCorregido = { ...form, fecha_hora: fechaCorregida }
+
+  if (editando) {
+    await axios.put(`${API}/${editando}`, formCorregido)
+    setEditando(null)
+  } else {
+    await axios.post(API, formCorregido)
   }
+  setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+  setBusquedaPaciente('')
+  setHistorialPaciente([])
+  setErrores({})
+  setMostrarFormulario(false)
+  cargar()
+}
 
   const editar = p => {
     setForm({ nombre: p.nombre, apellido: p.apellido, rut: p.rut || '', fecha_nacimiento: p.fecha_nacimiento?.slice(0,10) || '', telefono: p.telefono || '', email: p.email || '' })

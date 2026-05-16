@@ -127,9 +127,10 @@ export default function Agenda() {
   const e = validar()
   if (Object.keys(e).length > 0) { setErrores(e); return }
   
-  // Convertir fecha_hora local a formato sin conversión de zona horaria
-  const fechaLocal = form.fecha_hora // "2026-05-16T14:00"
-  const fechaCorregida = fechaLocal + ':00' // "2026-05-16T14:00:00"
+  // Compensar UTC-4 de Chile sumando 4 horas
+  const fecha = new Date(form.fecha_hora)
+  fecha.setHours(fecha.getHours() + 4)
+  const fechaCorregida = fecha.toISOString().slice(0, 16)
   const formCorregido = { ...form, fecha_hora: fechaCorregida }
 
   if (editando) {
@@ -138,14 +139,13 @@ export default function Agenda() {
   } else {
     await axios.post(API, formCorregido)
   }
-  
-    setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
-    setBusquedaPaciente('')
-    setHistorialPaciente([])
-    setErrores({})
-    setMostrarFormulario(false)
-    cargar()
-  }
+  setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+  setBusquedaPaciente('')
+  setHistorialPaciente([])
+  setErrores({})
+  setMostrarFormulario(false)
+  cargar()
+}
 
   const editar = c => {
     setForm({ paciente_id: c.paciente_id, profesional_id: c.profesional_id, fecha_hora: c.fecha_hora?.slice(0,16), estado: c.estado, observaciones: c.observaciones || '' })
