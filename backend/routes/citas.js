@@ -6,7 +6,9 @@ const pool = require('../db');
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT c.id, c.paciente_id, c.profesional_id, c.fecha_hora, c.estado, c.observaciones,
+      SELECT c.id, c.paciente_id, c.profesional_id, 
+             TO_CHAR(c.fecha_hora, 'YYYY-MM-DD HH24:MI:SS') AS fecha_hora,
+             c.estado, c.observaciones,
              p.nombre AS paciente_nombre, p.apellido AS paciente_apellido,
              pr.nombre AS profesional_nombre, pr.apellido AS profesional_apellido
       FROM cita c
@@ -23,7 +25,10 @@ router.get('/', async (req, res) => {
 // Obtener una cita por id
 router.get('/:id', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM cita WHERE id = $1', [req.params.id]);
+    const result = await pool.query(
+      "SELECT *, TO_CHAR(fecha_hora, 'YYYY-MM-DD HH24:MI:SS') AS fecha_hora FROM cita WHERE id = $1",
+      [req.params.id]
+    );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Cita no encontrada' });
     res.json(result.rows[0]);
   } catch (error) {
@@ -36,7 +41,7 @@ router.post('/', async (req, res) => {
   const { paciente_id, profesional_id, fecha_hora, estado, observaciones } = req.body
   try {
     const result = await pool.query(
-      "INSERT INTO cita (paciente_id, profesional_id, fecha_hora, estado, observaciones) VALUES ($1,$2,$3::timestamp,$4,$5) RETURNING *",
+      "INSERT INTO cita (paciente_id, profesional_id, fecha_hora, estado, observaciones) VALUES ($1,$2,$3::timestamp,$4,$5) RETURNING *, TO_CHAR(fecha_hora, 'YYYY-MM-DD HH24:MI:SS') AS fecha_hora",
       [paciente_id, profesional_id, fecha_hora, estado || 'pendiente', observaciones]
     )
     res.status(201).json(result.rows[0])
@@ -50,7 +55,7 @@ router.put('/:id', async (req, res) => {
   const { paciente_id, profesional_id, fecha_hora, estado, observaciones } = req.body
   try {
     const result = await pool.query(
-      "UPDATE cita SET paciente_id=$1, profesional_id=$2, fecha_hora=$3::timestamp, estado=$4, observaciones=$5 WHERE id=$6 RETURNING *",
+      "UPDATE cita SET paciente_id=$1, profesional_id=$2, fecha_hora=$3::timestamp, estado=$4, observaciones=$5 WHERE id=$6 RETURNING *, TO_CHAR(fecha_hora, 'YYYY-MM-DD HH24:MI:SS') AS fecha_hora",
       [paciente_id, profesional_id, fecha_hora, estado, observaciones, req.params.id]
     )
     if (result.rows.length === 0) return res.status(404).json({ error: 'Cita no encontrada' })
