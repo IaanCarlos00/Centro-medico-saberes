@@ -10,6 +10,7 @@ import Login from './pages/Login'
 import Bloqueos from './pages/Bloqueos'
 import Usuarios from './pages/Usuarios'
 import Reportes from './pages/Reportes'
+import CambiarPassword from './pages/CambiarPassword'
 
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
@@ -75,6 +76,7 @@ function Layout({ usuario, onLogout }) {
             {links.map(l => <NavLink key={l.to} to={l.to}>{l.label}</NavLink>)}
             <div className="ml-4 flex items-center gap-3 border-l border-green-600 pl-4">
               <span className="text-green-200 text-sm">Hola, {usuario.nombre}</span>
+              <Link to="/cambiar-password" className="text-green-200 hover:text-white text-sm">🔑</Link>
               <button onClick={onLogout} className="text-white bg-green-600 hover:bg-green-500 px-3 py-1 rounded-lg text-sm font-medium transition-colors">Salir</button>
             </div>
           </div>
@@ -85,6 +87,7 @@ function Layout({ usuario, onLogout }) {
             {links.map(l => <NavLink key={l.to} to={l.to} onClick={() => setMenuAbierto(false)}>{l.label}</NavLink>)}
             <div className="border-t border-green-700 pt-2 mt-1">
               <span className="text-green-200 text-sm block px-4 py-1">Hola, {usuario.nombre}</span>
+              <Link to="/cambiar-password" className="text-green-200 hover:text-white text-sm block px-4 py-2">🔑 Cambiar contraseña</Link>
               <button onClick={onLogout} className="text-white text-sm font-medium px-4 py-2 hover:bg-green-700 rounded-lg w-full text-left">Cerrar sesión</button>
             </div>
           </div>
@@ -101,6 +104,7 @@ function Layout({ usuario, onLogout }) {
             <Route path="/pagos" element={<Pagos />} />
             <Route path="/usuarios" element={<Usuarios />} />
             <Route path="/reportes" element={<Reportes />} />
+            <Route path="/cambiar-password" element={<CambiarPassword />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}
 
@@ -108,6 +112,7 @@ function Layout({ usuario, onLogout }) {
             <Route path="/" element={<Navigate to="/pacientes" />} />
             <Route path="/pacientes" element={<Pacientes />} />
             <Route path="/citas" element={<Agenda />} />
+            <Route path="/cambiar-password" element={<CambiarPassword />} />
             <Route path="*" element={<Navigate to="/pacientes" />} />
           </>}
 
@@ -116,6 +121,7 @@ function Layout({ usuario, onLogout }) {
             <Route path="/pacientes" element={<Pacientes />} />
             <Route path="/pagos" element={<Pagos />} />
             <Route path="/bloqueos" element={<Bloqueos />} />
+            <Route path="/cambiar-password" element={<CambiarPassword />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}
         </Routes>
