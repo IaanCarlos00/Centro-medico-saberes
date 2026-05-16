@@ -167,13 +167,24 @@ export default function Agenda() {
     setMostrarFormulario(false)
   }
 
-  const eventos = citas.map(c => ({
+  const eventos = [
+  ...citas.map(c => ({
     id: c.id,
     title: `${c.paciente_nombre} ${c.paciente_apellido}`,
     start: new Date(c.fecha_hora),
     end: new Date(new Date(c.fecha_hora).getTime() + 30 * 60000),
     resource: c,
+    tipo: 'cita'
+  })),
+  ...bloqueos.map(b => ({
+    id: `bloqueo-${b.id}`,
+    title: `🚫 Bloqueado${b.motivo ? ': ' + b.motivo : ''}${b.creado_por_nombre ? ' (' + b.creado_por_nombre + ')' : ''}`,
+    start: new Date(b.fecha_inicio),
+    end: new Date(b.fecha_fin),
+    resource: b,
+    tipo: 'bloqueo'
   }))
+]
 
   const filtradas = citas.filter(c => {
     const q = busqueda.toLowerCase()
@@ -338,12 +349,22 @@ export default function Agenda() {
               step={30}
               timeslots={1}
               eventPropGetter={evento => ({
-                style: {
-                  backgroundColor: estadoColor[evento.resource.estado]?.bg || '#6b7280',
-                  borderRadius: '6px', border: 'none', color: 'white', fontSize: '12px', padding: '2px 6px', cursor: 'pointer'
-                }
-              })}
-              onSelectEvent={e => setCitaSeleccionada(e.resource)}
+              style: {
+                backgroundColor: evento.tipo === 'bloqueo' ? '#ef4444' :
+                  estadoColor[evento.resource?.estado]?.bg || '#6b7280',
+                borderRadius: '6px',
+                border: 'none',
+                color: 'white',
+                fontSize: '12px',
+                padding: '2px 6px',
+                cursor: 'pointer',
+                opacity: evento.tipo === 'bloqueo' ? 0.85 : 1
+              }
+            })}
+            onSelectEvent={e => {
+                if (e.tipo === 'bloqueo') return
+                setCitaSeleccionada(e.resource)
+                }}
               style={{ height: '100%' }}
             />
           </div>
