@@ -36,7 +36,7 @@ router.post('/', async (req, res) => {
   const { paciente_id, profesional_id, fecha_hora, estado, observaciones } = req.body
   try {
     const result = await pool.query(
-      "INSERT INTO cita (paciente_id, profesional_id, fecha_hora, estado, observaciones) VALUES ($1,$2,$3::timestamp AT TIME ZONE 'America/Santiago',$4,$5) RETURNING *",
+      "INSERT INTO cita (paciente_id, profesional_id, fecha_hora, estado, observaciones) VALUES ($1,$2,$3,$4,$5) RETURNING *",
       [paciente_id, profesional_id, fecha_hora, estado || 'pendiente', observaciones]
     )
     res.status(201).json(result.rows[0])
@@ -50,7 +50,7 @@ router.put('/:id', async (req, res) => {
   const { paciente_id, profesional_id, fecha_hora, estado, observaciones } = req.body
   try {
     const result = await pool.query(
-      "UPDATE cita SET paciente_id=$1, profesional_id=$2, fecha_hora=$3::timestamp AT TIME ZONE 'America/Santiago', estado=$4, observaciones=$5 WHERE id=$6 RETURNING *",
+      "UPDATE cita SET paciente_id=$1, profesional_id=$2, fecha_hora=$3, estado=$4, observaciones=$5 WHERE id=$6 RETURNING *",
       [paciente_id, profesional_id, fecha_hora, estado, observaciones, req.params.id]
     )
     if (result.rows.length === 0) return res.status(404).json({ error: 'Cita no encontrada' })
