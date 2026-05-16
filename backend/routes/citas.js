@@ -36,7 +36,8 @@ router.post('/', async (req, res) => {
   const { paciente_id, profesional_id, fecha_hora, estado, observaciones } = req.body
   try {
     const result = await pool.query(
-      "INSERT INTO cita (paciente_id, profesional_id, fecha_hora, estado, observaciones) VALUES ($1,$2,$3,$4,$5) RETURNING *",
+      // En el INSERT
+      "INSERT INTO cita (paciente_id, profesional_id, fecha_hora, estado, observaciones) VALUES ($1,$2,$3::timestamp,$4,$5) RETURNING *",
       [paciente_id, profesional_id, fecha_hora, estado || 'pendiente', observaciones]
     )
     res.status(201).json(result.rows[0])

@@ -124,14 +124,21 @@ export default function Agenda() {
   }
 
   const guardar = async () => {
-    const e = validar()
-    if (Object.keys(e).length > 0) { setErrores(e); return }
-    if (editando) {
-      await axios.put(`${API}/${editando}`, form)
-      setEditando(null)
-    } else {
-      await axios.post(API, form)
-    }
+  const e = validar()
+  if (Object.keys(e).length > 0) { setErrores(e); return }
+  
+  // Convertir fecha_hora local a formato sin conversión de zona horaria
+  const fechaLocal = form.fecha_hora // "2026-05-16T14:00"
+  const fechaCorregida = fechaLocal + ':00' // "2026-05-16T14:00:00"
+  const formCorregido = { ...form, fecha_hora: fechaCorregida }
+
+  if (editando) {
+    await axios.put(`${API}/${editando}`, formCorregido)
+    setEditando(null)
+  } else {
+    await axios.post(API, formCorregido)
+  }
+  
     setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
     setBusquedaPaciente('')
     setHistorialPaciente([])
