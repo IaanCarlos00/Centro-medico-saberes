@@ -86,7 +86,7 @@ export default function Agenda() {
 
   const pacientesFiltrados = pacientes.filter(p => {
     const q = busquedaPaciente.toLowerCase()
-    return p.nombre.toLowerCase().includes(q) || p.apellido.toLowerCase().includes(q) || p.rut.toLowerCase().includes(q)
+    return (p.nombre || '').toLowerCase().includes(q) || (p.apellido || '').toLowerCase().includes(q) || (p.rut || '').toLowerCase().includes(q)
   }).slice(0, 8)
 
   const seleccionarPaciente = async p => {
@@ -167,8 +167,8 @@ export default function Agenda() {
   const filtradas = citas.filter(c => {
     const q = busqueda.toLowerCase()
     const coincideBusqueda = !busqueda ||
-      `${c.paciente_nombre} ${c.paciente_apellido}`.toLowerCase().includes(q) ||
-      `${c.profesional_nombre} ${c.profesional_apellido}`.toLowerCase().includes(q) ||
+      `${c.paciente_nombre || ''} ${c.paciente_apellido || ''}`.toLowerCase().includes(q) ||
+      `${c.profesional_nombre || ''} ${c.profesional_apellido || ''}`.toLowerCase().includes(q) ||
       (c.observaciones && c.observaciones.toLowerCase().includes(q))
     const coincideEstado = !filtroEstado || c.estado === filtroEstado
     return coincideBusqueda && coincideEstado
