@@ -148,7 +148,15 @@ export default function InicioMatrona({ usuario }) {
     return (
       <div>
         <div className="flex items-center gap-3 mb-4 flex-wrap">
-          <button onClick={() => { setPacienteAtendiendo(null); setCitaAtendiendo(null); cargar() }} className="text-green-700 hover:underline text-sm font-medium">← Volver a agenda</button>
+          <button onClick={() => {
+  if (confirm('¿Deseas finalizar la atención?\n\nAcepta = Finalizar y marcar como realizada\nCancela = Solo volver, retomar después')) {
+    finalizarAtencion()
+  } else {
+    setPacienteAtendiendo(null)
+    setCitaAtendiendo(null)
+    cargar()
+  }
+}} className="text-green-700 hover:underline text-sm font-medium">← Volver a agenda</button>
           <span className="text-gray-400">·</span>
           <span className="text-sm text-gray-500">Atendiendo a <strong>{pacienteAtendiendo.nombre} {pacienteAtendiendo.apellido}</strong></span>
           <button onClick={finalizarAtencion} className="ml-auto bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-800">
