@@ -89,6 +89,7 @@ export default function InicioMatrona({ usuario }) {
     setCargando(true)
     try {
       const [c, p] = await Promise.all([axios.get(API_CITAS), axios.get(API_PAC)])
+      console.log('Primera cita:', c.data[0])
       const hoyStr = new Date().toISOString().slice(0, 10)
       const citasHoy = c.data
         .filter(ci => ci.fecha_hora?.slice(0, 10) === hoyStr)
