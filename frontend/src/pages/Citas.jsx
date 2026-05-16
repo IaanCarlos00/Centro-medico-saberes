@@ -9,6 +9,7 @@ import dayjs from 'dayjs'
 const API = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
 const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
+const API_BLOQUEOS = 'https://centro-medico-saberes-production.up.railway.app/bloqueos'
 
 const localizer = dateFnsLocalizer({
   format: (date, formatStr, options) => format(date, formatStr, { locale: es, ...options }),
@@ -34,7 +35,7 @@ const estadoColor = {
 const HORA_MIN = '08:30'
 const HORA_MAX = '19:30'
 
-function validarFechaHora(fechaHora) {
+function validarFechaHora(fechaHora, bloqueos = []) {
   if (!fechaHora) return 'La hora de la cita es obligatoria'
   const fecha = new Date(fechaHora)
   const ahora = new Date()
@@ -45,6 +46,14 @@ function validarFechaHora(fechaHora) {
   if (diaSemana === 0) return 'No se pueden agendar citas los domingos'
   if (hora < '08:30') return 'La primera hora disponible es 08:30'
   if (hora > '19:30') return 'La última hora disponible es 19:30'
+
+  const bloqueado = bloqueos.find(b => {
+    const inicio = new Date(b.fecha_inicio)
+    const fin = new Date(b.fecha_fin)
+    return fecha >= inicio && fecha <= fin
+  })
+  if (bloqueado) return `Horario bloqueado${bloqueado.motivo ? ': ' + bloqueado.motivo : ''}`
+
   return null
 }
 
@@ -65,14 +74,16 @@ export default function Agenda() {
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('')
   const [historialPaciente, setHistorialPaciente] = useState([])
+  const [bloqueos, setBloqueos] = useState([])
   const dropdownRef = useRef(null)
 
   const cargar = async () => {
-    const [c, p, pr] = await Promise.all([axios.get(API), axios.get(API_PAC), axios.get(API_PRO)])
-    setCitas(c.data)
-    setPacientes(p.data)
-    setProfesionales(pr.data)
-  }
+  const [c, p, pr, bl] = await Promise.all([axios.get(API), axios.get(API_PAC), axios.get(API_PRO), axios.get(API_BLOQUEOS)])
+  setCitas(c.data)
+  setPacientes(p.data)
+  setProfesionales(pr.data)
+  setBloqueos(bl.data)
+}
 
   useEffect(() => { cargar() }, [])
 
@@ -107,7 +118,7 @@ export default function Agenda() {
     const e = {}
     if (!form.paciente_id) e.paciente_id = 'Selecciona un paciente'
     if (!form.profesional_id) e.profesional_id = 'Selecciona un profesional'
-    const errorFecha = validarFechaHora(form.fecha_hora)
+    const errorFecha = validarFechaHora(form.fecha_hora, bloqueos)
     if (errorFecha) e.fecha_hora = errorFecha
     return e
   }
