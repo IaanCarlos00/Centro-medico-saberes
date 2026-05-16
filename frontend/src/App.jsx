@@ -7,6 +7,7 @@ import Pagos from './pages/Pagos'
 import Inicio from './pages/Inicio'
 import InicioMatrona from './pages/InicioMatrona'
 import Login from './pages/Login'
+import Bloqueos from './pages/Bloqueos'
 
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
@@ -40,8 +41,9 @@ function Layout({ usuario, onLogout }) {
   ]
 
   const linksMatrona = [
-    { to: '/', label: 'Mi Agenda' },
-  ]
+  { to: '/', label: 'Mi Agenda' },
+  { to: '/bloqueos', label: 'Bloquear horarios' },
+]
 
   const links = rol === 'admin' ? linksAdmin : rol === 'secretaria' ? linksSecretaria : linksMatrona
 
@@ -107,6 +109,7 @@ function Layout({ usuario, onLogout }) {
           {/* Matrona */}
           {rol === 'matrona' && <>
             <Route path="/" element={<InicioMatrona usuario={usuario} />} />
+            <Route path="/bloqueos" element={<Bloqueos />} />
           </>}
 
           <Route path="*" element={<Navigate to="/" />} />
