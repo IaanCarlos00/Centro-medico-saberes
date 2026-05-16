@@ -49,7 +49,7 @@ export default function FichaIngreso1({ paciente, onVolver }) {
   const [profesionales, setProfesionales] = useState([])
   const [form, setForm] = useState(campoVacio)
   const [editando, setEditando] = useState(null)
-  const [mostrarForm, setMostrarForm] = useState(false)
+  const [mostrarForm, setMostrarForm] = useState(true)
   const [viendoFicha, setViendoFicha] = useState(null)
 
   const cargar = async () => {
@@ -180,12 +180,6 @@ export default function FichaIngreso1({ paciente, onVolver }) {
         <h2 className="text-xl font-bold text-green-800">Ficha de Ingreso — Matrona 1</h2>
         <span className="text-gray-400 text-sm">/ {paciente.nombre} {paciente.apellido}</span>
       </div>
-
-      {!mostrarForm && !viendoFicha && (
-        <button onClick={() => setMostrarForm(true)} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium mb-6">
-          + Nueva ficha
-        </button>
-      )}
 
       {mostrarForm && (
         <div className="bg-white rounded-xl shadow p-6 mb-6">
