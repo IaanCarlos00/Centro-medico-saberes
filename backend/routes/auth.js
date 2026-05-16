@@ -44,4 +44,25 @@ router.post('/registro', async (req, res) => {
   }
 })
 
+// Obtener todos los usuarios (solo admin)
+router.get('/usuarios', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id, nombre, email, rol, activo, creado_en FROM usuario ORDER BY creado_en DESC')
+    res.json(result.rows)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// Actualizar usuario (activar/desactivar)
+router.put('/usuarios/:id', async (req, res) => {
+  const { activo } = req.body
+  try {
+    const result = await pool.query('UPDATE usuario SET activo=$1 WHERE id=$2 RETURNING id, nombre, email, rol, activo', [activo, req.params.id])
+    res.json(result.rows[0])
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
 module.exports = router

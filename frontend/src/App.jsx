@@ -8,6 +8,7 @@ import Inicio from './pages/Inicio'
 import InicioMatrona from './pages/InicioMatrona'
 import Login from './pages/Login'
 import Bloqueos from './pages/Bloqueos'
+import Usuarios from './pages/Usuarios'
 
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
@@ -31,6 +32,7 @@ function Layout({ usuario, onLogout }) {
     { to: '/profesionales', label: 'Profesionales' },
     { to: '/citas', label: 'Agenda' },
     { to: '/pagos', label: 'Pagos' },
+    { to: '/usuarios', label: 'Usuarios' }
   ]
 
   const linksSecretaria = [
@@ -96,6 +98,7 @@ function Layout({ usuario, onLogout }) {
             <Route path="/profesionales" element={<Profesionales />} />
             <Route path="/citas" element={<Agenda />} />
             <Route path="/pagos" element={<Pagos />} />
+            <Route path="/usuarios" element={<Usuarios />} />
           </>}
 
           {/* Secretaria */}
