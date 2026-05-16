@@ -114,7 +114,17 @@ export default function InicioMatrona({ usuario }) {
   const iniciarAtencion = async cita => {
     const paciente = getPaciente(cita.paciente_id)
     if (necesitaCompletar(paciente)) {
-      setModalCompletar({ paciente: paciente || { id: cita.paciente_id, nombre: cita.paciente_nombre, apellido: cita.paciente_apellido }, cita })
+      setModalCompletar({ 
+  paciente: paciente || { 
+    id: parseInt(cita.paciente_id), 
+    nombre: cita.paciente_nombre, 
+    apellido: cita.paciente_apellido,
+    rut: null,
+    fecha_nacimiento: null,
+    telefono: null
+  }, 
+  cita 
+})
     } else {
       await cambiarEstado(cita.id, cita, 'en_atencion')
       setPacienteAtendiendo(paciente)
