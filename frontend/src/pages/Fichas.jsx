@@ -268,6 +268,45 @@ export default function Fichas({ paciente, onVolver }) {
           </div>
         </div>
       )}
+      {/* Últimas fichas ingreso 1 */}
+      {fichasI1.length > 0 && (
+        <div className="bg-white rounded-xl shadow p-5 mt-4">
+          <h3 className="text-lg font-bold text-gray-700 mb-3">Últimas fichas de ingreso — Matrona 1</h3>
+          <div className="flex flex-col gap-3">
+            {fichasI1.slice(0, 3).map(f => (
+              <div key={f.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
+                <div>
+                  <p className="font-medium text-gray-800">{f.motivo_consulta}</p>
+                  <p className="text-xs text-gray-400">{new Date(f.fecha).toLocaleDateString('es-CL')} · {f.profesional_nombre} {f.profesional_apellido}</p>
+                </div>
+              </div>
+            ))}
+            {fichasI1.length > 3 && (
+              <button onClick={() => setVista('ingreso1')} className="text-orange-600 text-xs hover:underline text-left">Ver todas ({fichasI1.length})</button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Últimas fichas ingreso 2 */}
+      {fichasI2.length > 0 && (
+        <div className="bg-white rounded-xl shadow p-5 mt-4">
+          <h3 className="text-lg font-bold text-gray-700 mb-3">Últimas fichas de ingreso — Matrona 2</h3>
+          <div className="flex flex-col gap-3">
+            {fichasI2.slice(0, 3).map(f => (
+              <div key={f.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
+                <div>
+                  <p className="font-medium text-gray-800">{f.motivo_consulta}</p>
+                  <p className="text-xs text-gray-400">{new Date(f.fecha).toLocaleDateString('es-CL')} · {f.profesional_nombre} {f.profesional_apellido}</p>
+                </div>
+              </div>
+            ))}
+            {fichasI2.length > 3 && (
+              <button onClick={() => setVista('ingreso2')} className="text-blue-600 text-xs hover:underline text-left">Ver todas ({fichasI2.length})</button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
