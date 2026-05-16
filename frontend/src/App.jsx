@@ -36,14 +36,13 @@ function Layout({ usuario, onLogout }) {
   ]
 
   const linksSecretaria = [
-    { to: '/', label: 'Inicio' },
-    { to: '/pacientes', label: 'Pacientes' },
-    { to: '/citas', label: 'Agenda' },
-    { to: '/pagos', label: 'Pagos' },
-  ]
+  { to: '/pacientes', label: 'Pacientes' },
+  { to: '/citas', label: 'Agenda' },
+]
 
-  const linksMatrona = [
+const linksMatrona = [
   { to: '/', label: 'Mi Agenda' },
+  { to: '/pagos', label: 'Pagos' },
   { to: '/bloqueos', label: 'Bloquear horarios' },
 ]
 
@@ -101,19 +100,19 @@ function Layout({ usuario, onLogout }) {
             <Route path="/usuarios" element={<Usuarios />} />
           </>}
 
-          {/* Secretaria */}
           {rol === 'secretaria' && <>
-            <Route path="/" element={<Inicio />} />
-            <Route path="/pacientes" element={<Pacientes />} />
-            <Route path="/citas" element={<Agenda />} />
-            <Route path="/pagos" element={<Pagos />} />
-          </>}
+  <Route path="/" element={<Navigate to="/pacientes" />} />
+  <Route path="/pacientes" element={<Pacientes />} />
+  <Route path="/citas" element={<Agenda />} />
+  <Route path="*" element={<Navigate to="/pacientes" />} />
+</>}
 
-          {/* Matrona */}
-          {rol === 'matrona' && <>
-            <Route path="/" element={<InicioMatrona usuario={usuario} />} />
-            <Route path="/bloqueos" element={<Bloqueos />} />
-          </>}
+{rol === 'matrona' && <>
+  <Route path="/" element={<InicioMatrona usuario={usuario} />} />
+  <Route path="/pagos" element={<Pagos />} />
+  <Route path="/bloqueos" element={<Bloqueos />} />
+  <Route path="*" element={<Navigate to="/" />} />
+</>}
 
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
