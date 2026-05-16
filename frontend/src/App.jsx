@@ -32,19 +32,20 @@ function Layout({ usuario, onLogout }) {
     { to: '/profesionales', label: 'Profesionales' },
     { to: '/citas', label: 'Agenda' },
     { to: '/pagos', label: 'Pagos' },
-    { to: '/usuarios', label: 'Usuarios' }
+    { to: '/usuarios', label: 'Usuarios' },
   ]
 
   const linksSecretaria = [
-  { to: '/pacientes', label: 'Pacientes' },
-  { to: '/citas', label: 'Agenda' },
-]
+    { to: '/pacientes', label: 'Pacientes' },
+    { to: '/citas', label: 'Agenda' },
+  ]
 
-const linksMatrona = [
-  { to: '/', label: 'Mi Agenda' },
-  { to: '/pagos', label: 'Pagos' },
-  { to: '/bloqueos', label: 'Bloquear horarios' },
-]
+  const linksMatrona = [
+    { to: '/', label: 'Mi Agenda' },
+    { to: '/pacientes', label: 'Pacientes' },
+    { to: '/pagos', label: 'Pagos' },
+    { to: '/bloqueos', label: 'Bloquear horarios' },
+  ]
 
   const links = rol === 'admin' ? linksAdmin : rol === 'secretaria' ? linksSecretaria : linksMatrona
 
@@ -90,7 +91,6 @@ const linksMatrona = [
 
       <main className="max-w-6xl mx-auto p-4 md:p-6">
         <Routes>
-          {/* Admin ve todo */}
           {rol === 'admin' && <>
             <Route path="/" element={<Inicio />} />
             <Route path="/pacientes" element={<Pacientes />} />
@@ -98,23 +98,23 @@ const linksMatrona = [
             <Route path="/citas" element={<Agenda />} />
             <Route path="/pagos" element={<Pagos />} />
             <Route path="/usuarios" element={<Usuarios />} />
+            <Route path="*" element={<Navigate to="/" />} />
           </>}
 
           {rol === 'secretaria' && <>
-  <Route path="/" element={<Navigate to="/pacientes" />} />
-  <Route path="/pacientes" element={<Pacientes />} />
-  <Route path="/citas" element={<Agenda />} />
-  <Route path="*" element={<Navigate to="/pacientes" />} />
-</>}
+            <Route path="/" element={<Navigate to="/pacientes" />} />
+            <Route path="/pacientes" element={<Pacientes />} />
+            <Route path="/citas" element={<Agenda />} />
+            <Route path="*" element={<Navigate to="/pacientes" />} />
+          </>}
 
-{rol === 'matrona' && <>
-  <Route path="/" element={<InicioMatrona usuario={usuario} />} />
-  <Route path="/pagos" element={<Pagos />} />
-  <Route path="/bloqueos" element={<Bloqueos />} />
-  <Route path="*" element={<Navigate to="/" />} />
-</>}
-
-          <Route path="*" element={<Navigate to="/" />} />
+          {rol === 'matrona' && <>
+            <Route path="/" element={<InicioMatrona usuario={usuario} />} />
+            <Route path="/pacientes" element={<Pacientes />} />
+            <Route path="/pagos" element={<Pagos />} />
+            <Route path="/bloqueos" element={<Bloqueos />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </>}
         </Routes>
       </main>
     </div>

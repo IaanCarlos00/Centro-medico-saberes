@@ -16,11 +16,10 @@ function validarFechaHora(fechaHora) {
   const ahora = new Date()
   const diaSemana = fecha.getDay()
   const hora = fechaHora.slice(11, 16)
-
   if (fecha < ahora) return 'No puedes agendar en una fecha u hora que ya pasó'
   if (diaSemana === 0) return 'No se pueden agendar citas los domingos'
-  if (hora < '08:30') return 'La primera hora disponible es 08:30'
-  if (hora > '19:30') return 'La última hora disponible es 19:30'
+  if (hora < HORA_MIN) return 'La primera hora disponible es 08:30'
+  if (hora > HORA_MAX) return 'La última hora disponible es 19:30'
   return null
 }
 
@@ -56,10 +55,7 @@ function ModalAgendarCita({ paciente, profesionales, onConfirmar, onCerrar }) {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col">
             <label className="text-sm text-gray-600 mb-1">Profesional</label>
-            <select
-              className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.profesional_id ? 'border-red-400' : 'border-gray-300'}`}
-              name="profesional_id" value={form.profesional_id} onChange={handleChange}
-            >
+            <select className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.profesional_id ? 'border-red-400' : 'border-gray-300'}`} name="profesional_id" value={form.profesional_id} onChange={handleChange}>
               <option value="">Seleccionar profesional</option>
               {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
             </select>
@@ -67,12 +63,7 @@ function ModalAgendarCita({ paciente, profesionales, onConfirmar, onCerrar }) {
           </div>
           <div className="flex flex-col">
             <label className="text-sm text-gray-600 mb-1">Hora de la cita <span className="text-gray-400 text-xs">(Lun-Vie 08:30-19:30)</span></label>
-            <input
-              className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.fecha_hora ? 'border-red-400' : 'border-gray-300'}`}
-              name="fecha_hora" type="datetime-local"
-              min={`${new Date().toISOString().slice(0,10)}T08:30`}
-              value={form.fecha_hora} onChange={handleChange}
-            />
+            <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.fecha_hora ? 'border-red-400' : 'border-gray-300'}`} name="fecha_hora" type="datetime-local" min={`${new Date().toISOString().slice(0,10)}T08:30`} value={form.fecha_hora} onChange={handleChange} />
             {errores.fecha_hora && <span className="text-red-500 text-xs mt-1">{errores.fecha_hora}</span>}
           </div>
           <div className="flex flex-col">
@@ -129,26 +120,17 @@ function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col">
             <label className="text-sm text-gray-600 mb-1">RUT *</label>
-            <input
-              className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.rut ? 'border-red-400' : 'border-gray-300'}`}
-              name="rut" placeholder="12.345.678-9" value={form.rut} onChange={handleChange}
-            />
+            <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.rut ? 'border-red-400' : 'border-gray-300'}`} name="rut" placeholder="12.345.678-9" value={form.rut} onChange={handleChange} />
             {errores.rut && <span className="text-red-500 text-xs mt-1">{errores.rut}</span>}
           </div>
           <div className="flex flex-col">
             <label className="text-sm text-gray-600 mb-1">Fecha de nacimiento *</label>
-            <input
-              className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.fecha_nacimiento ? 'border-red-400' : 'border-gray-300'}`}
-              name="fecha_nacimiento" type="date" value={form.fecha_nacimiento} onChange={handleChange}
-            />
+            <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.fecha_nacimiento ? 'border-red-400' : 'border-gray-300'}`} name="fecha_nacimiento" type="date" value={form.fecha_nacimiento} onChange={handleChange} />
             {errores.fecha_nacimiento && <span className="text-red-500 text-xs mt-1">{errores.fecha_nacimiento}</span>}
           </div>
           <div className="flex flex-col">
             <label className="text-sm text-gray-600 mb-1">Teléfono *</label>
-            <input
-              className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.telefono ? 'border-red-400' : 'border-gray-300'}`}
-              name="telefono" placeholder="+56 9 1234 5678" value={form.telefono} onChange={handleChange}
-            />
+            <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.telefono ? 'border-red-400' : 'border-gray-300'}`} name="telefono" placeholder="+56 9 1234 5678" value={form.telefono} onChange={handleChange} />
             {errores.telefono && <span className="text-red-500 text-xs mt-1">{errores.telefono}</span>}
           </div>
         </div>
@@ -173,6 +155,8 @@ export default function Pacientes() {
   const [modalAgendar, setModalAgendar] = useState(null)
   const [modalCompletar, setModalCompletar] = useState(null)
   const [pendienteConfirmar, setPendienteConfirmar] = useState(null)
+
+  const rol = localStorage.getItem('rol')
 
   const cargar = async () => {
     const [p, pr, pg] = await Promise.all([axios.get(API), axios.get(API_PRO), axios.get(API_PAGOS)])
@@ -294,17 +278,11 @@ export default function Pacientes() {
         <h3 className="text-lg font-semibold text-gray-700 mb-4">{editando ? 'Editar paciente' : 'Registrar paciente'}</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <div className="flex flex-col">
-            <input
-              className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.nombre ? 'border-red-400' : 'border-gray-300'}`}
-              name="nombre" placeholder="Nombre *" value={form.nombre} onChange={handleChange}
-            />
+            <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.nombre ? 'border-red-400' : 'border-gray-300'}`} name="nombre" placeholder="Nombre *" value={form.nombre} onChange={handleChange} />
             {errores.nombre && <span className="text-red-500 text-xs mt-1">{errores.nombre}</span>}
           </div>
           <div className="flex flex-col">
-            <input
-              className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.apellido ? 'border-red-400' : 'border-gray-300'}`}
-              name="apellido" placeholder="Apellido *" value={form.apellido} onChange={handleChange}
-            />
+            <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.apellido ? 'border-red-400' : 'border-gray-300'}`} name="apellido" placeholder="Apellido *" value={form.apellido} onChange={handleChange} />
             {errores.apellido && <span className="text-red-500 text-xs mt-1">{errores.apellido}</span>}
           </div>
           <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="rut" placeholder="RUT (opcional)" value={form.rut} onChange={handleChange} />
@@ -319,19 +297,13 @@ export default function Pacientes() {
           <button onClick={guardar} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 transition-colors font-medium">
             {editando ? 'Actualizar' : 'Registrar'}
           </button>
-          {editando && (
-            <button onClick={cancelar} className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium">Cancelar</button>
-          )}
+          {editando && <button onClick={cancelar} className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium">Cancelar</button>}
         </div>
-        {!editando && <p className="text-xs text-gray-400 mt-2">Solo nombre y apellido son obligatorios para registrar. Los demás datos se pueden completar al confirmar la cita.</p>}
+        {!editando && <p className="text-xs text-gray-400 mt-2">Solo nombre y apellido son obligatorios para registrar.</p>}
       </div>
 
       <div className="mb-4 relative">
-        <input
-          className="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-green-400"
-          placeholder="Buscar por nombre, apellido, RUT, teléfono o email..."
-          value={busqueda} onChange={e => setBusqueda(e.target.value)}
-        />
+        <input className="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="Buscar por nombre, apellido, RUT, teléfono o email..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
         <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
         {busqueda && <button onClick={() => setBusqueda('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">✕</button>}
       </div>
@@ -369,7 +341,9 @@ export default function Pacientes() {
                   </div>
                 </td>
                 <td className="px-4 py-3 flex gap-2 flex-wrap">
-                  <button onClick={() => setPacienteSeleccionado(p)} className="text-blue-600 hover:underline text-sm font-medium">Fichas</button>
+                  {rol !== 'secretaria' && (
+                    <button onClick={() => setPacienteSeleccionado(p)} className="text-blue-600 hover:underline text-sm font-medium">Fichas</button>
+                  )}
                   <button onClick={() => handleAgendar(p)} className="text-green-700 hover:underline text-sm font-medium">Agendar</button>
                   <button onClick={() => editar(p)} className="text-gray-500 hover:underline text-sm font-medium">Editar</button>
                   <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
@@ -395,7 +369,9 @@ export default function Pacientes() {
                 {deudores.includes(p.id) && <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full mt-1 ml-1 inline-block">💰 Pago pendiente</span>}
               </div>
               <div className="flex gap-2 flex-wrap justify-end">
-                <button onClick={() => setPacienteSeleccionado(p)} className="text-blue-600 text-sm font-medium">Fichas</button>
+                {rol !== 'secretaria' && (
+                  <button onClick={() => setPacienteSeleccionado(p)} className="text-blue-600 text-sm font-medium">Fichas</button>
+                )}
                 <button onClick={() => handleAgendar(p)} className="text-green-700 text-sm font-medium">Agendar</button>
                 <button onClick={() => editar(p)} className="text-gray-500 text-sm font-medium">Editar</button>
                 <button onClick={() => eliminar(p.id)} className="text-red-500 text-sm font-medium">Eliminar</button>
