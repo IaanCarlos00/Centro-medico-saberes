@@ -113,10 +113,9 @@ export default function InicioMatrona({ usuario }) {
 
   const iniciarAtencion = async cita => {
   try {
-    const token = localStorage.getItem('token')
-    const res = await axios.get(`${API_PAC}/${cita.paciente_id}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
+    console.log('paciente_id:', cita.paciente_id)
+    console.log('URL:', `${API_PAC}/${cita.paciente_id}`)
+    const res = await axios.get(`${API_PAC}/${cita.paciente_id}`)
     const paciente = res.data
     if (!paciente.rut || !paciente.fecha_nacimiento || !paciente.telefono) {
       setModalCompletar({ paciente, cita })
@@ -126,7 +125,8 @@ export default function InicioMatrona({ usuario }) {
       setCitaAtendiendo(cita)
     }
   } catch (err) {
-    console.error('Error al obtener paciente:', err)
+    console.error('Error completo:', err)
+    console.error('URL fallida:', `${API_PAC}/${cita.paciente_id}`)
   }
 }
 
