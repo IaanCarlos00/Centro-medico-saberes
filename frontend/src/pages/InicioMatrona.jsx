@@ -113,7 +113,7 @@ export default function InicioMatrona({ usuario }) {
 
   useEffect(() => { cargar() }, [])
 
-  const getPaciente = id => pacientes.find(p => p.id === id)
+  const getPaciente = id => pacientes.find(p => p.id === parseInt(id))
 
   const necesitaCompletar = p => !p || !p.rut || !p.fecha_nacimiento || !p.telefono
 
