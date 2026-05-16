@@ -16,6 +16,7 @@ export default function Fichas({ paciente, onVolver }) {
   const [form, setForm] = useState({ motivo_consulta: '', diagnostico: '', tratamiento: '', observaciones: '', profesional_id: '' })
   const [editando, setEditando] = useState(null)
   const [errores, setErrores] = useState({})
+  const [modalSelector, setModalSelector] = useState(false)
 
   const cargar = async () => {
     const [f, pr, fi1, fi2] = await Promise.all([
@@ -56,6 +57,7 @@ export default function Fichas({ paciente, onVolver }) {
     setForm({ motivo_consulta: '', diagnostico: '', tratamiento: '', observaciones: '', profesional_id: '' })
     setErrores({})
     cargar()
+    setVista(null)
   }
 
   const editar = f => {
@@ -76,36 +78,36 @@ export default function Fichas({ paciente, onVolver }) {
     setEditando(null)
     setForm({ motivo_consulta: '', diagnostico: '', tratamiento: '', observaciones: '', profesional_id: '' })
     setErrores({})
+    setVista(null)
   }
 
   const imprimirPDF = f => {
-  const ventana = window.open('', '_blank')
-  ventana.document.write(`
-    <html><head><title>Ficha Control — ${paciente.nombre} ${paciente.apellido}</title>
-    <style>
-      body { font-family: Arial, sans-serif; font-size: 12px; margin: 20px; color: #333; }
-      h1 { color: #166534; font-size: 18px; margin-bottom: 4px; }
-      h2 { color: #166534; font-size: 13px; margin: 16px 0 6px; border-bottom: 1px solid #dcfce7; padding-bottom: 4px; }
-      .campo { margin-bottom: 6px; }
-      .label { font-weight: bold; color: #555; }
-      .valor { border-bottom: 1px solid #ddd; min-height: 18px; padding-bottom: 2px; margin-top: 2px; }
-      @media print { button { display: none; } }
-    </style></head><body>
-    <h1>Ficha Control — ${paciente.nombre} ${paciente.apellido}</h1>
-    <p>RUT: ${paciente.rut || 'No registrado'} | Fecha: ${new Date(f.fecha).toLocaleDateString('es-CL')} | Profesional: ${f.profesional_nombre} ${f.profesional_apellido}</p>
-    <h2>Motivo de Consulta</h2>
-    <div class="campo"><div class="valor">${f.motivo_consulta || ''}</div></div>
-    <h2>Diagnóstico</h2>
-    <div class="campo"><div class="valor">${f.diagnostico || ''}</div></div>
-    <h2>Tratamiento</h2>
-    <div class="campo"><div class="valor">${f.tratamiento || ''}</div></div>
-    <h2>Observaciones</h2>
-    <div class="campo"><div class="valor">${f.observaciones || ''}</div></div>
-    <script>window.onload = () => window.print()</script>
-    </body></html>
-  `)
-  ventana.document.close()
-}
+    const ventana = window.open('', '_blank')
+    ventana.document.write(`
+      <html><head><title>Ficha Control — ${paciente.nombre} ${paciente.apellido}</title>
+      <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; margin: 20px; color: #333; }
+        h1 { color: #166534; font-size: 18px; margin-bottom: 4px; }
+        h2 { color: #166534; font-size: 13px; margin: 16px 0 6px; border-bottom: 1px solid #dcfce7; padding-bottom: 4px; }
+        .campo { margin-bottom: 6px; }
+        .valor { border-bottom: 1px solid #ddd; min-height: 18px; padding-bottom: 2px; margin-top: 2px; }
+        @media print { button { display: none; } }
+      </style></head><body>
+      <h1>Ficha Control — ${paciente.nombre} ${paciente.apellido}</h1>
+      <p>RUT: ${paciente.rut || 'No registrado'} | Fecha: ${new Date(f.fecha).toLocaleDateString('es-CL')} | Profesional: ${f.profesional_nombre} ${f.profesional_apellido}</p>
+      <h2>Motivo de Consulta</h2>
+      <div class="campo"><div class="valor">${f.motivo_consulta || ''}</div></div>
+      <h2>Diagnóstico</h2>
+      <div class="campo"><div class="valor">${f.diagnostico || ''}</div></div>
+      <h2>Tratamiento</h2>
+      <div class="campo"><div class="valor">${f.tratamiento || ''}</div></div>
+      <h2>Observaciones</h2>
+      <div class="campo"><div class="valor">${f.observaciones || ''}</div></div>
+      <script>window.onload = () => window.print()</script>
+      </body></html>
+    `)
+    ventana.document.close()
+  }
 
   if (vista === 'ingreso1') return <FichaIngreso1 paciente={paciente} onVolver={() => { setVista(null); cargar() }} />
   if (vista === 'ingreso2') return <FichaIngreso2 paciente={paciente} onVolver={() => { setVista(null); cargar() }} />
@@ -113,7 +115,7 @@ export default function Fichas({ paciente, onVolver }) {
   if (vista === 'control') return (
     <div>
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => { setVista(null); cancelar() }} className="text-green-700 hover:underline font-medium text-sm">← Volver</button>
+        <button onClick={cancelar} className="text-green-700 hover:underline font-medium text-sm">← Volver</button>
         <h2 className="text-xl font-bold text-green-800">Ficha Control — {paciente.nombre} {paciente.apellido}</h2>
       </div>
 
@@ -172,104 +174,100 @@ export default function Fichas({ paciente, onVolver }) {
     </div>
   )
 
-  // Vista principal — todas las fichas visibles
+  // Vista principal
   return (
     <div>
-      <h2 className="text-xl font-bold text-green-800 mb-6">Fichas — {paciente.nombre} {paciente.apellido}</h2>
-
-      {/* Ficha Control */}
-      <div className="bg-white rounded-2xl shadow p-5 border-t-4 border-green-600 mb-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">📋</span>
-            <div>
-              <h3 className="font-bold text-green-800">Ficha Control</h3>
-              <p className="text-xs text-gray-500">{fichas.length} ficha{fichas.length !== 1 ? 's' : ''} registrada{fichas.length !== 1 ? 's' : ''}</p>
+      {/* Modal selector de tipo de ficha */}
+      {modalSelector && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={() => setModalSelector(false)}>
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-green-800 mb-5">¿Qué tipo de ficha?</h3>
+            <div className="flex flex-col gap-3">
+              <button onClick={() => { setModalSelector(false); setVista('control') }} className="flex items-center gap-3 p-4 rounded-xl border-2 border-green-600 hover:bg-green-50 transition-colors text-left">
+                <span className="text-2xl">📋</span>
+                <div>
+                  <p className="font-bold text-green-800">Ficha Control</p>
+                  <p className="text-xs text-gray-500">{fichas.length} ficha{fichas.length !== 1 ? 's' : ''} registrada{fichas.length !== 1 ? 's' : ''}</p>
+                </div>
+              </button>
+              <button onClick={() => { setModalSelector(false); setVista('ingreso1') }} className="flex items-center gap-3 p-4 rounded-xl border-2 border-orange-500 hover:bg-orange-50 transition-colors text-left">
+                <span className="text-2xl">📝</span>
+                <div>
+                  <p className="font-bold text-green-800">Ficha Ingreso — Matrona 1</p>
+                  <p className="text-xs text-gray-500">{fichasI1.length} ficha{fichasI1.length !== 1 ? 's' : ''} registrada{fichasI1.length !== 1 ? 's' : ''}</p>
+                </div>
+              </button>
+              <button onClick={() => { setModalSelector(false); setVista('ingreso2') }} className="flex items-center gap-3 p-4 rounded-xl border-2 border-blue-500 hover:bg-blue-50 transition-colors text-left">
+                <span className="text-2xl">🗂️</span>
+                <div>
+                  <p className="font-bold text-green-800">Ficha Ingreso — Matrona 2</p>
+                  <p className="text-xs text-gray-500">{fichasI2.length} ficha{fichasI2.length !== 1 ? 's' : ''} registrada{fichasI2.length !== 1 ? 's' : ''}</p>
+                </div>
+              </button>
             </div>
+            <button onClick={() => setModalSelector(false)} className="w-full mt-4 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancelar</button>
           </div>
-          <button onClick={() => setVista('control')} className="bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-800">
-            + Nueva ficha
-          </button>
         </div>
-        {fichas.length > 0 && (
-          <div className="flex flex-col gap-2 mt-2">
-            {fichas.slice(0, 2).map(f => (
+      )}
+
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-bold text-green-800">Fichas — {paciente.nombre} {paciente.apellido}</h2>
+        <button onClick={() => setModalSelector(true)} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">
+          + Nueva ficha
+        </button>
+      </div>
+
+      {/* Resumen fichas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <button onClick={() => setVista('control')} className="bg-white rounded-xl shadow p-4 border-t-4 border-green-600 text-left hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xl">📋</span>
+            <p className="font-bold text-green-800">Ficha Control</p>
+          </div>
+          <p className="text-2xl font-bold text-gray-800">{fichas.length}</p>
+          <p className="text-xs text-gray-500">ficha{fichas.length !== 1 ? 's' : ''} registrada{fichas.length !== 1 ? 's' : ''}</p>
+        </button>
+        <button onClick={() => setVista('ingreso1')} className="bg-white rounded-xl shadow p-4 border-t-4 border-orange-500 text-left hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xl">📝</span>
+            <p className="font-bold text-green-800">Ingreso Matrona 1</p>
+          </div>
+          <p className="text-2xl font-bold text-gray-800">{fichasI1.length}</p>
+          <p className="text-xs text-gray-500">ficha{fichasI1.length !== 1 ? 's' : ''} registrada{fichasI1.length !== 1 ? 's' : ''}</p>
+        </button>
+        <button onClick={() => setVista('ingreso2')} className="bg-white rounded-xl shadow p-4 border-t-4 border-blue-500 text-left hover:shadow-md transition-shadow">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xl">🗂️</span>
+            <p className="font-bold text-green-800">Ingreso Matrona 2</p>
+          </div>
+          <p className="text-2xl font-bold text-gray-800">{fichasI2.length}</p>
+          <p className="text-xs text-gray-500">ficha{fichasI2.length !== 1 ? 's' : ''} registrada{fichasI2.length !== 1 ? 's' : ''}</p>
+        </button>
+      </div>
+
+      {/* Últimas fichas control */}
+      {fichas.length > 0 && (
+        <div className="bg-white rounded-xl shadow p-5">
+          <h3 className="text-lg font-bold text-gray-700 mb-3">Últimas fichas de control</h3>
+          <div className="flex flex-col gap-3">
+            {fichas.slice(0, 3).map(f => (
               <div key={f.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
                 <div>
-                  <p className="font-medium text-gray-800 truncate">{f.motivo_consulta}</p>
+                  <p className="font-medium text-gray-800">{f.motivo_consulta}</p>
                   <p className="text-xs text-gray-400">{new Date(f.fecha).toLocaleDateString('es-CL')} · {f.profesional_nombre} {f.profesional_apellido}</p>
                 </div>
-                <button onClick={() => editar(f)} className="text-green-700 text-xs hover:underline ml-2 flex-shrink-0">Editar</button>
+                <div className="flex gap-2">
+                  <button onClick={() => imprimirPDF(f)} className="text-blue-600 text-xs hover:underline">PDF</button>
+                  <button onClick={() => editar(f)} className="text-green-700 text-xs hover:underline">Editar</button>
+                </div>
               </div>
             ))}
-            {fichas.length > 2 && (
+            {fichas.length > 3 && (
               <button onClick={() => setVista('control')} className="text-green-700 text-xs hover:underline text-left">Ver todas ({fichas.length})</button>
             )}
           </div>
-        )}
-      </div>
-
-      {/* Ficha Ingreso 1 */}
-      <div className="bg-white rounded-2xl shadow p-5 border-t-4 border-orange-500 mb-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">📝</span>
-            <div>
-              <h3 className="font-bold text-green-800">Ficha de Ingreso — Matrona 1</h3>
-              <p className="text-xs text-gray-500">{fichasI1.length} ficha{fichasI1.length !== 1 ? 's' : ''} registrada{fichasI1.length !== 1 ? 's' : ''}</p>
-            </div>
-          </div>
-          <button onClick={() => setVista('ingreso1')} className="bg-orange-500 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-orange-600">
-            {fichasI1.length === 0 ? '+ Nueva ficha' : '+ Nueva / Ver'}
-          </button>
         </div>
-        {fichasI1.length > 0 && (
-          <div className="flex flex-col gap-2">
-            {fichasI1.slice(0, 2).map(f => (
-              <div key={f.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
-                <div>
-                  <p className="font-medium text-gray-800 truncate">{f.motivo_consulta}</p>
-                  <p className="text-xs text-gray-400">{new Date(f.fecha).toLocaleDateString('es-CL')} · {f.profesional_nombre} {f.profesional_apellido}</p>
-                </div>
-              </div>
-            ))}
-            {fichasI1.length > 2 && (
-              <button onClick={() => setVista('ingreso1')} className="text-orange-600 text-xs hover:underline text-left">Ver todas ({fichasI1.length})</button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Ficha Ingreso 2 */}
-      <div className="bg-white rounded-2xl shadow p-5 border-t-4 border-blue-500 mb-5">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🗂️</span>
-            <div>
-              <h3 className="font-bold text-green-800">Ficha de Ingreso — Matrona 2</h3>
-              <p className="text-xs text-gray-500">{fichasI2.length} ficha{fichasI2.length !== 1 ? 's' : ''} registrada{fichasI2.length !== 1 ? 's' : ''}</p>
-            </div>
-          </div>
-          <button onClick={() => setVista('ingreso2')} className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-blue-700">
-            {fichasI2.length === 0 ? '+ Nueva ficha' : '+ Nueva / Ver'}
-          </button>
-        </div>
-        {fichasI2.length > 0 && (
-          <div className="flex flex-col gap-2">
-            {fichasI2.slice(0, 2).map(f => (
-              <div key={f.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
-                <div>
-                  <p className="font-medium text-gray-800 truncate">{f.motivo_consulta}</p>
-                  <p className="text-xs text-gray-400">{new Date(f.fecha).toLocaleDateString('es-CL')} · {f.profesional_nombre} {f.profesional_apellido}</p>
-                </div>
-              </div>
-            ))}
-            {fichasI2.length > 2 && (
-              <button onClick={() => setVista('ingreso2')} className="text-blue-600 text-xs hover:underline text-left">Ver todas ({fichasI2.length})</button>
-            )}
-          </div>
-        )}
-      </div>
+      )}
     </div>
   )
 }
