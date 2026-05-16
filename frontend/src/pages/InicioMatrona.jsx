@@ -113,7 +113,10 @@ export default function InicioMatrona({ usuario }) {
 
   const iniciarAtencion = async cita => {
   try {
-    const res = await axios.get(`${API_PAC}/${cita.paciente_id}`)
+    const token = localStorage.getItem('token')
+    const res = await axios.get(`${API_PAC}/${cita.paciente_id}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
     const paciente = res.data
     if (!paciente.rut || !paciente.fecha_nacimiento || !paciente.telefono) {
       setModalCompletar({ paciente, cita })
