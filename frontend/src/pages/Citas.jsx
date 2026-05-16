@@ -126,18 +126,12 @@ export default function Agenda() {
   const guardar = async () => {
   const e = validar()
   if (Object.keys(e).length > 0) { setErrores(e); return }
-  
-  // Compensar UTC-4 de Chile sumando 4 horas
-  const fecha = new Date(form.fecha_hora)
-  fecha.setHours(fecha.getHours() - 4)
-  const fechaCorregida = fecha.toISOString().slice(0, 16)
-  const formCorregido = { ...form, fecha_hora: fechaCorregida }
 
   if (editando) {
-    await axios.put(`${API}/${editando}`, formCorregido)
+    await axios.put(`${API}/${editando}`, form)
     setEditando(null)
   } else {
-    await axios.post(API, formCorregido)
+    await axios.post(API, form)
   }
   setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
   setBusquedaPaciente('')

@@ -97,28 +97,14 @@ function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
   }
 
   const guardar = async () => {
-  const e = validar()
-  if (Object.keys(e).length > 0) { setErrores(e); return }
-  
-  // Compensar UTC-4 de Chile sumando 4 horas
-  const fecha = new Date(form.fecha_hora)
-  fecha.setHours(fecha.getHours() - 4)
-  const fechaCorregida = fecha.toISOString().slice(0, 16)
-  const formCorregido = { ...form, fecha_hora: fechaCorregida }
-
-  if (editando) {
-    await axios.put(`${API}/${editando}`, formCorregido)
-    setEditando(null)
-  } else {
-    await axios.post(API, formCorregido)
+    const e = {}
+    if (!form.rut.trim()) e.rut = 'El RUT es obligatorio'
+    if (!form.fecha_nacimiento) e.fecha_nacimiento = 'La fecha de nacimiento es obligatoria'
+    if (!form.telefono.trim()) e.telefono = 'El teléfono es obligatorio'
+    if (Object.keys(e).length > 0) { setErrores(e); return }
+    await axios.put(`${API}/${paciente.id}`, { ...paciente, ...form })
+    onConfirmar()
   }
-  setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
-  setBusquedaPaciente('')
-  setHistorialPaciente([])
-  setErrores({})
-  setMostrarFormulario(false)
-  cargar()
-}
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={onCerrar}>
