@@ -78,6 +78,35 @@ export default function Fichas({ paciente, onVolver }) {
     setErrores({})
   }
 
+  const imprimirPDF = f => {
+  const ventana = window.open('', '_blank')
+  ventana.document.write(`
+    <html><head><title>Ficha Control — ${paciente.nombre} ${paciente.apellido}</title>
+    <style>
+      body { font-family: Arial, sans-serif; font-size: 12px; margin: 20px; color: #333; }
+      h1 { color: #166534; font-size: 18px; margin-bottom: 4px; }
+      h2 { color: #166534; font-size: 13px; margin: 16px 0 6px; border-bottom: 1px solid #dcfce7; padding-bottom: 4px; }
+      .campo { margin-bottom: 6px; }
+      .label { font-weight: bold; color: #555; }
+      .valor { border-bottom: 1px solid #ddd; min-height: 18px; padding-bottom: 2px; margin-top: 2px; }
+      @media print { button { display: none; } }
+    </style></head><body>
+    <h1>Ficha Control — ${paciente.nombre} ${paciente.apellido}</h1>
+    <p>RUT: ${paciente.rut || 'No registrado'} | Fecha: ${new Date(f.fecha).toLocaleDateString('es-CL')} | Profesional: ${f.profesional_nombre} ${f.profesional_apellido}</p>
+    <h2>Motivo de Consulta</h2>
+    <div class="campo"><div class="valor">${f.motivo_consulta || ''}</div></div>
+    <h2>Diagnóstico</h2>
+    <div class="campo"><div class="valor">${f.diagnostico || ''}</div></div>
+    <h2>Tratamiento</h2>
+    <div class="campo"><div class="valor">${f.tratamiento || ''}</div></div>
+    <h2>Observaciones</h2>
+    <div class="campo"><div class="valor">${f.observaciones || ''}</div></div>
+    <script>window.onload = () => window.print()</script>
+    </body></html>
+  `)
+  ventana.document.close()
+}
+
   if (vista === 'ingreso1') return <FichaIngreso1 paciente={paciente} onVolver={() => { setVista(null); cargar() }} />
   if (vista === 'ingreso2') return <FichaIngreso2 paciente={paciente} onVolver={() => { setVista(null); cargar() }} />
 
@@ -124,6 +153,7 @@ export default function Fichas({ paciente, onVolver }) {
                     <p className="text-sm text-gray-500 mt-1">Por: <span className="font-medium text-gray-700">{f.profesional_nombre} {f.profesional_apellido}</span></p>
                   </div>
                   <div className="flex gap-2">
+                    <button onClick={() => imprimirPDF(f)} className="text-blue-600 hover:underline text-sm font-medium">PDF</button>
                     <button onClick={() => editar(f)} className="text-green-700 hover:underline text-sm font-medium">Editar</button>
                     <button onClick={() => eliminar(f.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
                   </div>
