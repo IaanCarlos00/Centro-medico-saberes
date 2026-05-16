@@ -129,7 +129,7 @@ export default function Agenda() {
   
   // Compensar UTC-4 de Chile sumando 4 horas
   const fecha = new Date(form.fecha_hora)
-  fecha.setHours(fecha.getHours() + 4)
+  fecha.setHours(fecha.getHours() - 4)
   const fechaCorregida = fecha.toISOString().slice(0, 16)
   const formCorregido = { ...form, fecha_hora: fechaCorregida }
 
