@@ -23,7 +23,7 @@ router.post('/login', async (req, res) => {
       { expiresIn: '8h' }
     )
 
-    res.json({ token, nombre: usuario.nombre, rol: usuario.rol })
+    res.json({ token, nombre: usuario.nombre, rol: usuario.rol, email: usuario.email })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
@@ -60,6 +60,24 @@ router.put('/usuarios/:id', async (req, res) => {
   try {
     const result = await pool.query('UPDATE usuario SET activo=$1 WHERE id=$2 RETURNING id, nombre, email, rol, activo', [activo, req.params.id])
     res.json(result.rows[0])
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
+// Cambiar contraseña
+router.put('/cambiar-password', async (req, res) => {
+  const { email, password_actual, password_nuevo } = req.body
+  try {
+    const usuario = await pool.query('SELECT * FROM usuario WHERE email = $1', [email])
+    if (usuario.rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' })
+
+    const valido = await bcrypt.compare(password_actual, usuario.rows[0].password)
+    if (!valido) return res.status(401).json({ error: 'Contraseña actual incorrecta' })
+
+    const hash = await bcrypt.hash(password_nuevo, 10)
+    await pool.query('UPDATE usuario SET password = $1 WHERE email = $2', [hash, email])
+    res.json({ mensaje: 'Contraseña actualizada correctamente' })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }

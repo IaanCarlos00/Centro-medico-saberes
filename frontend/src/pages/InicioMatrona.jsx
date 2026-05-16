@@ -4,6 +4,7 @@ import Fichas from './Fichas'
 
 const API_CITAS = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
+const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 
 const estadoColor = {
   pendiente: 'bg-yellow-100 text-yellow-700',
@@ -73,11 +74,76 @@ function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
   )
 }
 
+function ModalRegistrarPago({ paciente, cita, onConfirmar, onCerrar }) {
+  const [form, setForm] = useState({ monto: '', metodo: 'efectivo', estado: 'pagado', notas: '' })
+  const [errores, setErrores] = useState({})
+
+  const handleChange = e => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+    setErrores({ ...errores, [e.target.name]: '' })
+  }
+
+  const guardar = async () => {
+    const e = {}
+    if (!form.monto || isNaN(form.monto) || Number(form.monto) <= 0) e.monto = 'Ingresa un monto válido'
+    if (Object.keys(e).length > 0) { setErrores(e); return }
+    await axios.post(API_PAGOS, { ...form, paciente_id: paciente.id, cita_id: cita.id })
+    onConfirmar()
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={onCerrar}>
+      <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center gap-3 mb-5">
+          <span className="text-3xl">💰</span>
+          <div>
+            <h3 className="text-lg font-bold text-green-800">Registrar pago</h3>
+            <p className="text-sm text-gray-500">{paciente.nombre} {paciente.apellido}</p>
+          </div>
+        </div>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Monto ($) *</label>
+            <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.monto ? 'border-red-400' : 'border-gray-300'}`} name="monto" type="number" placeholder="25000" value={form.monto} onChange={handleChange} />
+            {errores.monto && <span className="text-red-500 text-xs mt-1">{errores.monto}</span>}
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Método de pago</label>
+            <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="metodo" value={form.metodo} onChange={handleChange}>
+              <option value="fonasa">🏥 Fonasa</option>
+              <option value="efectivo">💵 Efectivo</option>
+              <option value="transferencia">🏦 Transferencia</option>
+              <option value="debito">💳 Débito</option>
+              <option value="credito">💳 Crédito</option>
+            </select>
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Estado</label>
+            <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="estado" value={form.estado} onChange={handleChange}>
+              <option value="pagado">Pagado</option>
+              <option value="pendiente">Pendiente</option>
+            </select>
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Notas (opcional)</label>
+            <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="notas" placeholder="Ej: Bono enviado, procedimiento adicional..." value={form.notas} onChange={handleChange} />
+          </div>
+        </div>
+        <div className="flex gap-3 mt-6">
+          <button onClick={guardar} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">Registrar pago</button>
+          <button onClick={onCerrar} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Omitir</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function InicioMatrona({ usuario }) {
   const [citas, setCitas] = useState([])
   const [pacientesMap, setPacientesMap] = useState({})
   const [cargando, setCargando] = useState(true)
   const [modalCompletar, setModalCompletar] = useState(null)
+  const [modalPago, setModalPago] = useState(null)
   const [pacienteAtendiendo, setPacienteAtendiendo] = useState(null)
   const [citaAtendiendo, setCitaAtendiendo] = useState(null)
 
@@ -89,13 +155,11 @@ export default function InicioMatrona({ usuario }) {
     setCargando(true)
     try {
       const [c, p] = await Promise.all([axios.get(API_CITAS), axios.get(API_PAC)])
-      console.log('Primera cita:', c.data[0])
       const hoyStr = new Date().toISOString().slice(0, 10)
       const citasHoy = c.data
         .filter(ci => ci.fecha_hora?.slice(0, 10) === hoyStr)
         .sort((a, b) => a.fecha_hora.localeCompare(b.fecha_hora))
       setCitas(citasHoy)
-      // Crear mapa de pacientes por id
       const mapa = {}
       p.data.forEach(pac => { mapa[pac.id] = pac })
       setPacientesMap(mapa)
@@ -113,23 +177,20 @@ export default function InicioMatrona({ usuario }) {
   const necesitaCompletar = p => !p || !p.rut || !p.fecha_nacimiento || !p.telefono
 
   const iniciarAtencion = async cita => {
-  try {
-    console.log('paciente_id:', cita.paciente_id)
-    console.log('URL:', `${API_PAC}/${cita.paciente_id}`)
-    const res = await axios.get(`${API_PAC}/${cita.paciente_id}`)
-    const paciente = res.data
-    if (!paciente.rut || !paciente.fecha_nacimiento || !paciente.telefono) {
-      setModalCompletar({ paciente, cita })
-    } else {
-      await cambiarEstado(cita.id, cita, 'en_atencion')
-      setPacienteAtendiendo(paciente)
-      setCitaAtendiendo(cita)
+    try {
+      const res = await axios.get(`${API_PAC}/${cita.paciente_id}`)
+      const paciente = res.data
+      if (!paciente.rut || !paciente.fecha_nacimiento || !paciente.telefono) {
+        setModalCompletar({ paciente, cita })
+      } else {
+        await cambiarEstado(cita.id, cita, 'en_atencion')
+        setPacienteAtendiendo(paciente)
+        setCitaAtendiendo(cita)
+      }
+    } catch (err) {
+      console.error('Error al obtener paciente:', err)
     }
-  } catch (err) {
-    console.error('Error completo:', err)
-    console.error('URL fallida:', `${API_PAC}/${cita.paciente_id}`)
   }
-}
 
   const cambiarEstado = async (id, cita, estado) => {
     await axios.put(`${API_CITAS}/${id}`, { ...cita, estado })
@@ -139,35 +200,36 @@ export default function InicioMatrona({ usuario }) {
   const finalizarAtencion = async () => {
     if (citaAtendiendo) {
       await cambiarEstado(citaAtendiendo.id, citaAtendiendo, 'realizada')
+      setModalPago({ paciente: pacienteAtendiendo, cita: citaAtendiendo })
     }
     setPacienteAtendiendo(null)
     setCitaAtendiendo(null)
   }
 
   if (pacienteAtendiendo) {
-  return (
-    <div>
-      <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <span className="text-sm text-gray-500">Atendiendo a <strong>{pacienteAtendiendo.nombre} {pacienteAtendiendo.apellido}</strong></span>
-        <button
-          onClick={() => {
-            if (confirm('¿Deseas finalizar la atención?\n\nAcepta = Finalizar y marcar como realizada\nCancela = Solo volver, retomar después')) {
-              finalizarAtencion()
-            } else {
-              setPacienteAtendiendo(null)
-              setCitaAtendiendo(null)
-              cargar()
-            }
-          }}
-          className="ml-auto bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-800"
-        >
-          ✅ Finalizar atención
-        </button>
+    return (
+      <div>
+        <div className="flex items-center gap-3 mb-4 flex-wrap">
+          <span className="text-sm text-gray-500">Atendiendo a <strong>{pacienteAtendiendo.nombre} {pacienteAtendiendo.apellido}</strong></span>
+          <button
+            onClick={() => {
+              if (confirm('¿Deseas finalizar la atención?\n\nAcepta = Finalizar y marcar como realizada\nCancela = Solo volver, retomar después')) {
+                finalizarAtencion()
+              } else {
+                setPacienteAtendiendo(null)
+                setCitaAtendiendo(null)
+                cargar()
+              }
+            }}
+            className="ml-auto bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-800"
+          >
+            ✅ Finalizar atención
+          </button>
+        </div>
+        <Fichas paciente={pacienteAtendiendo} onVolver={() => { setPacienteAtendiendo(null); setCitaAtendiendo(null); cargar() }} />
       </div>
-      <Fichas paciente={pacienteAtendiendo} onVolver={() => { setPacienteAtendiendo(null); setCitaAtendiendo(null); cargar() }} />
-    </div>
-  )
-}
+    )
+  }
 
   return (
     <div>
@@ -183,6 +245,15 @@ export default function InicioMatrona({ usuario }) {
             await cargar()
           }}
           onCerrar={() => setModalCompletar(null)}
+        />
+      )}
+
+      {modalPago && (
+        <ModalRegistrarPago
+          paciente={modalPago.paciente}
+          cita={modalPago.cita}
+          onConfirmar={() => { setModalPago(null); cargar() }}
+          onCerrar={() => setModalPago(null)}
         />
       )}
 

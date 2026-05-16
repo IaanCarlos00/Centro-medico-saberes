@@ -5,6 +5,7 @@ const API = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
 
 const metodoBadge = {
+  fonasa: 'bg-teal-100 text-teal-700',
   efectivo: 'bg-green-100 text-green-700',
   transferencia: 'bg-blue-100 text-blue-700',
   debito: 'bg-purple-100 text-purple-700',
@@ -18,6 +19,7 @@ const estadoBadge = {
 }
 
 const metodoIcono = {
+  fonasa: '🏥',
   efectivo: '💵',
   transferencia: '🏦',
   debito: '💳',
@@ -230,6 +232,7 @@ export default function Pagos() {
             <div className="flex flex-col">
               <label className="text-sm text-gray-600 mb-1">Método de pago</label>
               <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="metodo" value={form.metodo} onChange={handleChange}>
+                <option value="fonasa">🏥 Fonasa</option>
                 <option value="efectivo">💵 Efectivo</option>
                 <option value="transferencia">🏦 Transferencia</option>
                 <option value="debito">💳 Débito</option>
@@ -286,6 +289,7 @@ export default function Pagos() {
           <option value="transferencia">Transferencia</option>
           <option value="debito">Débito</option>
           <option value="credito">Crédito</option>
+          <option value="fonasa">Fonasa</option>
         </select>
       </div>
 
