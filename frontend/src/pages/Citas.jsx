@@ -171,16 +171,16 @@ export default function Agenda() {
   ...citas.map(c => ({
     id: c.id,
     title: `${c.paciente_nombre} ${c.paciente_apellido}`,
-    start: new Date(c.fecha_hora),
-    end: new Date(new Date(c.fecha_hora).getTime() + 30 * 60000),
+    start: new Date(c.fecha_hora.replace(' ', 'T')),
+  end: new Date(new Date(c.fecha_hora.replace(' ', 'T')).getTime() + 30 * 60000),
     resource: c,
     tipo: 'cita'
   })),
   ...bloqueos.map(b => ({
     id: `bloqueo-${b.id}`,
     title: `🚫 Bloqueado${b.motivo ? ': ' + b.motivo : ''}${b.creado_por_nombre ? ' (' + b.creado_por_nombre + ')' : ''}`,
-    start: new Date(b.fecha_inicio),
-    end: new Date(b.fecha_fin),
+    start: new Date(b.fecha_inicio.replace(' ', 'T')),
+    end: new Date(b.fecha_fin.replace(' ', 'T')),
     resource: b,
     tipo: 'bloqueo'
   }))
