@@ -5,7 +5,7 @@ const API = 'https://centro-medico-saberes-production.up.railway.app/fichas-ingr
 const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
 
 const campoVacio = {
-  profesional_id: '', motivo_consulta: '', edad: '', gpa: '', ocupacion: '',
+  profesional_id: '', fecha: new Date().toISOString().slice(0,10), motivo_consulta: '', edad: '', gpa: '', ocupacion: '',
   pareja: '', red_apoyo: '', ant_morbidos: '', cirugias: '', alergias: '',
   medicamentos: '', tabaco: '', alcohol: '', drogas: '', examenes_sangre: '',
   ant_cacu: '', ant_ca_mama: '', menarquia: '', mac: '', menstruaciones: '',
@@ -106,6 +106,14 @@ export default function FichaIngreso2({ paciente, onVolver }) {
       </style></head><body>
       <h1>Ficha Clínica — ${paciente.nombre} ${paciente.apellido}</h1>
       <p>RUT: ${paciente.rut} | Fecha: ${new Date(f.fecha).toLocaleDateString('es-CL')} | Profesional: ${f.profesional_nombre} ${f.profesional_apellido}</p>
+
+      <div className="mb-4">
+        <label className="text-xs text-gray-500 mb-1 block">Fecha de la consulta *</label>
+        <input
+        className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+        name="fecha" type="date" value={form.fecha || ''} onChange={handleChange}
+      />
+      </div>
 
       <h2>Motivo de Consulta</h2>
       <div class="grid">

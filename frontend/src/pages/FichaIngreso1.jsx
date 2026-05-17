@@ -5,7 +5,7 @@ const API = 'https://centro-medico-saberes-production.up.railway.app/fichas-ingr
 const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
 
 const campoVacio = {
-  profesional_id: '', direccion: '', paridad: '', fur: '', mac: '',
+  profesional_id: '', fecha: new Date().toISOString().slice(0,10), direccion: '', paridad: '', fur: '', mac: '',
   ant_morbidos: '', ant_familiares: '', ant_ca_mama: '', medicamentos: '',
   tabaco: '', alcohol: '', drogas: '', alergias: '', cirugias: '',
   examenes_sangre: '', ivs: '', orientacion_sexual: 'hetero', parejas_sexuales: '',
@@ -109,6 +109,14 @@ export default function FichaIngreso1({ paciente, onVolver }) {
       </style></head><body>
       <h1>Ficha de Ingreso — ${paciente.nombre} ${paciente.apellido}</h1>
       <p>RUT: ${paciente.rut} | Fecha: ${new Date(f.fecha).toLocaleDateString('es-CL')} | Profesional: ${f.profesional_nombre} ${f.profesional_apellido}</p>
+
+      <div className="mb-4">
+        <label className="text-xs text-gray-500 mb-1 block">Fecha de la consulta *</label>
+        <input
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+          name="fecha" type="date" value={form.fecha || ''} onChange={handleChange}
+        />
+      </div>
 
       <h2>Motivo de Consulta</h2>
       <div class="campo full"><div class="valor">${f.motivo_consulta || ''}</div></div>

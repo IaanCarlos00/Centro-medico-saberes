@@ -7,13 +7,15 @@ const API = 'https://centro-medico-saberes-production.up.railway.app/fichas'
 const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
 const API_FI = 'https://centro-medico-saberes-production.up.railway.app/fichas-ingreso'
 
+const hoyStr = new Date().toISOString().slice(0, 10)
+
 export default function Fichas({ paciente, onVolver }) {
   const [vista, setVista] = useState(null)
   const [fichas, setFichas] = useState([])
   const [fichasI1, setFichasI1] = useState([])
   const [fichasI2, setFichasI2] = useState([])
   const [profesionales, setProfesionales] = useState([])
-  const [form, setForm] = useState({ motivo_consulta: '', diagnostico: '', tratamiento: '', observaciones: '', profesional_id: '' })
+  const [form, setForm] = useState({ motivo_consulta: '', diagnostico: '', tratamiento: '', observaciones: '', profesional_id: '', fecha: hoyStr })
   const [editando, setEditando] = useState(null)
   const [errores, setErrores] = useState({})
   const [modalSelector, setModalSelector] = useState(false)
@@ -54,14 +56,21 @@ export default function Fichas({ paciente, onVolver }) {
     } else {
       await axios.post(API, { ...form, paciente_id: paciente.id })
     }
-    setForm({ motivo_consulta: '', diagnostico: '', tratamiento: '', observaciones: '', profesional_id: '' })
+    setForm({ motivo_consulta: '', diagnostico: '', tratamiento: '', observaciones: '', profesional_id: '', fecha: hoyStr })
     setErrores({})
     cargar()
     setVista(null)
   }
 
   const editar = f => {
-    setForm({ motivo_consulta: f.motivo_consulta, diagnostico: f.diagnostico || '', tratamiento: f.tratamiento || '', observaciones: f.observaciones || '', profesional_id: f.profesional_id })
+    setForm({
+      motivo_consulta: f.motivo_consulta,
+      diagnostico: f.diagnostico || '',
+      tratamiento: f.tratamiento || '',
+      observaciones: f.observaciones || '',
+      profesional_id: f.profesional_id,
+      fecha: f.fecha?.slice(0, 10) || hoyStr
+    })
     setEditando(f.id)
     setVista('control')
     window.scrollTo(0, 0)
@@ -76,7 +85,7 @@ export default function Fichas({ paciente, onVolver }) {
 
   const cancelar = () => {
     setEditando(null)
-    setForm({ motivo_consulta: '', diagnostico: '', tratamiento: '', observaciones: '', profesional_id: '' })
+    setForm({ motivo_consulta: '', diagnostico: '', tratamiento: '', observaciones: '', profesional_id: '', fecha: hoyStr })
     setErrores({})
     setVista(null)
   }
@@ -123,11 +132,16 @@ export default function Fichas({ paciente, onVolver }) {
         <h3 className="text-lg font-semibold text-gray-700 mb-4">{editando ? 'Editar ficha' : 'Nueva ficha de control'}</h3>
         <div className="grid grid-cols-1 gap-4">
           <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Profesional *</label>
             <select className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.profesional_id ? 'border-red-400' : 'border-gray-300'}`} name="profesional_id" value={form.profesional_id} onChange={handleChange}>
               <option value="">Seleccionar profesional</option>
               {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido} — {p.especialidad}</option>)}
             </select>
             {errores.profesional_id && <span className="text-red-500 text-xs mt-1">{errores.profesional_id}</span>}
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Fecha de la consulta</label>
+            <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="fecha" type="date" value={form.fecha} onChange={handleChange} />
           </div>
           <div className="flex flex-col">
             <textarea className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.motivo_consulta ? 'border-red-400' : 'border-gray-300'}`} name="motivo_consulta" placeholder="Motivo de consulta *" rows={2} value={form.motivo_consulta} onChange={handleChange} />
@@ -151,7 +165,7 @@ export default function Fichas({ paciente, onVolver }) {
               <div key={f.id} className="bg-white rounded-xl shadow p-5 border-l-4 border-green-600">
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <span className="text-xs text-gray-400">{new Date(f.fecha).toLocaleString('es-CL')}</span>
+                    <span className="text-xs text-gray-400">{new Date(f.fecha).toLocaleDateString('es-CL')}</span>
                     <p className="text-sm text-gray-500 mt-1">Por: <span className="font-medium text-gray-700">{f.profesional_nombre} {f.profesional_apellido}</span></p>
                   </div>
                   <div className="flex gap-2">
@@ -177,7 +191,6 @@ export default function Fichas({ paciente, onVolver }) {
   // Vista principal
   return (
     <div>
-      {/* Modal selector de tipo de ficha */}
       {modalSelector && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={() => setModalSelector(false)}>
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
@@ -217,7 +230,6 @@ export default function Fichas({ paciente, onVolver }) {
         </button>
       </div>
 
-      {/* Resumen fichas */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <button onClick={() => setVista('control')} className="bg-white rounded-xl shadow p-4 border-t-4 border-green-600 text-left hover:shadow-md transition-shadow">
           <div className="flex items-center gap-2 mb-1">
@@ -245,9 +257,8 @@ export default function Fichas({ paciente, onVolver }) {
         </button>
       </div>
 
-      {/* Últimas fichas control */}
       {fichas.length > 0 && (
-        <div className="bg-white rounded-xl shadow p-5">
+        <div className="bg-white rounded-xl shadow p-5 mb-4">
           <h3 className="text-lg font-bold text-gray-700 mb-3">Últimas fichas de control</h3>
           <div className="flex flex-col gap-3">
             {fichas.slice(0, 3).map(f => (
@@ -262,16 +273,14 @@ export default function Fichas({ paciente, onVolver }) {
                 </div>
               </div>
             ))}
-            {fichas.length > 3 && (
-              <button onClick={() => setVista('control')} className="text-green-700 text-xs hover:underline text-left">Ver todas ({fichas.length})</button>
-            )}
+            {fichas.length > 3 && <button onClick={() => setVista('control')} className="text-green-700 text-xs hover:underline text-left">Ver todas ({fichas.length})</button>}
           </div>
         </div>
       )}
-      {/* Últimas fichas ingreso 1 */}
+
       {fichasI1.length > 0 && (
-        <div className="bg-white rounded-xl shadow p-5 mt-4">
-          <h3 className="text-lg font-bold text-gray-700 mb-3">Últimas fichas de ingreso — Matrona 1</h3>
+        <div className="bg-white rounded-xl shadow p-5 mb-4">
+          <h3 className="text-lg font-bold text-gray-700 mb-3">Últimas fichas ingreso — Matrona 1</h3>
           <div className="flex flex-col gap-3">
             {fichasI1.slice(0, 3).map(f => (
               <div key={f.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
@@ -279,19 +288,19 @@ export default function Fichas({ paciente, onVolver }) {
                   <p className="font-medium text-gray-800">{f.motivo_consulta}</p>
                   <p className="text-xs text-gray-400">{new Date(f.fecha).toLocaleDateString('es-CL')} · {f.profesional_nombre} {f.profesional_apellido}</p>
                 </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setVista('ingreso1')} className="text-orange-600 text-xs hover:underline">Ver</button>
+                </div>
               </div>
             ))}
-            {fichasI1.length > 3 && (
-              <button onClick={() => setVista('ingreso1')} className="text-orange-600 text-xs hover:underline text-left">Ver todas ({fichasI1.length})</button>
-            )}
+            {fichasI1.length > 3 && <button onClick={() => setVista('ingreso1')} className="text-orange-600 text-xs hover:underline text-left">Ver todas ({fichasI1.length})</button>}
           </div>
         </div>
       )}
 
-      {/* Últimas fichas ingreso 2 */}
       {fichasI2.length > 0 && (
-        <div className="bg-white rounded-xl shadow p-5 mt-4">
-          <h3 className="text-lg font-bold text-gray-700 mb-3">Últimas fichas de ingreso — Matrona 2</h3>
+        <div className="bg-white rounded-xl shadow p-5">
+          <h3 className="text-lg font-bold text-gray-700 mb-3">Últimas fichas ingreso — Matrona 2</h3>
           <div className="flex flex-col gap-3">
             {fichasI2.slice(0, 3).map(f => (
               <div key={f.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
@@ -299,11 +308,12 @@ export default function Fichas({ paciente, onVolver }) {
                   <p className="font-medium text-gray-800">{f.motivo_consulta}</p>
                   <p className="text-xs text-gray-400">{new Date(f.fecha).toLocaleDateString('es-CL')} · {f.profesional_nombre} {f.profesional_apellido}</p>
                 </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setVista('ingreso2')} className="text-blue-600 text-xs hover:underline">Ver</button>
+                </div>
               </div>
             ))}
-            {fichasI2.length > 3 && (
-              <button onClick={() => setVista('ingreso2')} className="text-blue-600 text-xs hover:underline text-left">Ver todas ({fichasI2.length})</button>
-            )}
+            {fichasI2.length > 3 && <button onClick={() => setVista('ingreso2')} className="text-blue-600 text-xs hover:underline text-left">Ver todas ({fichasI2.length})</button>}
           </div>
         </div>
       )}
