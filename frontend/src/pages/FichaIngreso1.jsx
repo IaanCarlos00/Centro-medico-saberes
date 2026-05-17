@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
+import ModalProcedimientos from './ModalProcedimientos'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/fichas-ingreso'
 const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
@@ -49,6 +50,7 @@ export default function FichaIngreso1({ paciente, onVolver }) {
   const [profesionales, setProfesionales] = useState([])
   const [form, setForm] = useState(campoVacio)
   const [editando, setEditando] = useState(null)
+  const [modalProcedimientos, setModalProcedimientos] = useState(false)
 
   const cargar = async () => {
     const [f, pr] = await Promise.all([
@@ -160,8 +162,11 @@ export default function FichaIngreso1({ paciente, onVolver }) {
     ventana.document.close()
   }
 
-  return (
+ return (
     <div>
+      {modalProcedimientos && (
+        <ModalProcedimientos paciente={paciente} onCerrar={() => setModalProcedimientos(false)} />
+      )}
       <div className="flex items-center gap-3 mb-6">
         <button onClick={onVolver} className="text-green-700 hover:underline text-sm font-medium">← Volver</button>
         <h2 className="text-xl font-bold text-green-800">Ficha de Ingreso — Matrona 1</h2>
@@ -235,11 +240,10 @@ export default function FichaIngreso1({ paciente, onVolver }) {
           <button onClick={guardar} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">
             {editando ? 'Actualizar' : 'Guardar ficha'}
           </button>
-          {editando && (
-            <button onClick={() => { setEditando(null); setForm(campoVacio) }} className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 font-medium">
-              Cancelar
-            </button>
-          )}
+          <button onClick={() => setModalProcedimientos(true)} className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 font-medium">
+            + Procedimientos
+          </button>
+          {editando && <button onClick={() => { setEditando(null); setForm(campoVacio) }} className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 font-medium">Cancelar</button>}
         </div>
       </div>
 

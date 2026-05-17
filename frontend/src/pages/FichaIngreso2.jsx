@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
+import ModalProcedimientos from './ModalProcedimientos'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/fichas-ingreso'
 const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
@@ -23,9 +24,7 @@ function Seccion({ titulo, children }) {
   return (
     <div className="mb-6">
       <h4 className="text-sm font-bold text-green-800 uppercase tracking-wide mb-3 pb-1 border-b border-green-100">{titulo}</h4>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-        {children}
-      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">{children}</div>
     </div>
   )
 }
@@ -48,6 +47,7 @@ export default function FichaIngreso2({ paciente, onVolver }) {
   const [profesionales, setProfesionales] = useState([])
   const [form, setForm] = useState(campoVacio)
   const [editando, setEditando] = useState(null)
+  const [modalProcedimientos, setModalProcedimientos] = useState(false)
 
   const cargar = async () => {
     const [f, pr] = await Promise.all([
@@ -153,6 +153,10 @@ export default function FichaIngreso2({ paciente, onVolver }) {
 
   return (
     <div>
+      {modalProcedimientos && (
+        <ModalProcedimientos paciente={paciente} onCerrar={() => setModalProcedimientos(false)} />
+      )}
+
       <div className="flex items-center gap-3 mb-6">
         <button onClick={onVolver} className="text-green-700 hover:underline text-sm font-medium">← Volver</button>
         <h2 className="text-xl font-bold text-green-800">Ficha Clínica — Matrona 2</h2>
@@ -222,6 +226,9 @@ export default function FichaIngreso2({ paciente, onVolver }) {
         <div className="flex gap-3 mt-4">
           <button onClick={guardar} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">
             {editando ? 'Actualizar' : 'Guardar ficha'}
+          </button>
+          <button onClick={() => setModalProcedimientos(true)} className="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 font-medium">
+            + Procedimientos
           </button>
           {editando && (
             <button onClick={() => { setEditando(null); setForm(campoVacio) }} className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 font-medium">
