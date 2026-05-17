@@ -11,6 +11,7 @@ import Bloqueos from './pages/Bloqueos'
 import Usuarios from './pages/Usuarios'
 import Reportes from './pages/Reportes'
 import CambiarPassword from './pages/CambiarPassword'
+import Procedimientos from './pages/Procedimientos'
 
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
@@ -36,6 +37,7 @@ function Layout({ usuario, onLogout }) {
     { to: '/pagos', label: 'Pagos' },
     { to: '/usuarios', label: 'Usuarios' },
     { to: '/reportes', label: 'Reportes' },
+    { to: '/procedimientos', label: 'Procedimientos' }
   ]
 
   const linksSecretaria = [
@@ -105,6 +107,7 @@ function Layout({ usuario, onLogout }) {
             <Route path="/usuarios" element={<Usuarios />} />
             <Route path="/reportes" element={<Reportes />} />
             <Route path="/cambiar-password" element={<CambiarPassword />} />
+            <Route path="/procedimientos" element={<Procedimientos />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}
 

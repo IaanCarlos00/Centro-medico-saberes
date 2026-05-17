@@ -11,6 +11,7 @@ const dashboardRouter = require('./routes/dashboard');
 const fichasIngresoRouter = require('./routes/fichasIngreso');
 const pagosRouter = require('./routes/pagos');
 const bloqueosRouter = require('./routes/bloqueos');
+const procedimientosRouter = require('./routes/procedimientos');
 
 const app = express();
 const PORT = 3000;
@@ -28,6 +29,7 @@ app.use('/dashboard', dashboardRouter);
 app.use('/fichas-ingreso', fichasIngresoRouter);
 app.use('/pagos', pagosRouter);
 app.use('/bloqueos', bloqueosRouter);
+app.use('/procedimientos', procedimientosRouter);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
