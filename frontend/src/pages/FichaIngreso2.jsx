@@ -5,7 +5,8 @@ const API = 'https://centro-medico-saberes-production.up.railway.app/fichas-ingr
 const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
 
 const campoVacio = {
-  profesional_id: '', fecha: new Date().toISOString().slice(0,10), motivo_consulta: '', edad: '', gpa: '', ocupacion: '',
+  profesional_id: '', fecha: new Date().toISOString().slice(0,10),
+  motivo_consulta: '', edad: '', gpa: '', ocupacion: '',
   pareja: '', red_apoyo: '', ant_morbidos: '', cirugias: '', alergias: '',
   medicamentos: '', tabaco: '', alcohol: '', drogas: '', examenes_sangre: '',
   ant_cacu: '', ant_ca_mama: '', menarquia: '', mac: '', menstruaciones: '',
@@ -29,15 +30,9 @@ function Campo({ label, name, form, onChange, type = 'text', fullWidth = false }
     <div className={`flex flex-col ${fullWidth ? 'sm:col-span-2 md:col-span-3' : ''}`}>
       <label className="text-xs text-gray-500 mb-1">{label}</label>
       {type === 'textarea' ? (
-        <textarea
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none"
-          name={name} rows={2} value={form[name] || ''} onChange={onChange}
-        />
+        <textarea className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none" name={name} rows={2} value={form[name] || ''} onChange={onChange} />
       ) : (
-        <input
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
-          name={name} type={type} value={form[name] || ''} onChange={onChange}
-        />
+        <input className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" name={name} type={type} value={form[name] || ''} onChange={onChange} />
       )}
     </div>
   )
@@ -48,7 +43,6 @@ export default function FichaIngreso2({ paciente, onVolver }) {
   const [profesionales, setProfesionales] = useState([])
   const [form, setForm] = useState(campoVacio)
   const [editando, setEditando] = useState(null)
-  const [mostrarForm, setMostrarForm] = useState(true)
 
   const cargar = async () => {
     const [f, pr] = await Promise.all([
@@ -72,14 +66,13 @@ export default function FichaIngreso2({ paciente, onVolver }) {
       await axios.post(`${API}/2`, { ...form, paciente_id: paciente.id })
     }
     setForm(campoVacio)
-    setMostrarForm(false)
     cargar()
   }
 
   const editar = f => {
-    setForm({ ...campoVacio, ...f })
+    setForm({ ...campoVacio, ...f, fecha: f.fecha?.slice(0,10) || new Date().toISOString().slice(0,10) })
     setEditando(f.id)
-    setMostrarForm(true)
+    window.scrollTo(0, 0)
   }
 
   const eliminar = async id => {
@@ -105,16 +98,7 @@ export default function FichaIngreso2({ paciente, onVolver }) {
         @media print { button { display: none; } }
       </style></head><body>
       <h1>Ficha Clínica — ${paciente.nombre} ${paciente.apellido}</h1>
-      <p>RUT: ${paciente.rut} | Fecha: ${new Date(f.fecha).toLocaleDateString('es-CL')} | Profesional: ${f.profesional_nombre} ${f.profesional_apellido}</p>
-
-      <div className="mb-4">
-        <label className="text-xs text-gray-500 mb-1 block">Fecha de la consulta *</label>
-        <input
-        className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
-        name="fecha" type="date" value={form.fecha || ''} onChange={handleChange}
-      />
-      </div>
-
+      <p>RUT: ${paciente.rut || 'No registrado'} | Fecha: ${new Date(f.fecha).toLocaleDateString('es-CL')} | Profesional: ${f.profesional_nombre} ${f.profesional_apellido}</p>
       <h2>Motivo de Consulta</h2>
       <div class="grid">
         <div class="campo full"><div class="valor">${f.motivo_consulta || ''}</div></div>
@@ -124,7 +108,6 @@ export default function FichaIngreso2({ paciente, onVolver }) {
         <div class="campo"><span class="label">Pareja:</span><div class="valor">${f.pareja || ''}</div></div>
         <div class="campo full"><span class="label">Red de apoyo:</span><div class="valor">${f.red_apoyo || ''}</div></div>
       </div>
-
       <h2>Antecedentes Personales</h2>
       <div class="grid">
         <div class="campo"><span class="label">Ant. mórbidos:</span><div class="valor">${f.ant_morbidos || ''}</div></div>
@@ -136,13 +119,11 @@ export default function FichaIngreso2({ paciente, onVolver }) {
         <div class="campo"><span class="label">Drogas:</span><div class="valor">${f.drogas || ''}</div></div>
         <div class="campo full"><span class="label">Exámenes de sangre:</span><div class="valor">${f.examenes_sangre || ''}</div></div>
       </div>
-
       <h2>Antecedentes Familiares</h2>
       <div class="grid">
         <div class="campo"><span class="label">Ant. CaCu:</span><div class="valor">${f.ant_cacu || ''}</div></div>
         <div class="campo"><span class="label">Ant. Ca mama:</span><div class="valor">${f.ant_ca_mama || ''}</div></div>
       </div>
-
       <h2>Antecedentes Gineco-Obstétricos</h2>
       <div class="grid">
         <div class="campo"><span class="label">Menarquia:</span><div class="valor">${f.menarquia || ''}</div></div>
@@ -157,10 +138,8 @@ export default function FichaIngreso2({ paciente, onVolver }) {
         <div class="campo"><span class="label">PAP:</span><div class="valor">${f.pap || ''}</div></div>
         <div class="campo"><span class="label">ECO MAM/MAMO:</span><div class="valor">${f.eco_mam_mamo || ''}</div></div>
       </div>
-
       <h2>Observaciones</h2>
       <div class="campo full"><div class="valor">${f.observaciones || ''}</div></div>
-
       <script>window.onload = () => window.print()</script>
       </body></html>
     `)
@@ -175,81 +154,84 @@ export default function FichaIngreso2({ paciente, onVolver }) {
         <span className="text-gray-400 text-sm">/ {paciente.nombre} {paciente.apellido}</span>
       </div>
 
-      {mostrarForm && (
-        <div className="bg-white rounded-xl shadow p-6 mb-6">
-          <h3 className="text-lg font-bold text-gray-800 mb-6">{editando ? 'Editar ficha' : 'Nueva ficha clínica'}</h3>
+      <div className="bg-white rounded-xl shadow p-6 mb-6">
+        <h3 className="text-lg font-bold text-gray-800 mb-6">{editando ? 'Editar ficha' : 'Nueva ficha clínica'}</h3>
 
-          <div className="mb-4">
+        <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
             <label className="text-xs text-gray-500 mb-1 block">Profesional *</label>
-            <select
-              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 w-full md:w-1/3"
-              name="profesional_id" value={form.profesional_id} onChange={handleChange}
-            >
+            <select className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 w-full" name="profesional_id" value={form.profesional_id} onChange={handleChange}>
               <option value="">Seleccionar profesional</option>
               {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
             </select>
           </div>
-
-          <Seccion titulo="Motivo de Consulta">
-            <Campo label="Motivo de consulta *" name="motivo_consulta" form={form} onChange={handleChange} type="textarea" fullWidth />
-            <Campo label="Edad" name="edad" form={form} onChange={handleChange} />
-            <Campo label="GPA" name="gpa" form={form} onChange={handleChange} />
-            <Campo label="Ocupación" name="ocupacion" form={form} onChange={handleChange} />
-            <Campo label="Pareja" name="pareja" form={form} onChange={handleChange} />
-            <Campo label="Red de apoyo" name="red_apoyo" form={form} onChange={handleChange} type="textarea" fullWidth />
-          </Seccion>
-
-          <Seccion titulo="Antecedentes Personales">
-            <Campo label="Ant. mórbidos" name="ant_morbidos" form={form} onChange={handleChange} type="textarea" />
-            <Campo label="Cirugías" name="cirugias" form={form} onChange={handleChange} />
-            <Campo label="Alergias" name="alergias" form={form} onChange={handleChange} />
-            <Campo label="Medicamentos" name="medicamentos" form={form} onChange={handleChange} type="textarea" />
-            <Campo label="Tabaco" name="tabaco" form={form} onChange={handleChange} />
-            <Campo label="Alcohol" name="alcohol" form={form} onChange={handleChange} />
-            <Campo label="Drogas" name="drogas" form={form} onChange={handleChange} />
-            <Campo label="Exámenes de sangre" name="examenes_sangre" form={form} onChange={handleChange} type="textarea" fullWidth />
-          </Seccion>
-
-          <Seccion titulo="Antecedentes Familiares">
-            <Campo label="Ant. CaCu" name="ant_cacu" form={form} onChange={handleChange} />
-            <Campo label="Ant. Ca mama" name="ant_ca_mama" form={form} onChange={handleChange} />
-          </Seccion>
-
-          <Seccion titulo="Antecedentes Gineco-Obstétricos">
-            <Campo label="Menarquia" name="menarquia" form={form} onChange={handleChange} />
-            <Campo label="MAC" name="mac" form={form} onChange={handleChange} />
-            <Campo label="Menstruaciones" name="menstruaciones" form={form} onChange={handleChange} type="textarea" fullWidth />
-            <Campo label="FUR" name="fur" form={form} onChange={handleChange} />
-            <Campo label="IAS" name="ias" form={form} onChange={handleChange} />
-            <Campo label="Parejas sexuales" name="parejas_sexuales" form={form} onChange={handleChange} />
-            <Campo label="Sexo biológico" name="sexo_biologico" form={form} onChange={handleChange} />
-            <Campo label="ITS" name="its" form={form} onChange={handleChange} />
-            <Campo label="ECO TV" name="eco_tv" form={form} onChange={handleChange} />
-            <Campo label="PAP" name="pap" form={form} onChange={handleChange} />
-            <Campo label="ECO MAM/MAMO" name="eco_mam_mamo" form={form} onChange={handleChange} />
-          </Seccion>
-
-          <Seccion titulo="Observaciones">
-            <Campo label="Observaciones" name="observaciones" form={form} onChange={handleChange} type="textarea" fullWidth />
-          </Seccion>
-
-          <div className="flex gap-3 mt-4">
-            <button onClick={guardar} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">
-              {editando ? 'Actualizar' : 'Guardar ficha'}
-            </button>
-            <button onClick={() => { setMostrarForm(false); setEditando(null); setForm(campoVacio) }} className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 font-medium">
-              Cancelar
-            </button>
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Fecha de la consulta</label>
+            <input className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 w-full" name="fecha" type="date" value={form.fecha || ''} onChange={handleChange} />
           </div>
         </div>
-      )}
+
+        <Seccion titulo="Motivo de Consulta">
+          <Campo label="Motivo de consulta *" name="motivo_consulta" form={form} onChange={handleChange} type="textarea" fullWidth />
+          <Campo label="Edad" name="edad" form={form} onChange={handleChange} />
+          <Campo label="GPA" name="gpa" form={form} onChange={handleChange} />
+          <Campo label="Ocupación" name="ocupacion" form={form} onChange={handleChange} />
+          <Campo label="Pareja" name="pareja" form={form} onChange={handleChange} />
+          <Campo label="Red de apoyo" name="red_apoyo" form={form} onChange={handleChange} type="textarea" fullWidth />
+        </Seccion>
+
+        <Seccion titulo="Antecedentes Personales">
+          <Campo label="Ant. mórbidos" name="ant_morbidos" form={form} onChange={handleChange} type="textarea" />
+          <Campo label="Cirugías" name="cirugias" form={form} onChange={handleChange} />
+          <Campo label="Alergias" name="alergias" form={form} onChange={handleChange} />
+          <Campo label="Medicamentos" name="medicamentos" form={form} onChange={handleChange} type="textarea" />
+          <Campo label="Tabaco" name="tabaco" form={form} onChange={handleChange} />
+          <Campo label="Alcohol" name="alcohol" form={form} onChange={handleChange} />
+          <Campo label="Drogas" name="drogas" form={form} onChange={handleChange} />
+          <Campo label="Exámenes de sangre" name="examenes_sangre" form={form} onChange={handleChange} type="textarea" fullWidth />
+        </Seccion>
+
+        <Seccion titulo="Antecedentes Familiares">
+          <Campo label="Ant. CaCu" name="ant_cacu" form={form} onChange={handleChange} />
+          <Campo label="Ant. Ca mama" name="ant_ca_mama" form={form} onChange={handleChange} />
+        </Seccion>
+
+        <Seccion titulo="Antecedentes Gineco-Obstétricos">
+          <Campo label="Menarquia" name="menarquia" form={form} onChange={handleChange} />
+          <Campo label="MAC" name="mac" form={form} onChange={handleChange} />
+          <Campo label="Menstruaciones" name="menstruaciones" form={form} onChange={handleChange} type="textarea" fullWidth />
+          <Campo label="FUR" name="fur" form={form} onChange={handleChange} />
+          <Campo label="IAS" name="ias" form={form} onChange={handleChange} />
+          <Campo label="Parejas sexuales" name="parejas_sexuales" form={form} onChange={handleChange} />
+          <Campo label="Sexo biológico" name="sexo_biologico" form={form} onChange={handleChange} />
+          <Campo label="ITS" name="its" form={form} onChange={handleChange} />
+          <Campo label="ECO TV" name="eco_tv" form={form} onChange={handleChange} />
+          <Campo label="PAP" name="pap" form={form} onChange={handleChange} />
+          <Campo label="ECO MAM/MAMO" name="eco_mam_mamo" form={form} onChange={handleChange} />
+        </Seccion>
+
+        <Seccion titulo="Observaciones">
+          <Campo label="Observaciones" name="observaciones" form={form} onChange={handleChange} type="textarea" fullWidth />
+        </Seccion>
+
+        <div className="flex gap-3 mt-4">
+          <button onClick={guardar} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">
+            {editando ? 'Actualizar' : 'Guardar ficha'}
+          </button>
+          {editando && (
+            <button onClick={() => { setEditando(null); setForm(campoVacio) }} className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 font-medium">
+              Cancelar
+            </button>
+          )}
+        </div>
+      </div>
 
       {fichas.length > 0 && (
         <div>
           <h3 className="text-lg font-bold text-gray-700 mb-3">Fichas anteriores</h3>
           <div className="flex flex-col gap-4">
             {fichas.map(f => (
-              <div key={f.id} className="bg-white rounded-xl shadow p-5 border-l-4 border-orange-500">
+              <div key={f.id} className="bg-white rounded-xl shadow p-5 border-l-4 border-blue-500">
                 <div className="flex justify-between items-start mb-2">
                   <div>
                     <p className="text-xs text-gray-400">{new Date(f.fecha).toLocaleDateString('es-CL')}</p>
