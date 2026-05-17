@@ -9,6 +9,12 @@ const API_FI = 'https://centro-medico-saberes-production.up.railway.app/fichas-i
 
 const hoyStr = new Date().toISOString().slice(0, 10)
 
+const formatFecha = fecha => {
+  if (!fecha) return ''
+  const solo = fecha.slice(0, 10)
+  return new Date(solo + 'T12:00:00').toLocaleDateString('es-CL')
+}
+
 export default function Fichas({ paciente, onVolver }) {
   const [vista, setVista] = useState(null)
   const [fichas, setFichas] = useState([])
@@ -103,7 +109,7 @@ export default function Fichas({ paciente, onVolver }) {
         @media print { button { display: none; } }
       </style></head><body>
       <h1>Ficha Control — ${paciente.nombre} ${paciente.apellido}</h1>
-      <p>RUT: ${paciente.rut || 'No registrado'} | Fecha: ${new Date(f.fecha + 'T12:00:00').toLocaleDateString('es-CL')} | Profesional: ${f.profesional_nombre} ${f.profesional_apellido}</p>
+      <p>RUT: ${paciente.rut || 'No registrado'} | Fecha: ${formatFecha(f.fecha)} | Profesional: ${f.profesional_nombre} ${f.profesional_apellido}</p>
       <h2>Motivo de Consulta</h2>
       <div class="campo"><div class="valor">${f.motivo_consulta || ''}</div></div>
       <h2>Diagnóstico</h2>
@@ -165,7 +171,7 @@ export default function Fichas({ paciente, onVolver }) {
               <div key={f.id} className="bg-white rounded-xl shadow p-5 border-l-4 border-green-600">
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <span className="text-xs text-gray-400">{new Date(f.fecha + 'T12:00:00').toLocaleDateString('es-CL')}</span>
+                    <span className="text-xs text-gray-400">{formatFecha(f.fecha)}</span>
                     <p className="text-sm text-gray-500 mt-1">Por: <span className="font-medium text-gray-700">{f.profesional_nombre} {f.profesional_apellido}</span></p>
                   </div>
                   <div className="flex gap-2">
@@ -188,7 +194,6 @@ export default function Fichas({ paciente, onVolver }) {
     </div>
   )
 
-  // Vista principal
   return (
     <div>
       {modalSelector && (
@@ -225,33 +230,22 @@ export default function Fichas({ paciente, onVolver }) {
 
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-green-800">Fichas — {paciente.nombre} {paciente.apellido}</h2>
-        <button onClick={() => setModalSelector(true)} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">
-          + Nueva ficha
-        </button>
+        <button onClick={() => setModalSelector(true)} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">+ Nueva ficha</button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <button onClick={() => setVista('control')} className="bg-white rounded-xl shadow p-4 border-t-4 border-green-600 text-left hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xl">📋</span>
-            <p className="font-bold text-green-800">Ficha Control</p>
-          </div>
+          <div className="flex items-center gap-2 mb-1"><span className="text-xl">📋</span><p className="font-bold text-green-800">Ficha Control</p></div>
           <p className="text-2xl font-bold text-gray-800">{fichas.length}</p>
           <p className="text-xs text-gray-500">ficha{fichas.length !== 1 ? 's' : ''} registrada{fichas.length !== 1 ? 's' : ''}</p>
         </button>
         <button onClick={() => setVista('ingreso1')} className="bg-white rounded-xl shadow p-4 border-t-4 border-orange-500 text-left hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xl">📝</span>
-            <p className="font-bold text-green-800">Ingreso Matrona 1</p>
-          </div>
+          <div className="flex items-center gap-2 mb-1"><span className="text-xl">📝</span><p className="font-bold text-green-800">Ingreso Matrona 1</p></div>
           <p className="text-2xl font-bold text-gray-800">{fichasI1.length}</p>
           <p className="text-xs text-gray-500">ficha{fichasI1.length !== 1 ? 's' : ''} registrada{fichasI1.length !== 1 ? 's' : ''}</p>
         </button>
         <button onClick={() => setVista('ingreso2')} className="bg-white rounded-xl shadow p-4 border-t-4 border-blue-500 text-left hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-xl">🗂️</span>
-            <p className="font-bold text-green-800">Ingreso Matrona 2</p>
-          </div>
+          <div className="flex items-center gap-2 mb-1"><span className="text-xl">🗂️</span><p className="font-bold text-green-800">Ingreso Matrona 2</p></div>
           <p className="text-2xl font-bold text-gray-800">{fichasI2.length}</p>
           <p className="text-xs text-gray-500">ficha{fichasI2.length !== 1 ? 's' : ''} registrada{fichasI2.length !== 1 ? 's' : ''}</p>
         </button>
@@ -265,7 +259,7 @@ export default function Fichas({ paciente, onVolver }) {
               <div key={f.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
                 <div>
                   <p className="font-medium text-gray-800">{f.motivo_consulta}</p>
-                  <p className="text-xs text-gray-400">{new Date(f.fecha + 'T12:00:00').toLocaleDateString('es-CL')} · {f.profesional_nombre} {f.profesional_apellido}</p>
+                  <p className="text-xs text-gray-400">{formatFecha(f.fecha)} · {f.profesional_nombre} {f.profesional_apellido}</p>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => imprimirPDF(f)} className="text-blue-600 text-xs hover:underline">PDF</button>
@@ -286,11 +280,9 @@ export default function Fichas({ paciente, onVolver }) {
               <div key={f.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
                 <div>
                   <p className="font-medium text-gray-800">{f.motivo_consulta}</p>
-                  <p className="text-xs text-gray-400">{new Date(f.fecha + 'T12:00:00').toLocaleDateString('es-CL')} · {f.profesional_nombre} {f.profesional_apellido}</p>
+                  <p className="text-xs text-gray-400">{formatFecha(f.fecha)} · {f.profesional_nombre} {f.profesional_apellido}</p>
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={() => setVista('ingreso1')} className="text-orange-600 text-xs hover:underline">Ver</button>
-                </div>
+                <button onClick={() => setVista('ingreso1')} className="text-orange-600 text-xs hover:underline">Ver</button>
               </div>
             ))}
             {fichasI1.length > 3 && <button onClick={() => setVista('ingreso1')} className="text-orange-600 text-xs hover:underline text-left">Ver todas ({fichasI1.length})</button>}
@@ -306,11 +298,9 @@ export default function Fichas({ paciente, onVolver }) {
               <div key={f.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
                 <div>
                   <p className="font-medium text-gray-800">{f.motivo_consulta}</p>
-                  <p className="text-xs text-gray-400">{new Date(f.fecha + 'T12:00:00').toLocaleDateString('es-CL')} · {f.profesional_nombre} {f.profesional_apellido}</p>
+                  <p className="text-xs text-gray-400">{formatFecha(f.fecha)} · {f.profesional_nombre} {f.profesional_apellido}</p>
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={() => setVista('ingreso2')} className="text-blue-600 text-xs hover:underline">Ver</button>
-                </div>
+                <button onClick={() => setVista('ingreso2')} className="text-blue-600 text-xs hover:underline">Ver</button>
               </div>
             ))}
             {fichasI2.length > 3 && <button onClick={() => setVista('ingreso2')} className="text-blue-600 text-xs hover:underline text-left">Ver todas ({fichasI2.length})</button>}
