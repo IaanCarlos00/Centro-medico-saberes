@@ -99,7 +99,7 @@ export default function FichaIngreso1({ paciente, onVolver }) {
         @media print { button { display: none; } }
       </style></head><body>
       <h1>Ficha de Ingreso — ${paciente.nombre} ${paciente.apellido}</h1>
-      <p>RUT: ${paciente.rut || 'No registrado'} | Fecha: ${new Date(f.fecha).toLocaleDateString('es-CL')} | Profesional: ${f.profesional_nombre} ${f.profesional_apellido}</p>
+      <p>RUT: ${paciente.rut || 'No registrado'} | Fecha: ${new Date(f.fecha + 'T12:00:00').toLocaleDateString('es-CL')} | Profesional: ${f.profesional_nombre} ${f.profesional_apellido}</p>
       <h2>Motivo de Consulta</h2>
       <div class="campo full"><div class="valor">${f.motivo_consulta || ''}</div></div>
       <h2>Datos Personales</h2>
@@ -246,7 +246,7 @@ export default function FichaIngreso1({ paciente, onVolver }) {
               <div key={f.id} className="bg-white rounded-xl shadow p-5 border-l-4 border-orange-500">
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <p className="text-xs text-gray-400">{new Date(f.fecha).toLocaleDateString('es-CL')}</p>
+                    <p className="text-xs text-gray-400">{new Date(f.fecha + 'T12:00:00').toLocaleDateString('es-CL')}</p>
                     <p className="text-sm text-gray-600 mt-0.5">Atendido por: <span className="font-medium">{f.profesional_nombre} {f.profesional_apellido}</span></p>
                     {f.motivo_consulta && <p className="text-sm text-gray-700 mt-1"><span className="font-semibold">Motivo:</span> {f.motivo_consulta}</p>}
                   </div>

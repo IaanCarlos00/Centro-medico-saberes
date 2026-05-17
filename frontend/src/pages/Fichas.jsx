@@ -103,7 +103,7 @@ export default function Fichas({ paciente, onVolver }) {
         @media print { button { display: none; } }
       </style></head><body>
       <h1>Ficha Control — ${paciente.nombre} ${paciente.apellido}</h1>
-      <p>RUT: ${paciente.rut || 'No registrado'} | Fecha: ${new Date(f.fecha).toLocaleDateString('es-CL')} | Profesional: ${f.profesional_nombre} ${f.profesional_apellido}</p>
+      <p>RUT: ${paciente.rut || 'No registrado'} | Fecha: ${new Date(f.fecha + 'T12:00:00').toLocaleDateString('es-CL')} | Profesional: ${f.profesional_nombre} ${f.profesional_apellido}</p>
       <h2>Motivo de Consulta</h2>
       <div class="campo"><div class="valor">${f.motivo_consulta || ''}</div></div>
       <h2>Diagnóstico</h2>
@@ -165,7 +165,7 @@ export default function Fichas({ paciente, onVolver }) {
               <div key={f.id} className="bg-white rounded-xl shadow p-5 border-l-4 border-green-600">
                 <div className="flex justify-between items-start mb-3">
                   <div>
-                    <span className="text-xs text-gray-400">{new Date(f.fecha).toLocaleDateString('es-CL')}</span>
+                    <span className="text-xs text-gray-400">{new Date(f.fecha + 'T12:00:00').toLocaleDateString('es-CL')}</span>
                     <p className="text-sm text-gray-500 mt-1">Por: <span className="font-medium text-gray-700">{f.profesional_nombre} {f.profesional_apellido}</span></p>
                   </div>
                   <div className="flex gap-2">
@@ -265,7 +265,7 @@ export default function Fichas({ paciente, onVolver }) {
               <div key={f.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
                 <div>
                   <p className="font-medium text-gray-800">{f.motivo_consulta}</p>
-                  <p className="text-xs text-gray-400">{new Date(f.fecha).toLocaleDateString('es-CL')} · {f.profesional_nombre} {f.profesional_apellido}</p>
+                  <p className="text-xs text-gray-400">{new Date(f.fecha + 'T12:00:00').toLocaleDateString('es-CL')} · {f.profesional_nombre} {f.profesional_apellido}</p>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => imprimirPDF(f)} className="text-blue-600 text-xs hover:underline">PDF</button>
@@ -286,7 +286,7 @@ export default function Fichas({ paciente, onVolver }) {
               <div key={f.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
                 <div>
                   <p className="font-medium text-gray-800">{f.motivo_consulta}</p>
-                  <p className="text-xs text-gray-400">{new Date(f.fecha).toLocaleDateString('es-CL')} · {f.profesional_nombre} {f.profesional_apellido}</p>
+                  <p className="text-xs text-gray-400">{new Date(f.fecha + 'T12:00:00').toLocaleDateString('es-CL')} · {f.profesional_nombre} {f.profesional_apellido}</p>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => setVista('ingreso1')} className="text-orange-600 text-xs hover:underline">Ver</button>
@@ -306,7 +306,7 @@ export default function Fichas({ paciente, onVolver }) {
               <div key={f.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
                 <div>
                   <p className="font-medium text-gray-800">{f.motivo_consulta}</p>
-                  <p className="text-xs text-gray-400">{new Date(f.fecha).toLocaleDateString('es-CL')} · {f.profesional_nombre} {f.profesional_apellido}</p>
+                  <p className="text-xs text-gray-400">{new Date(f.fecha + 'T12:00:00').toLocaleDateString('es-CL')} · {f.profesional_nombre} {f.profesional_apellido}</p>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={() => setVista('ingreso2')} className="text-blue-600 text-xs hover:underline">Ver</button>
