@@ -229,8 +229,13 @@ export default function Fichas({ paciente, onVolver }) {
       )}
 
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-green-800">Fichas — {paciente.nombre} {paciente.apellido}</h2>
-        <button onClick={() => setModalSelector(true)} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">+ Nueva ficha</button>
+        <div className="flex items-center gap-3">
+          <button onClick={onVolver} className="text-green-700 hover:underline font-medium text-sm">← Volver</button>
+          <h2 className="text-xl font-bold text-green-800">Fichas — {paciente.nombre} {paciente.apellido}</h2>
+        </div>
+        <button onClick={() => setModalSelector(true)} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">
+          + Nueva ficha
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
