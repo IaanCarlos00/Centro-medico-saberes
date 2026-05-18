@@ -289,7 +289,7 @@ export default function Fichas({ paciente, onVolver }) {
 
       {fichasI1.length > 0 && (
         <div className="bg-white rounded-xl shadow p-5 mb-4">
-          <h3 className="text-lg font-bold text-gray-700 mb-3">Últimas fichas ingreso — Matrona 1</h3>
+          <h3 className="text-lg font-bold text-gray-700 mb-3">Últimas fichas ingreso — Matrona V</h3>
           <div className="flex flex-col gap-3">
             {fichasI1.slice(0, 3).map(f => (
               <div key={f.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
@@ -307,7 +307,7 @@ export default function Fichas({ paciente, onVolver }) {
 
       {fichasI2.length > 0 && (
         <div className="bg-white rounded-xl shadow p-5">
-          <h3 className="text-lg font-bold text-gray-700 mb-3">Últimas fichas ingreso — Matrona 2</h3>
+          <h3 className="text-lg font-bold text-gray-700 mb-3">Últimas fichas ingreso — Matrona J</h3>
           <div className="flex flex-col gap-3">
             {fichasI2.slice(0, 3).map(f => (
               <div key={f.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">

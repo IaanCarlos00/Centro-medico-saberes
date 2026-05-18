@@ -5,6 +5,7 @@ import { format, parse, startOfWeek, getDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import dayjs from 'dayjs'
+import ModalProcedimientos from './ModalProcedimientos'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
@@ -141,6 +142,8 @@ export default function Agenda() {
   const [historialPaciente, setHistorialPaciente] = useState([])
   const [bloqueos, setBloqueos] = useState([])
   const [modalPago, setModalPago] = useState(null)
+  const [citaRecienAgendada, setCitaRecienAgendada] = useState(null)
+const [modalProcedimientosCita, setModalProcedimientosCita] = useState(null)
   const dropdownRef = useRef(null)
 
   const cargar = async () => {
@@ -197,7 +200,9 @@ export default function Agenda() {
     await axios.put(`${API}/${editando}`, form)
     setEditando(null)
   } else {
-    await axios.post(API, form)
+    const res = await axios.post(API, form)
+    const paciente = pacientes.find(p => p.id === parseInt(form.paciente_id))
+    setCitaRecienAgendada({ ...res.data, paciente_id: form.paciente_id, paciente_nombre: paciente?.nombre, paciente_apellido: paciente?.apellido })
   }
   setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
   setBusquedaPaciente('')
@@ -264,26 +269,48 @@ export default function Agenda() {
   })
 
   return (
-    <div>
-      {modalPago && (
-        <ModalPago
-          cita={modalPago}
-          onConfirmar={() => { setModalPago(null); cargar() }}
-          onCerrar={() => setModalPago(null)}
-        />
-      )}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-green-800">Agenda</h2>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setVistaActiva('agenda')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${vistaActiva === 'agenda' ? 'bg-green-700 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
-          >📅 Agenda</button>
-          <button
-            onClick={() => setVistaActiva('historial')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${vistaActiva === 'historial' ? 'bg-green-700 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
-          >📋 Historial</button>
+  <div>
+    {modalPago && (
+      <ModalPago
+        cita={modalPago}
+        onConfirmar={() => { setModalPago(null); cargar() }}
+        onCerrar={() => setModalPago(null)}
+      />
+    )}
+
+    {citaRecienAgendada && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+        <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-3xl">📋</span>
+            <div>
+              <h3 className="text-lg font-bold text-green-800">Cita agendada</h3>
+              <p className="text-sm text-gray-500">¿Deseas registrar el procedimiento?</p>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => { setModalProcedimientosCita(citaRecienAgendada); setCitaRecienAgendada(null) }}
+              className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium"
+            >Sí, agregar</button>
+            <button
+              onClick={() => setCitaRecienAgendada(null)}
+              className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium"
+            >No por ahora</button>
+          </div>
         </div>
+      </div>
+    )}
+
+    {modalProcedimientosCita && (
+      <ModalProcedimientos
+        paciente={{ id: modalProcedimientosCita.paciente_id, nombre: modalProcedimientosCita.paciente_nombre || '', apellido: modalProcedimientosCita.paciente_apellido || '' }}
+        onCerrar={() => setModalProcedimientosCita(null)}
+      />
+    )}
+
+    <div className="flex items-center justify-between mb-6">
+      <h2 className="text-2xl font-bold text-green-800">Agenda</h2>
       </div>
 
       {/* VISTA AGENDA */}
