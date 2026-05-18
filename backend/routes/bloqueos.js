@@ -5,7 +5,11 @@ const pool = require('../db')
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT b.*, u.nombre AS creado_por_nombre,
+      SELECT b.id,
+        TO_CHAR(b.fecha_inicio, 'YYYY-MM-DD HH24:MI:SS') AS fecha_inicio,
+        TO_CHAR(b.fecha_fin, 'YYYY-MM-DD HH24:MI:SS') AS fecha_fin,
+        b.motivo, b.creado_por, b.profesional_id,
+        u.nombre AS creado_por_nombre,
         pr.nombre AS profesional_nombre, pr.apellido AS profesional_apellido
       FROM bloqueo_horario b
       LEFT JOIN usuario u ON b.creado_por = u.id
