@@ -63,6 +63,15 @@ router.post('/', async (req, res) => {
       )
     }
 
+    // Si el procedimiento es Flujo o Panel, crear registro automático en tabla flujo
+    const nombreUpper = nombre ? nombre.toUpperCase() : ''
+    if (nombreUpper.includes('FLUJO') || nombreUpper.includes('PANEL')) {
+      await pool.query(
+        'INSERT INTO flujo (paciente_id, nombre, tipo_examen, fecha_toma, entregado) VALUES ($1,$2,$3,CURRENT_DATE,$4)',
+        [paciente_id, nombre, nombreUpper.includes('FLUJO') ? 'Flujo particular' : 'Panel particular', false]
+      )
+    }
+
     res.status(201).json(proc.rows[0])
   } catch (error) { res.status(500).json({ error: error.message }) }
 })
