@@ -3,89 +3,7 @@ import axios from 'axios'
 import Fichas from './Fichas'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
-const API_CITAS = 'https://centro-medico-saberes-production.up.railway.app/citas'
-const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
 const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
-
-const HORA_MIN = '08:30'
-const HORA_MAX = '19:30'
-
-function validarFechaHora(fechaHora) {
-  if (!fechaHora) return 'La hora de la cita es obligatoria'
-  const fecha = new Date(fechaHora)
-  const ahora = new Date()
-  const diaSemana = fecha.getDay()
-  const hora = fechaHora.slice(11, 16)
-  if (fecha < ahora) return 'No puedes agendar en una fecha u hora que ya pasó'
-  if (diaSemana === 0) return 'No se pueden agendar citas los domingos'
-  if (hora < HORA_MIN) return 'La primera hora disponible es 08:30'
-  if (hora > HORA_MAX) return 'La última hora disponible es 19:30'
-  return null
-}
-
-function ModalAgendarCita({ paciente, profesionales, onConfirmar, onCerrar }) {
-  const [form, setForm] = useState({ profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
-  const [errores, setErrores] = useState({})
-
-  const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-    setErrores({ ...errores, [e.target.name]: '' })
-  }
-
-  const guardar = async () => {
-    const e = {}
-    if (!form.profesional_id) e.profesional_id = 'Selecciona un profesional'
-    const errorFecha = validarFechaHora(form.fecha_hora)
-    if (errorFecha) e.fecha_hora = errorFecha
-    if (Object.keys(e).length > 0) { setErrores(e); return }
-    await axios.post(API_CITAS, { ...form, paciente_id: paciente.id })
-    onConfirmar()
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={onCerrar}>
-      <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center gap-3 mb-5">
-          <span className="text-3xl">📅</span>
-          <div>
-            <h3 className="text-lg font-bold text-green-800">¿Agendar cita ahora?</h3>
-            <p className="text-sm text-gray-500">{paciente.nombre} {paciente.apellido}</p>
-          </div>
-        </div>
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-600 mb-1">Profesional</label>
-            <select className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.profesional_id ? 'border-red-400' : 'border-gray-300'}`} name="profesional_id" value={form.profesional_id} onChange={handleChange}>
-              <option value="">Seleccionar profesional</option>
-              {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
-            </select>
-            {errores.profesional_id && <span className="text-red-500 text-xs mt-1">{errores.profesional_id}</span>}
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-600 mb-1">Hora de la cita <span className="text-gray-400 text-xs">(Lun-Vie 08:30-19:30)</span></label>
-            <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.fecha_hora ? 'border-red-400' : 'border-gray-300'}`} name="fecha_hora" type="datetime-local" min={`${new Date().toISOString().slice(0,10)}T08:30`} value={form.fecha_hora} onChange={handleChange} />
-            {errores.fecha_hora && <span className="text-red-500 text-xs mt-1">{errores.fecha_hora}</span>}
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-600 mb-1">Estado</label>
-            <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="estado" value={form.estado} onChange={handleChange}>
-              <option value="pendiente">Pendiente</option>
-              <option value="confirmada">Confirmada</option>
-            </select>
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-600 mb-1">Observaciones (opcional)</label>
-            <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="observaciones" value={form.observaciones} onChange={handleChange} />
-          </div>
-        </div>
-        <div className="flex gap-3 mt-6">
-          <button onClick={guardar} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">Agendar</button>
-          <button onClick={onCerrar} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Ahora no</button>
-        </div>
-      </div>
-    </div>
-  )
-}
 
 function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
   const [form, setForm] = useState({ rut: paciente.rut || '', fecha_nacimiento: paciente.fecha_nacimiento?.slice(0,10) || '', telefono: paciente.telefono || '' })
@@ -116,7 +34,7 @@ function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
             <p className="text-sm text-gray-500">{paciente.nombre} {paciente.apellido}</p>
           </div>
         </div>
-        <p className="text-sm text-yellow-700 bg-yellow-50 rounded-lg px-3 py-2 mb-4">Para confirmar la cita se requieren los datos completos del paciente.</p>
+        <p className="text-sm text-yellow-700 bg-yellow-50 rounded-lg px-3 py-2 mb-4">Completa los datos del paciente.</p>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col">
             <label className="text-sm text-gray-600 mb-1">RUT *</label>
@@ -135,7 +53,7 @@ function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
           </div>
         </div>
         <div className="flex gap-3 mt-6">
-          <button onClick={guardar} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">Guardar y confirmar</button>
+          <button onClick={guardar} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">Guardar</button>
           <button onClick={onCerrar} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancelar</button>
         </div>
       </div>
@@ -145,23 +63,19 @@ function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
 
 export default function Pacientes() {
   const [pacientes, setPacientes] = useState([])
-  const [profesionales, setProfesionales] = useState([])
   const [deudores, setDeudores] = useState([])
   const [busqueda, setBusqueda] = useState('')
   const [form, setForm] = useState({ nombre: '', apellido: '', rut: '', fecha_nacimiento: '', telefono: '', email: '' })
   const [editando, setEditando] = useState(null)
   const [errores, setErrores] = useState({})
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null)
-  const [modalAgendar, setModalAgendar] = useState(null)
   const [modalCompletar, setModalCompletar] = useState(null)
-  const [pendienteConfirmar, setPendienteConfirmar] = useState(null)
 
   const rol = localStorage.getItem('rol')
 
   const cargar = async () => {
-    const [p, pr, pg] = await Promise.all([axios.get(API), axios.get(API_PRO), axios.get(API_PAGOS)])
+    const [p, pg] = await Promise.all([axios.get(API), axios.get(API_PAGOS)])
     setPacientes(p.data)
-    setProfesionales(pr.data)
     const ids = pg.data.filter(p => p.estado === 'pendiente').map(p => p.paciente_id)
     setDeudores([...new Set(ids)])
   }
@@ -186,16 +100,12 @@ export default function Pacientes() {
     if (editando) {
       await axios.put(`${API}/${editando}`, form)
       setEditando(null)
-      setForm({ nombre: '', apellido: '', rut: '', fecha_nacimiento: '', telefono: '', email: '' })
-      setErrores({})
-      cargar()
     } else {
-      const res = await axios.post(API, form)
-      setForm({ nombre: '', apellido: '', rut: '', fecha_nacimiento: '', telefono: '', email: '' })
-      setErrores({})
-      cargar()
-      setModalAgendar(res.data)
+      await axios.post(API, form)
     }
+    setForm({ nombre: '', apellido: '', rut: '', fecha_nacimiento: '', telefono: '', email: '' })
+    setErrores({})
+    cargar()
   }
 
   const editar = p => {
@@ -219,15 +129,6 @@ export default function Pacientes() {
 
   const necesitaCompletar = p => !p.rut || !p.fecha_nacimiento || !p.telefono
 
-  const handleAgendar = p => {
-    if (necesitaCompletar(p)) {
-      setPendienteConfirmar(p)
-      setModalCompletar(p)
-    } else {
-      setModalAgendar(p)
-    }
-  }
-
   const filtrados = pacientes.filter(p => {
     const q = busqueda.toLowerCase()
     return (
@@ -245,30 +146,11 @@ export default function Pacientes() {
 
   return (
     <div>
-      {modalAgendar && (
-        <ModalAgendarCita
-          paciente={modalAgendar}
-          profesionales={profesionales}
-          onConfirmar={() => { setModalAgendar(null); cargar() }}
-          onCerrar={() => setModalAgendar(null)}
-        />
-      )}
-
       {modalCompletar && (
         <ModalCompletarPaciente
           paciente={modalCompletar}
-          onConfirmar={() => {
-            setModalCompletar(null)
-            cargar()
-            if (pendienteConfirmar) {
-              setTimeout(() => {
-                const actualizado = { ...pendienteConfirmar }
-                setModalAgendar(actualizado)
-                setPendienteConfirmar(null)
-              }, 300)
-            }
-          }}
-          onCerrar={() => { setModalCompletar(null); setPendienteConfirmar(null) }}
+          onConfirmar={() => { setModalCompletar(null); cargar() }}
+          onCerrar={() => setModalCompletar(null)}
         />
       )}
 
@@ -309,7 +191,6 @@ export default function Pacientes() {
       </div>
       {busqueda && <p className="text-sm text-gray-500 mb-3">{filtrados.length} resultado{filtrados.length !== 1 ? 's' : ''} encontrado{filtrados.length !== 1 ? 's' : ''}</p>}
 
-      {/* Tabla escritorio */}
       <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-green-50 text-green-800 uppercase text-xs">
@@ -344,7 +225,9 @@ export default function Pacientes() {
                   {rol !== 'secretaria' && (
                     <button onClick={() => setPacienteSeleccionado(p)} className="text-blue-600 hover:underline text-sm font-medium">Fichas</button>
                   )}
-                  <button onClick={() => handleAgendar(p)} className="text-green-700 hover:underline text-sm font-medium">Agendar</button>
+                  {necesitaCompletar(p) && (
+                    <button onClick={() => setModalCompletar(p)} className="text-yellow-600 hover:underline text-sm font-medium">Completar</button>
+                  )}
                   <button onClick={() => editar(p)} className="text-gray-500 hover:underline text-sm font-medium">Editar</button>
                   <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
                 </td>
@@ -357,7 +240,6 @@ export default function Pacientes() {
         </table>
       </div>
 
-      {/* Tarjetas móvil */}
       <div className="md:hidden flex flex-col gap-3">
         {filtrados.map(p => (
           <div key={p.id} className="bg-white rounded-xl shadow p-4">
@@ -372,7 +254,9 @@ export default function Pacientes() {
                 {rol !== 'secretaria' && (
                   <button onClick={() => setPacienteSeleccionado(p)} className="text-blue-600 text-sm font-medium">Fichas</button>
                 )}
-                <button onClick={() => handleAgendar(p)} className="text-green-700 text-sm font-medium">Agendar</button>
+                {necesitaCompletar(p) && (
+                  <button onClick={() => setModalCompletar(p)} className="text-yellow-600 text-sm font-medium">Completar</button>
+                )}
                 <button onClick={() => editar(p)} className="text-gray-500 text-sm font-medium">Editar</button>
                 <button onClick={() => eliminar(p.id)} className="text-red-500 text-sm font-medium">Eliminar</button>
               </div>
