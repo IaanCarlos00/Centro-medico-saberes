@@ -700,9 +700,14 @@ export default function Agenda() {
               }
             })}
             onSelectEvent={e => {
-                if (e.tipo === 'bloqueo') return
-                setCitaSeleccionada(e.resource)
-              }}
+                  if (e.tipo === 'bloqueo') {
+                    if (confirm('¿Eliminar este bloqueo?')) {
+                      axios.delete(`${API_BLOQUEOS}/${e.resource.id}`).then(() => cargar())
+                    }
+                    return
+                  }
+                  setCitaSeleccionada(e.resource)
+                }}
               selectable
               onSelectSlot={({ start }) => {
                   const offset = start.getTimezoneOffset() * 60000
