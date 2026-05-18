@@ -143,7 +143,9 @@ export default function Agenda() {
   const [bloqueos, setBloqueos] = useState([])
   const [modalPago, setModalPago] = useState(null)
   const [citaRecienAgendada, setCitaRecienAgendada] = useState(null)
-const [modalProcedimientosCita, setModalProcedimientosCita] = useState(null)
+  const [modalProcedimientosCita, setModalProcedimientosCita] = useState(null)
+  const [mostrarNuevoPaciente, setMostrarNuevoPaciente] = useState(false)
+  const [formNuevoPaciente, setFormNuevoPaciente] = useState({ nombre: '', apellido: '' })
   const dropdownRef = useRef(null)
 
   const cargar = async () => {
@@ -268,6 +270,17 @@ const [modalProcedimientosCita, setModalProcedimientosCita] = useState(null)
     return coincideBusqueda && coincideEstado
   })
 
+  const crearPaciente = async () => {
+  if (!formNuevoPaciente.nombre.trim() || !formNuevoPaciente.apellido.trim()) return alert('Ingresa nombre y apellido')
+  const res = await axios.post(API_PAC, formNuevoPaciente)
+  const nuevo = res.data
+  await cargar()
+  setBusquedaPaciente(`${nuevo.nombre} ${nuevo.apellido}`)
+  setForm(f => ({ ...f, paciente_id: nuevo.id }))
+  setMostrarNuevoPaciente(false)
+  setFormNuevoPaciente({ nombre: '', apellido: '' })
+}
+
   return (
   <div>
     {modalPago && (
@@ -311,7 +324,11 @@ const [modalProcedimientosCita, setModalProcedimientosCita] = useState(null)
 
     <div className="flex items-center justify-between mb-6">
       <h2 className="text-2xl font-bold text-green-800">Agenda</h2>
+      <div className="flex gap-2">
+        <button onClick={() => setVistaActiva('agenda')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${vistaActiva === 'agenda' ? 'bg-green-700 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>📅 Agenda</button>
+        <button onClick={() => setVistaActiva('historial')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${vistaActiva === 'historial' ? 'bg-green-700 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>📋 Historial</button>
       </div>
+    </div>
 
       {/* VISTA AGENDA */}
       {vistaActiva === 'agenda' && (
@@ -465,7 +482,15 @@ const [modalProcedimientosCita, setModalProcedimientosCita] = useState(null)
             onSelectEvent={e => {
                 if (e.tipo === 'bloqueo') return
                 setCitaSeleccionada(e.resource)
-                }}
+              }}
+              selectable
+              onSelectSlot={({ start }) => {
+                const fechaHora = start.toISOString().slice(0, 16)
+                setForm(f => ({ ...f, fecha_hora: fechaHora }))
+                setMostrarFormulario(true)
+                setVistaActiva('agenda')
+                window.scrollTo(0, 0)
+              }}
               style={{ height: '100%' }}
             />
           </div>
