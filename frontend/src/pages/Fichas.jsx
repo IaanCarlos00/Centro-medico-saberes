@@ -218,7 +218,7 @@ export default function Fichas({ paciente, onVolver }) {
                   <p className="text-xs text-gray-500">{fichas.length} ficha{fichas.length !== 1 ? 's' : ''} registrada{fichas.length !== 1 ? 's' : ''}</p>
                 </div>
               </button>
-              <button onClick={() => { setModalSelector(false); setVista('ingreso1') }} className="flex items-center gap-3 p-4 rounded-xl border-2 border-orange-500 hover:bg-orange-50 transition-colors text-left">
+              <button onClick={() => { setModalSelector(false); setVista('ingresoV') }} className="flex items-center gap-3 p-4 rounded-xl border-2 border-orange-500 hover:bg-orange-50 transition-colors text-left">
                 <span className="text-2xl">📝</span>
                 <div>
                   <p className="font-bold text-green-800">Ficha Ingreso — Matrona V</p>
@@ -255,12 +255,12 @@ export default function Fichas({ paciente, onVolver }) {
           <p className="text-xs text-gray-500">ficha{fichas.length !== 1 ? 's' : ''} registrada{fichas.length !== 1 ? 's' : ''}</p>
         </button>
         <button onClick={() => setVista('ingreso1')} className="bg-white rounded-xl shadow p-4 border-t-4 border-orange-500 text-left hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-2 mb-1"><span className="text-xl">📝</span><p className="font-bold text-green-800">Ingreso Matrona 1</p></div>
+          <div className="flex items-center gap-2 mb-1"><span className="text-xl">📝</span><p className="font-bold text-green-800">Ingreso Matrona V</p></div>
           <p className="text-2xl font-bold text-gray-800">{fichasI1.length}</p>
           <p className="text-xs text-gray-500">ficha{fichasI1.length !== 1 ? 's' : ''} registrada{fichasI1.length !== 1 ? 's' : ''}</p>
         </button>
         <button onClick={() => setVista('ingreso2')} className="bg-white rounded-xl shadow p-4 border-t-4 border-blue-500 text-left hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-2 mb-1"><span className="text-xl">🗂️</span><p className="font-bold text-green-800">Ingreso Matrona 2</p></div>
+          <div className="flex items-center gap-2 mb-1"><span className="text-xl">🗂️</span><p className="font-bold text-green-800">Ingreso Matrona J</p></div>
           <p className="text-2xl font-bold text-gray-800">{fichasI2.length}</p>
           <p className="text-xs text-gray-500">ficha{fichasI2.length !== 1 ? 's' : ''} registrada{fichasI2.length !== 1 ? 's' : ''}</p>
         </button>
