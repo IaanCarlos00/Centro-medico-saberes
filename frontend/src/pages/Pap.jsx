@@ -1,0 +1,213 @@
+import { useEffect, useState } from 'react'
+import axios from 'axios'
+
+const API = 'https://centro-medico-saberes-production.up.railway.app/pap'
+const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
+const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
+
+const hoyStr = new Date().toISOString().slice(0, 10)
+
+const formatFecha = fecha => {
+  if (!fecha) return ''
+  return new Date(fecha.slice(0, 10) + 'T12:00:00').toLocaleDateString('es-CL')
+}
+
+export default function Pap() {
+  const [paps, setPaps] = useState([])
+  const [pacientes, setPacientes] = useState([])
+  const [profesionales, setProfesionales] = useState([])
+  const [form, setForm] = useState({ paciente_id: '', profesional_id: '', nombre: '', fecha_toma: hoyStr, resultado: '', estado_envio: 'pendiente', notas: '' })
+  const [editando, setEditando] = useState(null)
+  const [errores, setErrores] = useState({})
+  const [mostrarForm, setMostrarForm] = useState(false)
+  const [busqueda, setBusqueda] = useState('')
+  const [filtroEstado, setFiltroEstado] = useState('')
+
+  const cargar = async () => {
+    const [p, pac, pro] = await Promise.all([axios.get(API), axios.get(API_PAC), axios.get(API_PRO)])
+    setPaps(p.data)
+    setPacientes(pac.data)
+    setProfesionales(pro.data)
+  }
+
+  useEffect(() => { cargar() }, [])
+
+  const handleChange = e => {
+    setForm({ ...form, [e.target.name]: e.target.value })
+    setErrores({ ...errores, [e.target.name]: '' })
+  }
+
+  const validar = () => {
+    const e = {}
+    if (!form.paciente_id) e.paciente_id = 'Selecciona un paciente'
+    if (!form.fecha_toma) e.fecha_toma = 'La fecha es obligatoria'
+    return e
+  }
+
+  const guardar = async () => {
+    const e = validar()
+    if (Object.keys(e).length > 0) { setErrores(e); return }
+    if (editando) {
+      await axios.put(`${API}/${editando}`, form)
+      setEditando(null)
+    } else {
+      await axios.post(API, form)
+    }
+    setForm({ paciente_id: '', profesional_id: '', nombre: '', fecha_toma: hoyStr, resultado: '', estado_envio: 'pendiente', notas: '' })
+    setErrores({})
+    setMostrarForm(false)
+    cargar()
+  }
+
+  const editar = p => {
+    setForm({
+      paciente_id: p.paciente_id,
+      profesional_id: p.profesional_id || '',
+      nombre: p.nombre || '',
+      fecha_toma: p.fecha_toma?.slice(0, 10) || hoyStr,
+      resultado: p.resultado || '',
+      estado_envio: p.estado_envio,
+      notas: p.notas || ''
+    })
+    setEditando(p.id)
+    setMostrarForm(true)
+    window.scrollTo(0, 0)
+  }
+
+  const eliminar = async id => {
+    if (confirm('¿Eliminar PAP?')) {
+      await axios.delete(`${API}/${id}`)
+      cargar()
+    }
+  }
+
+  const cambiarEstado = async (id, estado_envio) => {
+    await axios.put(`${API}/${id}`, { ...paps.find(p => p.id === id), estado_envio })
+    cargar()
+  }
+
+  const filtrados = paps.filter(p => {
+    const q = busqueda.toLowerCase()
+    const coincideBusqueda = !busqueda ||
+      `${p.paciente_nombre || ''} ${p.paciente_apellido || ''}`.toLowerCase().includes(q) ||
+      (p.nombre || '').toLowerCase().includes(q) ||
+      (p.resultado || '').toLowerCase().includes(q)
+    const coincideEstado = !filtroEstado || p.estado_envio === filtroEstado
+    return coincideBusqueda && coincideEstado
+  })
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-green-800">PAP</h2>
+        <button onClick={() => { setMostrarForm(!mostrarForm); if (mostrarForm) { setEditando(null); setForm({ paciente_id: '', profesional_id: '', nombre: '', fecha_toma: hoyStr, resultado: '', estado_envio: 'pendiente', notas: '' }) } }} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">
+          {mostrarForm ? 'Cancelar' : '+ Nuevo PAP'}
+        </button>
+      </div>
+
+      {mostrarForm && (
+        <div className="bg-white rounded-xl shadow p-5 mb-6">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4">{editando ? 'Editar PAP' : 'Nuevo PAP'}</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-1">Paciente *</label>
+              <select className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.paciente_id ? 'border-red-400' : 'border-gray-300'}`} name="paciente_id" value={form.paciente_id} onChange={handleChange}>
+                <option value="">Seleccionar paciente</option>
+                {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
+              </select>
+              {errores.paciente_id && <span className="text-red-500 text-xs mt-1">{errores.paciente_id}</span>}
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-1">Profesional</label>
+              <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="profesional_id" value={form.profesional_id} onChange={handleChange}>
+                <option value="">Seleccionar profesional</option>
+                {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
+              </select>
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-1">Nombre</label>
+              <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="nombre" placeholder="Ej: PAP anual" value={form.nombre} onChange={handleChange} />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-1">Fecha de toma *</label>
+              <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.fecha_toma ? 'border-red-400' : 'border-gray-300'}`} name="fecha_toma" type="date" value={form.fecha_toma} onChange={handleChange} />
+              {errores.fecha_toma && <span className="text-red-500 text-xs mt-1">{errores.fecha_toma}</span>}
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-1">Resultado</label>
+              <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="resultado" placeholder="Ej: Normal, Anormal..." value={form.resultado} onChange={handleChange} />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-1">Estado envío</label>
+              <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="estado_envio" value={form.estado_envio} onChange={handleChange}>
+                <option value="pendiente">Pendiente</option>
+                <option value="enviado">Enviado</option>
+              </select>
+            </div>
+            <div className="flex flex-col sm:col-span-2 md:col-span-3">
+              <label className="text-sm text-gray-600 mb-1">Notas (opcional)</label>
+              <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="notas" value={form.notas} onChange={handleChange} />
+            </div>
+          </div>
+          <div className="flex gap-3 mt-4">
+            <button onClick={guardar} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">{editando ? 'Actualizar' : 'Guardar'}</button>
+            {editando && <button onClick={() => { setEditando(null); setForm({ paciente_id: '', profesional_id: '', nombre: '', fecha_toma: hoyStr, resultado: '', estado_envio: 'pendiente', notas: '' }); setMostrarForm(false) }} className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 font-medium">Cancelar</button>}
+          </div>
+        </div>
+      )}
+
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <div className="relative flex-1">
+          <input className="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="Buscar por paciente, nombre o resultado..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
+          <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
+          {busqueda && <button onClick={() => setBusqueda('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">✕</button>}
+        </div>
+        <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}>
+          <option value="">Todos los estados</option>
+          <option value="pendiente">Pendiente</option>
+          <option value="enviado">Enviado</option>
+        </select>
+      </div>
+
+      <div className="bg-white rounded-xl shadow overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-green-50 text-green-800 uppercase text-xs">
+            <tr>
+              <th className="px-4 py-3 text-left">Paciente</th>
+              <th className="px-4 py-3 text-left">Nombre</th>
+              <th className="px-4 py-3 text-left">Profesional</th>
+              <th className="px-4 py-3 text-left">Fecha toma</th>
+              <th className="px-4 py-3 text-left">Resultado</th>
+              <th className="px-4 py-3 text-left">Estado envío</th>
+              <th className="px-4 py-3 text-left">Acciones</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {filtrados.map(p => (
+              <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                <td className="px-4 py-3 font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</td>
+                <td className="px-4 py-3 text-gray-600">{p.nombre || '—'}</td>
+                <td className="px-4 py-3 text-gray-600">{p.profesional_nombre ? `${p.profesional_nombre} ${p.profesional_apellido}` : '—'}</td>
+                <td className="px-4 py-3 text-gray-600">{formatFecha(p.fecha_toma)}</td>
+                <td className="px-4 py-3 text-gray-600">{p.resultado || '—'}</td>
+                <td className="px-4 py-3">
+                  <button
+                    onClick={() => cambiarEstado(p.id, p.estado_envio === 'pendiente' ? 'enviado' : 'pendiente')}
+                    className={`px-2 py-1 rounded-full text-xs font-semibold cursor-pointer ${p.estado_envio === 'enviado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
+                  >
+                    {p.estado_envio === 'enviado' ? '✓ Enviado' : '⏳ Pendiente'}
+                  </button>
+                </td>
+                <td className="px-4 py-3 flex gap-2">
+                  <button onClick={() => editar(p)} className="text-green-700 hover:underline text-sm font-medium">Editar</button>
+                  <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
+                </td>
+              </tr>
+            ))}
+            {filtrados.length === 0 && <tr><td colSpan="7" className="px-4 py-6 text-center text-gray-400">No hay PAP registrados</td></tr>}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}

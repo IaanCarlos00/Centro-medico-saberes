@@ -12,6 +12,8 @@ import Usuarios from './pages/Usuarios'
 import Reportes from './pages/Reportes'
 import CambiarPassword from './pages/CambiarPassword'
 import Procedimientos from './pages/Procedimientos'
+import Pap from './pages/Pap'
+import Flujos from './pages/Flujos'
 
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
@@ -37,12 +39,16 @@ function Layout({ usuario, onLogout }) {
     { to: '/pagos', label: 'Pagos' },
     { to: '/usuarios', label: 'Usuarios' },
     { to: '/reportes', label: 'Reportes' },
-    { to: '/procedimientos', label: 'Procedimientos' }
+    { to: '/procedimientos', label: 'Procedimientos' },
+    { to: '/pap', label: 'PAP' },
+    { to: '/flujos', label: 'Flujos' },
   ]
 
   const linksSecretaria = [
     { to: '/pacientes', label: 'Pacientes' },
     { to: '/citas', label: 'Agenda' },
+    { to: '/pap', label: 'PAP' },
+    { to: '/flujos', label: 'Flujos' },
   ]
 
   const linksMatrona = [
@@ -50,6 +56,8 @@ function Layout({ usuario, onLogout }) {
     { to: '/pacientes', label: 'Pacientes' },
     { to: '/pagos', label: 'Pagos' },
     { to: '/bloqueos', label: 'Bloquear horarios' },
+    { to: '/pap', label: 'PAP' },
+    { to: '/flujos', label: 'Flujos' },
   ]
 
   const links = rol === 'admin' ? linksAdmin : rol === 'secretaria' ? linksSecretaria : linksMatrona
@@ -108,6 +116,8 @@ function Layout({ usuario, onLogout }) {
             <Route path="/reportes" element={<Reportes />} />
             <Route path="/cambiar-password" element={<CambiarPassword />} />
             <Route path="/procedimientos" element={<Procedimientos />} />
+            <Route path="/pap" element={<Pap />} />
+            <Route path="/flujos" element={<Flujos />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}
 
@@ -116,6 +126,8 @@ function Layout({ usuario, onLogout }) {
             <Route path="/pacientes" element={<Pacientes />} />
             <Route path="/citas" element={<Agenda />} />
             <Route path="/cambiar-password" element={<CambiarPassword />} />
+            <Route path="/pap" element={<Pap />} />
+            <Route path="/flujos" element={<Flujos />} />
             <Route path="*" element={<Navigate to="/pacientes" />} />
           </>}
 
@@ -125,6 +137,8 @@ function Layout({ usuario, onLogout }) {
             <Route path="/pagos" element={<Pagos />} />
             <Route path="/bloqueos" element={<Bloqueos />} />
             <Route path="/cambiar-password" element={<CambiarPassword />} />
+            <Route path="/pap" element={<Pap />} />
+            <Route path="/flujos" element={<Flujos />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}
         </Routes>
