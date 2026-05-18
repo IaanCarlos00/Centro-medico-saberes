@@ -83,19 +83,22 @@ export default function Bloqueos() {
   }
 
   const confirmarBloqueo = async () => {
-    const profId = esMatrona ? usuarioProfesionalId : profesionalSeleccionado
-    if (!profId) return alert('Selecciona un profesional')
-    await axios.post(API, {
-      fecha_inicio: localISO(modalConfirmar.inicio),
-      fecha_fin: localISO(modalConfirmar.fin),
-      motivo: motivo || null,
-      creado_por: usuarioId || null,
-      profesional_id: profId
-    })
-    setModalConfirmar(null)
-    setMotivo('')
-    cargar()
-  }
+  const profId = esMatrona ? usuarioProfesionalId : profesionalSeleccionado
+  if (!profId) return alert('Selecciona un profesional')
+  const inicio = localISO(modalConfirmar.inicio)
+  const fin = localISO(modalConfirmar.fin)
+  console.log('inicio:', inicio, 'fin:', fin)
+  await axios.post(API, {
+    fecha_inicio: inicio,
+    fecha_fin: fin,
+    motivo: motivo || null,
+    creado_por: usuarioId || null,
+    profesional_id: profId
+  })
+  setModalConfirmar(null)
+  setMotivo('')
+  cargar()
+}
 
   const eliminarBloqueo = async id => {
     if (confirm('¿Eliminar este bloqueo?')) {
