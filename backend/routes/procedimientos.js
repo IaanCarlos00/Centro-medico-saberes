@@ -46,16 +46,23 @@ router.get('/paciente/:paciente_id', async (req, res) => {
 router.post('/', async (req, res) => {
   const { paciente_id, catalogo_procedimiento_id, nombre, monto, metodo, estado, notas } = req.body
   try {
-    // Crear procedimiento
     const proc = await pool.query(
       'INSERT INTO procedimiento (paciente_id, catalogo_procedimiento_id, nombre, monto, metodo, estado, notas) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
       [paciente_id, catalogo_procedimiento_id || null, nombre, monto, metodo, estado || 'pagado', notas || null]
     )
-    // Crear pago automáticamente
     await pool.query(
       'INSERT INTO pago (paciente_id, monto, metodo, estado, notas) VALUES ($1,$2,$3,$4,$5)',
       [paciente_id, monto, metodo, estado || 'pagado', `Procedimiento: ${nombre}`]
     )
+
+    // Si el procedimiento es PAP, crear registro automático en tabla pap
+    if (nombre && nombre.toUpperCase().includes('PAP')) {
+      await pool.query(
+        'INSERT INTO pap (paciente_id, nombre, fecha_toma, estado_envio) VALUES ($1,$2,CURRENT_DATE,$3)',
+        [paciente_id, nombre, 'pendiente']
+      )
+    }
+
     res.status(201).json(proc.rows[0])
   } catch (error) { res.status(500).json({ error: error.message }) }
 })
