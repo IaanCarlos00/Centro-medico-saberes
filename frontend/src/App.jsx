@@ -48,7 +48,7 @@ function Layout({ usuario, onLogout }) {
     { to: '/', label: 'Inicio' },
     { to: '/pacientes', label: 'Pacientes' },
     { to: '/citas', label: 'Agenda' },
-    { to: '/bloqueos', label: 'Bloquear horarios' },
+    { to: '/pagos', label: 'Pagos' },
     { to: '/procedimientos', label: 'Procedimientos' },
     { to: '/pap', label: 'PAP' },
     { to: '/flujos', label: 'Flujos' },
@@ -128,6 +128,7 @@ function Layout({ usuario, onLogout }) {
              <Route path="/" element={<Inicio />} />
             <Route path="/pacientes" element={<Pacientes />} />
             <Route path="/citas" element={<Agenda />} />
+            <Route path="/pagos" element={<Pagos />} />
             <Route path="/procedimientos" element={<Procedimientos />} />
             <Route path="/cambiar-password" element={<CambiarPassword />} />
             <Route path="/pap" element={<Pap />} />
