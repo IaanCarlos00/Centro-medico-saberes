@@ -25,9 +25,9 @@ const messages = {
 const coloresProfesional = ['#ef4444', '#f97316', '#8b5cf6', '#ec4899', '#06b6d4']
 
 function formatFecha(f) {
-  return new Date(f).toLocaleString('es-CL', {
-    weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
-  })
+  const pad = n => String(n).padStart(2, '0')
+  const d = f instanceof Date ? f : new Date(f)
+  return `${pad(d.getDate())}/${pad(d.getMonth()+1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 function localISO(date) {
@@ -77,11 +77,10 @@ export default function Bloqueos() {
   }))
 
   const handleSelectSlot = ({ start, end }) => {
-  console.log('start:', start, 'horas:', start.getHours())
-  setModalConfirmar({ inicio: start, fin: end })
-  setMotivo('')
-  setProfesionalSeleccionado(esMatrona ? usuarioProfesionalId : '')
-}
+    setModalConfirmar({ inicio: start, fin: end })
+    setMotivo('')
+    setProfesionalSeleccionado(esMatrona ? usuarioProfesionalId : '')
+  }
 
   const confirmarBloqueo = async () => {
     const profId = esMatrona ? usuarioProfesionalId : profesionalSeleccionado
