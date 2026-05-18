@@ -30,6 +30,11 @@ function formatFecha(f) {
   })
 }
 
+function localISO(date) {
+  const offset = date.getTimezoneOffset() * 60000
+  return new Date(date.getTime() - offset).toISOString().slice(0, 16)
+}
+
 export default function Bloqueos() {
   const [bloqueos, setBloqueos] = useState([])
   const [profesionales, setProfesionales] = useState([])
@@ -37,20 +42,19 @@ export default function Bloqueos() {
   const [vistaCalendario, setVistaCalendario] = useState(Views.WEEK)
   const [modalConfirmar, setModalConfirmar] = useState(null)
   const [motivo, setMotivo] = useState('')
-  const [profesionalId, setProfesionalId] = useState('')
+  const [profesionalSeleccionado, setProfesionalSeleccionado] = useState('')
   const [filtroProfesional, setFiltroProfesional] = useState('')
+
   const usuarioId = localStorage.getItem('id')
   const usuarioRol = localStorage.getItem('rol')
   const usuarioProfesionalId = localStorage.getItem('profesional_id')
+  const esMatrona = usuarioRol === 'matrona'
 
   const cargar = async () => {
-  const [b, pr] = await Promise.all([axios.get(API), axios.get(API_PRO)])
-  setBloqueos(b.data)
-  setProfesionales(pr.data)
-  if (usuarioRol === 'matrona' && usuarioProfesionalId) {
-    setProfesionalId(usuarioProfesionalId)
+    const [b, pr] = await Promise.all([axios.get(API), axios.get(API_PRO)])
+    setBloqueos(b.data)
+    setProfesionales(pr.data)
   }
-}
 
   useEffect(() => { cargar() }, [])
 
@@ -75,18 +79,18 @@ export default function Bloqueos() {
   const handleSelectSlot = ({ start, end }) => {
     setModalConfirmar({ inicio: start, fin: end })
     setMotivo('')
-    if (usuarioRol !== 'matrona') setProfesionalId('')
+    setProfesionalSeleccionado(esMatrona ? usuarioProfesionalId : '')
   }
 
   const confirmarBloqueo = async () => {
-    if (!profesionalId) return alert('Selecciona un profesional')
-    const offset = modalConfirmar.inicio.getTimezoneOffset() * 60000
+    const profId = esMatrona ? usuarioProfesionalId : profesionalSeleccionado
+    if (!profId) return alert('Selecciona un profesional')
     await axios.post(API, {
-      fecha_inicio: new Date(modalConfirmar.inicio.getTime() - modalConfirmar.inicio.getTimezoneOffset() * 60000).toISOString().slice(0, 16),
-      fecha_fin: new Date(modalConfirmar.fin.getTime() - modalConfirmar.fin.getTimezoneOffset() * 60000).toISOString().slice(0, 16),
+      fecha_inicio: localISO(modalConfirmar.inicio),
+      fecha_fin: localISO(modalConfirmar.fin),
       motivo: motivo || null,
       creado_por: usuarioId || null,
-      profesional_id: profesionalId
+      profesional_id: profId
     })
     setModalConfirmar(null)
     setMotivo('')
@@ -105,29 +109,31 @@ export default function Bloqueos() {
   return (
     <div>
       <h2 className="text-2xl font-bold text-green-800 mb-2">Bloquear horarios</h2>
-      <p className="text-gray-500 text-sm mb-4">Haz clic en un bloque del calendario para bloquearlo. Los bloques de color ya están bloqueados.</p>
+      <p className="text-gray-500 text-sm mb-4">Haz clic en un bloque del calendario para bloquearlo.</p>
 
-      {/* Leyenda y filtro */}
-      <div className="flex flex-wrap gap-3 mb-4 items-center">
-        <select
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
-          value={filtroProfesional}
-          onChange={e => setFiltroProfesional(e.target.value)}
-        >
-          <option value="">Todos los profesionales</option>
-          {profesionales.map(p => (
-            <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
-          ))}
-        </select>
-        <div className="flex gap-2 flex-wrap">
-          {profesionales.map((p, i) => (
-            <div key={p.id} className="flex items-center gap-1 text-xs text-gray-600">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: coloresProfesional[i % coloresProfesional.length] }}></div>
-              {p.nombre} {p.apellido}
-            </div>
-          ))}
+      {/* Filtro y leyenda — solo para no matronas */}
+      {!esMatrona && (
+        <div className="flex flex-wrap gap-3 mb-4 items-center">
+          <select
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+            value={filtroProfesional}
+            onChange={e => setFiltroProfesional(e.target.value)}
+          >
+            <option value="">Todos los profesionales</option>
+            {profesionales.map(p => (
+              <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
+            ))}
+          </select>
+          <div className="flex gap-2 flex-wrap">
+            {profesionales.map((p, i) => (
+              <div key={p.id} className="flex items-center gap-1 text-xs text-gray-600">
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: coloresProfesional[i % coloresProfesional.length] }}></div>
+                {p.nombre} {p.apellido}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Modal confirmar bloqueo */}
       {modalConfirmar && (
@@ -141,25 +147,25 @@ export default function Bloqueos() {
               </div>
             </div>
             <div className="flex flex-col gap-3">
-              {usuarioRol !== 'matrona' && (
+              {esMatrona ? (
+                <p className="text-sm text-gray-600">Profesional: <span className="font-medium">
+                  {profesionales.find(p => String(p.id) === String(usuarioProfesionalId))?.nombre}{' '}
+                  {profesionales.find(p => String(p.id) === String(usuarioProfesionalId))?.apellido}
+                </span></p>
+              ) : (
                 <div className="flex flex-col">
                   <label className="text-sm text-gray-600 mb-1">Profesional *</label>
-                  {usuarioRol !== 'matrona' && (
-                    <select
-                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
-                      value={filtroProfesional}
-                      onChange={e => setFiltroProfesional(e.target.value)}
-                    >
-                      <option value="">Todos los profesionales</option>
-                      {profesionales.map(p => (
-                        <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
-                      ))}
-                    </select>
-                  )}
+                  <select
+                    className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
+                    value={profesionalSeleccionado}
+                    onChange={e => setProfesionalSeleccionado(e.target.value)}
+                  >
+                    <option value="">Seleccionar profesional</option>
+                    {profesionales.map(p => (
+                      <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
+                    ))}
+                  </select>
                 </div>
-              )}
-              {usuarioRol === 'matrona' && profesionalId && (
-                <p className="text-sm text-gray-600">Profesional: <span className="font-medium">{profesionales.find(p => String(p.id) === profesionalId)?.nombre} {profesionales.find(p => String(p.id) === profesionalId)?.apellido}</span></p>
               )}
               <div className="flex flex-col">
                 <label className="text-sm text-gray-600 mb-1">Motivo (opcional)</label>
