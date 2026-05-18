@@ -14,7 +14,6 @@ import CambiarPassword from './pages/CambiarPassword'
 import Procedimientos from './pages/Procedimientos'
 import Pap from './pages/Pap'
 import Flujos from './pages/Flujos'
-import Bloqueos from './pages/Bloqueos'
 
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
