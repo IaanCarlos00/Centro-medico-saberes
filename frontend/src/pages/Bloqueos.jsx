@@ -41,18 +41,16 @@ export default function Bloqueos() {
   const [filtroProfesional, setFiltroProfesional] = useState('')
   const usuarioId = localStorage.getItem('id')
   const usuarioRol = localStorage.getItem('rol')
+  const usuarioProfesionalId = localStorage.getItem('profesional_id')
 
   const cargar = async () => {
-    const [b, pr] = await Promise.all([axios.get(API), axios.get(API_PRO)])
-    setBloqueos(b.data)
-    setProfesionales(pr.data)
-    // Si es matrona, pre-seleccionar su profesional
-    if (usuarioRol === 'matrona') {
-      const nombre = localStorage.getItem('nombre')
-      const match = pr.data.find(p => nombre && nombre.toLowerCase().includes(p.nombre.toLowerCase()))
-      if (match) setProfesionalId(String(match.id))
-    }
+  const [b, pr] = await Promise.all([axios.get(API), axios.get(API_PRO)])
+  setBloqueos(b.data)
+  setProfesionales(pr.data)
+  if (usuarioRol === 'matrona' && usuarioProfesionalId) {
+    setProfesionalId(usuarioProfesionalId)
   }
+}
 
   useEffect(() => { cargar() }, [])
 
