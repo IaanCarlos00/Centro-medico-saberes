@@ -82,8 +82,8 @@ export default function Bloqueos() {
     if (!profesionalId) return alert('Selecciona un profesional')
     const offset = modalConfirmar.inicio.getTimezoneOffset() * 60000
     await axios.post(API, {
-      fecha_inicio: new Date(modalConfirmar.inicio.getTime() - offset).toISOString().slice(0, 16),
-      fecha_fin: new Date(modalConfirmar.fin.getTime() - offset).toISOString().slice(0, 16),
+      fecha_inicio: new Date(modalConfirmar.inicio.getTime() - modalConfirmar.inicio.getTimezoneOffset() * 60000).toISOString().slice(0, 16),
+      fecha_fin: new Date(modalConfirmar.fin.getTime() - modalConfirmar.fin.getTimezoneOffset() * 60000).toISOString().slice(0, 16),
       motivo: motivo || null,
       creado_por: usuarioId || null,
       profesional_id: profesionalId
@@ -144,14 +144,18 @@ export default function Bloqueos() {
               {usuarioRol !== 'matrona' && (
                 <div className="flex flex-col">
                   <label className="text-sm text-gray-600 mb-1">Profesional *</label>
-                  <select
-                    className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
-                    value={profesionalId}
-                    onChange={e => setProfesionalId(e.target.value)}
-                  >
-                    <option value="">Seleccionar profesional</option>
-                    {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
-                  </select>
+                  {usuarioRol !== 'matrona' && (
+                    <select
+                      className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                      value={filtroProfesional}
+                      onChange={e => setFiltroProfesional(e.target.value)}
+                    >
+                      <option value="">Todos los profesionales</option>
+                      {profesionales.map(p => (
+                        <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
+                      ))}
+                    </select>
+                  )}
                 </div>
               )}
               {usuarioRol === 'matrona' && profesionalId && (
