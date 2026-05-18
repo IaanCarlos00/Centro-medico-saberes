@@ -147,6 +147,13 @@ export default function Agenda() {
   const [mostrarNuevoPaciente, setMostrarNuevoPaciente] = useState(false)
   const [formNuevoPaciente, setFormNuevoPaciente] = useState({ nombre: '', apellido: '' })
   const [modalAgendar, setModalAgendar] = useState(null)
+  const [modalOpcion, setModalOpcion] = useState(null)
+  const [modalBloquear, setModalBloquear] = useState(null)
+  const [motivoBloqueo, setMotivoBloqueo] = useState('')
+  const [profesionalBloqueo, setProfesionalBloqueo] = useState('')
+  const usuarioRol = localStorage.getItem('rol')
+  const usuarioProfesionalId = localStorage.getItem('profesional_id')
+  const usuarioId = localStorage.getItem('id')
   const dropdownRef = useRef(null)
 
   const cargar = async () => {
@@ -416,6 +423,102 @@ export default function Agenda() {
   </div>
 )}
 
+{/* Modal elegir acción */}
+{modalOpcion && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={() => setModalOpcion(null)}>
+    <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+      <h3 className="text-lg font-bold text-green-800 mb-2">¿Qué deseas hacer?</h3>
+      <p className="text-sm text-gray-500 mb-5">{modalOpcion.fechaHora?.replace('T', ' ')}</p>
+      <div className="flex flex-col gap-3">
+        <button
+          onClick={() => { setModalAgendar(true); setModalOpcion(null) }}
+          className="flex items-center gap-3 p-4 rounded-xl border-2 border-green-600 hover:bg-green-50 transition-colors text-left"
+        >
+          <span className="text-2xl">🗓️</span>
+          <div>
+            <p className="font-bold text-green-800">Agendar cita</p>
+            <p className="text-xs text-gray-500">Registrar una cita para un paciente</p>
+          </div>
+        </button>
+        <button
+          onClick={() => { setModalBloquear(modalOpcion); setMotivoBloqueo(''); setProfesionalBloqueo(usuarioRol === 'matrona' ? usuarioProfesionalId : ''); setModalOpcion(null) }}
+          className="flex items-center gap-3 p-4 rounded-xl border-2 border-red-400 hover:bg-red-50 transition-colors text-left"
+        >
+          <span className="text-2xl">🚫</span>
+          <div>
+            <p className="font-bold text-red-600">Bloquear horario</p>
+            <p className="text-xs text-gray-500">Marcar este horario como no disponible</p>
+          </div>
+        </button>
+      </div>
+      <button onClick={() => setModalOpcion(null)} className="w-full mt-4 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancelar</button>
+    </div>
+  </div>
+)}
+
+{/* Modal bloquear horario */}
+{modalBloquear && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={() => setModalBloquear(null)}>
+    <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+      <div className="flex items-center gap-3 mb-4">
+        <span className="text-3xl">🚫</span>
+        <div>
+          <h3 className="text-lg font-bold text-green-800">Bloquear horario</h3>
+          <p className="text-sm text-gray-500">{modalBloquear.fechaHora?.replace('T', ' ')}</p>
+        </div>
+      </div>
+      <div className="flex flex-col gap-3">
+        {usuarioRol !== 'matrona' && (
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Profesional *</label>
+            <select
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
+              value={profesionalBloqueo}
+              onChange={e => setProfesionalBloqueo(e.target.value)}
+            >
+              <option value="">Seleccionar profesional</option>
+              {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
+            </select>
+          </div>
+        )}
+        {usuarioRol === 'matrona' && (
+          <p className="text-sm text-gray-600">Profesional: <span className="font-medium">
+            {profesionales.find(p => String(p.id) === String(usuarioProfesionalId))?.nombre}{' '}
+            {profesionales.find(p => String(p.id) === String(usuarioProfesionalId))?.apellido}
+          </span></p>
+        )}
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-600 mb-1">Motivo (opcional)</label>
+          <input
+            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
+            placeholder="Ej: Capacitación, día libre, reunión..."
+            value={motivoBloqueo}
+            onChange={e => setMotivoBloqueo(e.target.value)}
+            autoFocus
+          />
+        </div>
+      </div>
+      <div className="flex gap-3 mt-5">
+        <button onClick={async () => {
+          const profId = usuarioRol === 'matrona' ? usuarioProfesionalId : profesionalBloqueo
+          if (!profId) return alert('Selecciona un profesional')
+          await axios.post(API_BLOQUEOS, {
+            fecha_inicio: modalBloquear.fechaHora,
+            fecha_fin: modalBloquear.fechaHora.slice(0, 11) + String(parseInt(modalBloquear.fechaHora.slice(11, 13)) + 0).padStart(2, '0') + ':30',
+            motivo: motivoBloqueo || null,
+            creado_por: usuarioId || null,
+            profesional_id: profId
+          })
+          setModalBloquear(null)
+          setMotivoBloqueo('')
+          cargar()
+        }} className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 font-medium">🚫 Bloquear</button>
+        <button onClick={() => setModalBloquear(null)} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancelar</button>
+      </div>
+    </div>
+  </div>
+)}
+
     <div className="flex items-center justify-between mb-6">
       <h2 className="text-2xl font-bold text-green-800">Agenda</h2>
       <div className="flex gap-2">
@@ -602,14 +705,14 @@ export default function Agenda() {
               }}
               selectable
               onSelectSlot={({ start }) => {
-              const offset = start.getTimezoneOffset() * 60000
-              const fechaHora = new Date(start.getTime() - offset).toISOString().slice(0, 16)
-              setForm({ paciente_id: '', profesional_id: '', fecha_hora: fechaHora, estado: 'pendiente', observaciones: '' })
-              setBusquedaPaciente('')
-              setErrores({})
-              setMostrarNuevoPaciente(false)
-              setModalAgendar(true)
-            }}
+                  const offset = start.getTimezoneOffset() * 60000
+                  const fechaHora = new Date(start.getTime() - offset).toISOString().slice(0, 16)
+                  setForm({ paciente_id: '', profesional_id: '', fecha_hora: fechaHora, estado: 'pendiente', observaciones: '' })
+                  setBusquedaPaciente('')
+                  setErrores({})
+                  setMostrarNuevoPaciente(false)
+                  setModalOpcion({ fechaHora, start })
+                }}
               style={{ height: '100%' }}
             />
           </div>
