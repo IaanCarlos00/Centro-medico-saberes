@@ -6,6 +6,7 @@ import { es } from 'date-fns/locale'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/bloqueos'
+const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
 
 const localizer = dateFnsLocalizer({
   format: (date, formatStr, options) => format(date, formatStr, { locale: es, ...options }),
@@ -21,6 +22,8 @@ const messages = {
   date: 'Fecha', time: 'Hora', event: 'Bloqueo', noEventsInRange: 'Sin bloqueos',
 }
 
+const coloresProfesional = ['#ef4444', '#f97316', '#8b5cf6', '#ec4899', '#06b6d4']
+
 function formatFecha(f) {
   return new Date(f).toLocaleString('es-CL', {
     weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
@@ -29,38 +32,63 @@ function formatFecha(f) {
 
 export default function Bloqueos() {
   const [bloqueos, setBloqueos] = useState([])
+  const [profesionales, setProfesionales] = useState([])
   const [fecha, setFecha] = useState(new Date())
   const [vistaCalendario, setVistaCalendario] = useState(Views.WEEK)
   const [modalConfirmar, setModalConfirmar] = useState(null)
   const [motivo, setMotivo] = useState('')
+  const [profesionalId, setProfesionalId] = useState('')
+  const [filtroProfesional, setFiltroProfesional] = useState('')
   const usuarioId = localStorage.getItem('id')
+  const usuarioRol = localStorage.getItem('rol')
 
   const cargar = async () => {
-    const res = await axios.get(API)
-    setBloqueos(res.data)
+    const [b, pr] = await Promise.all([axios.get(API), axios.get(API_PRO)])
+    setBloqueos(b.data)
+    setProfesionales(pr.data)
+    // Si es matrona, pre-seleccionar su profesional
+    if (usuarioRol === 'matrona') {
+      const nombre = localStorage.getItem('nombre')
+      const match = pr.data.find(p => nombre && nombre.toLowerCase().includes(p.nombre.toLowerCase()))
+      if (match) setProfesionalId(String(match.id))
+    }
   }
 
   useEffect(() => { cargar() }, [])
 
-  const eventos = bloqueos.map(b => ({
+  const colorPorProfesional = (profesional_id) => {
+    const idx = profesionales.findIndex(p => p.id === parseInt(profesional_id))
+    return coloresProfesional[idx % coloresProfesional.length] || '#ef4444'
+  }
+
+  const bloqueosFiltrados = filtroProfesional
+    ? bloqueos.filter(b => String(b.profesional_id) === filtroProfesional)
+    : bloqueos
+
+  const eventos = bloqueosFiltrados.map(b => ({
     id: b.id,
-    title: `🚫 ${b.motivo || 'Bloqueado'}`,
+    title: `🚫 ${b.profesional_nombre ? b.profesional_nombre + ' ' + b.profesional_apellido : 'Bloqueado'}${b.motivo ? ': ' + b.motivo : ''}`,
     start: new Date(b.fecha_inicio.replace(' ', 'T')),
     end: new Date(b.fecha_fin.replace(' ', 'T')),
-    resource: b
+    resource: b,
+    profesional_id: b.profesional_id
   }))
 
   const handleSelectSlot = ({ start, end }) => {
     setModalConfirmar({ inicio: start, fin: end })
     setMotivo('')
+    if (usuarioRol !== 'matrona') setProfesionalId('')
   }
 
   const confirmarBloqueo = async () => {
+    if (!profesionalId) return alert('Selecciona un profesional')
+    const offset = modalConfirmar.inicio.getTimezoneOffset() * 60000
     await axios.post(API, {
-      fecha_inicio: modalConfirmar.inicio.toISOString().slice(0, 16),
-      fecha_fin: modalConfirmar.fin.toISOString().slice(0, 16),
+      fecha_inicio: new Date(modalConfirmar.inicio.getTime() - offset).toISOString().slice(0, 16),
+      fecha_fin: new Date(modalConfirmar.fin.getTime() - offset).toISOString().slice(0, 16),
       motivo: motivo || null,
-      creado_por: usuarioId || null
+      creado_por: usuarioId || null,
+      profesional_id: profesionalId
     })
     setModalConfirmar(null)
     setMotivo('')
@@ -79,7 +107,29 @@ export default function Bloqueos() {
   return (
     <div>
       <h2 className="text-2xl font-bold text-green-800 mb-2">Bloquear horarios</h2>
-      <p className="text-gray-500 text-sm mb-6">Haz clic en un bloque del calendario para bloquearlo. Los bloques rojos ya están bloqueados.</p>
+      <p className="text-gray-500 text-sm mb-4">Haz clic en un bloque del calendario para bloquearlo. Los bloques de color ya están bloqueados.</p>
+
+      {/* Leyenda y filtro */}
+      <div className="flex flex-wrap gap-3 mb-4 items-center">
+        <select
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+          value={filtroProfesional}
+          onChange={e => setFiltroProfesional(e.target.value)}
+        >
+          <option value="">Todos los profesionales</option>
+          {profesionales.map(p => (
+            <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>
+          ))}
+        </select>
+        <div className="flex gap-2 flex-wrap">
+          {profesionales.map((p, i) => (
+            <div key={p.id} className="flex items-center gap-1 text-xs text-gray-600">
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: coloresProfesional[i % coloresProfesional.length] }}></div>
+              {p.nombre} {p.apellido}
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* Modal confirmar bloqueo */}
       {modalConfirmar && (
@@ -89,12 +139,26 @@ export default function Bloqueos() {
               <span className="text-3xl">🚫</span>
               <div>
                 <h3 className="text-lg font-bold text-green-800">Bloquear horario</h3>
-                <p className="text-sm text-gray-500">
-                  {formatFecha(modalConfirmar.inicio)} → {formatFecha(modalConfirmar.fin)}
-                </p>
+                <p className="text-sm text-gray-500">{formatFecha(modalConfirmar.inicio)} → {formatFecha(modalConfirmar.fin)}</p>
               </div>
             </div>
             <div className="flex flex-col gap-3">
+              {usuarioRol !== 'matrona' && (
+                <div className="flex flex-col">
+                  <label className="text-sm text-gray-600 mb-1">Profesional *</label>
+                  <select
+                    className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
+                    value={profesionalId}
+                    onChange={e => setProfesionalId(e.target.value)}
+                  >
+                    <option value="">Seleccionar profesional</option>
+                    {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
+                  </select>
+                </div>
+              )}
+              {usuarioRol === 'matrona' && profesionalId && (
+                <p className="text-sm text-gray-600">Profesional: <span className="font-medium">{profesionales.find(p => String(p.id) === profesionalId)?.nombre} {profesionales.find(p => String(p.id) === profesionalId)?.apellido}</span></p>
+              )}
               <div className="flex flex-col">
                 <label className="text-sm text-gray-600 mb-1">Motivo (opcional)</label>
                 <input
@@ -107,12 +171,8 @@ export default function Bloqueos() {
               </div>
             </div>
             <div className="flex gap-3 mt-5">
-              <button onClick={confirmarBloqueo} className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 font-medium">
-                🚫 Bloquear
-              </button>
-              <button onClick={() => setModalConfirmar(null)} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">
-                Cancelar
-              </button>
+              <button onClick={confirmarBloqueo} className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 font-medium">🚫 Bloquear</button>
+              <button onClick={() => setModalConfirmar(null)} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancelar</button>
             </div>
           </div>
         </div>
@@ -139,9 +199,9 @@ export default function Bloqueos() {
           selectable
           onSelectSlot={handleSelectSlot}
           onSelectEvent={e => eliminarBloqueo(e.resource.id)}
-          eventPropGetter={() => ({
+          eventPropGetter={evento => ({
             style: {
-              backgroundColor: '#ef4444',
+              backgroundColor: colorPorProfesional(evento.profesional_id),
               borderRadius: '6px',
               border: 'none',
               color: 'white',
@@ -155,17 +215,17 @@ export default function Bloqueos() {
         />
       </div>
 
-      <p className="text-xs text-gray-400 text-center">Haz clic en un bloqueo rojo para eliminarlo</p>
+      <p className="text-xs text-gray-400 text-center">Haz clic en un bloqueo para eliminarlo</p>
 
-      {/* Lista de bloqueos */}
       {bloqueos.length > 0 && (
         <div className="mt-6">
           <h3 className="text-lg font-bold text-gray-700 mb-3">Bloqueos activos</h3>
           <div className="flex flex-col gap-2">
             {bloqueos.filter(b => !esPasado(b.fecha_fin)).map(b => (
-              <div key={b.id} className="bg-white rounded-xl shadow p-4 border-l-4 border-red-400 flex justify-between items-center">
+              <div key={b.id} className="bg-white rounded-xl shadow p-4 border-l-4 flex justify-between items-center" style={{ borderColor: colorPorProfesional(b.profesional_id) }}>
                 <div>
                   <p className="font-medium text-gray-800">🚫 {formatFecha(b.fecha_inicio)} → {formatFecha(b.fecha_fin)}</p>
+                  {b.profesional_nombre && <p className="text-sm text-gray-600">{b.profesional_nombre} {b.profesional_apellido}</p>}
                   {b.motivo && <p className="text-sm text-gray-500">{b.motivo}</p>}
                 </div>
                 <button onClick={() => eliminarBloqueo(b.id)} className="text-red-500 hover:underline text-sm font-medium ml-4">Eliminar</button>
