@@ -600,7 +600,8 @@ export default function Agenda() {
               }}
               selectable
               onSelectSlot={({ start }) => {
-              const fechaHora = start.toISOString().slice(0, 16)
+              const offset = start.getTimezoneOffset() * 60000
+              const fechaHora = new Date(start.getTime() - offset).toISOString().slice(0, 16)
               setForm({ paciente_id: '', profesional_id: '', fecha_hora: fechaHora, estado: 'pendiente', observaciones: '' })
               setBusquedaPaciente('')
               setErrores({})
