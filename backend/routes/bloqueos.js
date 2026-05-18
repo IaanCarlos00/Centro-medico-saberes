@@ -20,7 +20,7 @@ router.post('/', async (req, res) => {
   const { fecha_inicio, fecha_fin, motivo, creado_por, profesional_id } = req.body
   try {
     const result = await pool.query(
-      'INSERT INTO bloqueo_horario (fecha_inicio, fecha_fin, motivo, creado_por, profesional_id) VALUES ($1,$2,$3,$4,$5) RETURNING *',
+      'INSERT INTO bloqueo_horario (fecha_inicio, fecha_fin, motivo, creado_por, profesional_id) VALUES ($1::timestamp,$2::timestamp,$3,$4,$5) RETURNING *',
       [fecha_inicio, fecha_fin, motivo || null, creado_por || null, profesional_id || null]
     )
     res.status(201).json(result.rows[0])
