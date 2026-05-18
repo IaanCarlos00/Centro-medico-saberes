@@ -14,6 +14,7 @@ import CambiarPassword from './pages/CambiarPassword'
 import Procedimientos from './pages/Procedimientos'
 import Pap from './pages/Pap'
 import Flujos from './pages/Flujos'
+import Bloqueos from './pages/Bloqueos'
 
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
@@ -47,6 +48,7 @@ function Layout({ usuario, onLogout }) {
   const linksSecretaria = [
     { to: '/pacientes', label: 'Pacientes' },
     { to: '/citas', label: 'Agenda' },
+    { to: '/bloqueos', label: 'Bloquear horarios' },
     { to: '/pap', label: 'PAP' },
     { to: '/flujos', label: 'Flujos' },
   ]
@@ -125,6 +127,7 @@ function Layout({ usuario, onLogout }) {
             <Route path="/" element={<Navigate to="/pacientes" />} />
             <Route path="/pacientes" element={<Pacientes />} />
             <Route path="/citas" element={<Agenda />} />
+            <Route path="/bloqueos" element={<Bloqueos />} />
             <Route path="/cambiar-password" element={<CambiarPassword />} />
             <Route path="/pap" element={<Pap />} />
             <Route path="/flujos" element={<Flujos />} />
