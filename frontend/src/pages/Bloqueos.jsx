@@ -77,10 +77,11 @@ export default function Bloqueos() {
   }))
 
   const handleSelectSlot = ({ start, end }) => {
-    setModalConfirmar({ inicio: start, fin: end })
-    setMotivo('')
-    setProfesionalSeleccionado(esMatrona ? usuarioProfesionalId : '')
-  }
+  console.log('start:', start, 'horas:', start.getHours())
+  setModalConfirmar({ inicio: start, fin: end })
+  setMotivo('')
+  setProfesionalSeleccionado(esMatrona ? usuarioProfesionalId : '')
+}
 
   const confirmarBloqueo = async () => {
     const profId = esMatrona ? usuarioProfesionalId : profesionalSeleccionado
