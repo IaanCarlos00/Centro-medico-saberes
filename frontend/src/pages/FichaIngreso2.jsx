@@ -159,7 +159,7 @@ export default function FichaIngreso2({ paciente, onVolver }) {
 
       <div className="flex items-center gap-3 mb-6">
         <button onClick={onVolver} className="text-green-700 hover:underline text-sm font-medium">← Volver</button>
-        <h2 className="text-xl font-bold text-green-800">Ficha Clínica — Matrona 2</h2>
+        <h2 className="text-xl font-bold text-green-800">Ficha Clínica — Matrona J</h2>
         <span className="text-gray-400 text-sm">/ {paciente.nombre} {paciente.apellido}</span>
       </div>
 
