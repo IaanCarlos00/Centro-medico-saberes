@@ -187,13 +187,14 @@ export default function Agenda() {
   }
 
   const validar = () => {
-    const e = {}
-    if (!form.paciente_id) e.paciente_id = 'Selecciona un paciente'
-    if (!form.profesional_id) e.profesional_id = 'Selecciona un profesional'
-    const errorFecha = validarFechaHora(form.fecha_hora, bloqueos)
-    if (errorFecha) e.fecha_hora = errorFecha
-    return e
-  }
+  const e = {}
+  if (!form.paciente_id) e.paciente_id = 'Selecciona un paciente'
+  if (!form.profesional_id) e.profesional_id = 'Selecciona un profesional'
+  const bloqueosProfesional = bloqueos.filter(b => !b.profesional_id || String(b.profesional_id) === String(form.profesional_id))
+  const errorFecha = validarFechaHora(form.fecha_hora, bloqueosProfesional)
+  if (errorFecha) e.fecha_hora = errorFecha
+  return e
+}
 
   const guardar = async () => {
   const e = validar()
@@ -253,11 +254,12 @@ export default function Agenda() {
   })),
   ...bloqueos.map(b => ({
     id: `bloqueo-${b.id}`,
-    title: `🚫 Bloqueado${b.motivo ? ': ' + b.motivo : ''}${b.creado_por_nombre ? ' (' + b.creado_por_nombre + ')' : ''}`,
+    title: `🚫 ${b.profesional_nombre ? b.profesional_nombre + ' ' + b.profesional_apellido : 'Bloqueado'}${b.motivo ? ': ' + b.motivo : ''}`,
     start: new Date(b.fecha_inicio.replace(' ', 'T')),
     end: new Date(b.fecha_fin.replace(' ', 'T')),
     resource: b,
-    tipo: 'bloqueo'
+    tipo: 'bloqueo',
+    profesional_id: b.profesional_id
   }))
 ]
 
