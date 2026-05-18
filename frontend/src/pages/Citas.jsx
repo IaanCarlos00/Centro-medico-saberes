@@ -146,6 +146,7 @@ export default function Agenda() {
   const [modalProcedimientosCita, setModalProcedimientosCita] = useState(null)
   const [mostrarNuevoPaciente, setMostrarNuevoPaciente] = useState(false)
   const [formNuevoPaciente, setFormNuevoPaciente] = useState({ nombre: '', apellido: '' })
+  const [modalAgendar, setModalAgendar] = useState(null)
   const dropdownRef = useRef(null)
 
   const cargar = async () => {
@@ -321,6 +322,97 @@ export default function Agenda() {
         onCerrar={() => setModalProcedimientosCita(null)}
       />
     )}
+
+    {modalAgendar && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={() => setModalAgendar(null)}>
+    <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+      <h3 className="text-lg font-bold text-green-800 mb-5">🗓️ Agendar cita</h3>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col relative" ref={dropdownRef}>
+          <label className="text-sm text-gray-600 mb-1">Paciente</label>
+          <input
+            className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.paciente_id ? 'border-red-400' : 'border-gray-300'}`}
+            placeholder="Buscar por nombre, apellido o RUT..."
+            value={busquedaPaciente}
+            onChange={e => { setBusquedaPaciente(e.target.value); setMostrarDropdown(true); setForm(f => ({ ...f, paciente_id: '' })); setErrores(er => ({ ...er, paciente_id: '' })) }}
+            onFocus={() => setMostrarDropdown(true)}
+          />
+          {errores.paciente_id && <span className="text-red-500 text-xs mt-1">{errores.paciente_id}</span>}
+          {mostrarDropdown && busquedaPaciente.length > 0 && (
+            <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto mt-1">
+              {pacientesFiltrados.length === 0 ? (
+                <p className="px-3 py-2 text-sm text-gray-400">No se encontraron pacientes</p>
+              ) : (
+                pacientesFiltrados.map(p => (
+                  <button key={p.id} className="w-full text-left px-3 py-2 hover:bg-green-50 text-sm border-b border-gray-100 last:border-0" onClick={() => seleccionarPaciente(p)}>
+                    <span className="font-medium text-gray-800">{p.nombre} {p.apellido}</span>
+                    <span className="text-gray-400 ml-2 text-xs">{p.rut}</span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <button type="button" onClick={() => setMostrarNuevoPaciente(!mostrarNuevoPaciente)} className="text-green-700 text-sm hover:underline text-left font-medium">
+            + Registrar paciente nuevo
+          </button>
+          {mostrarNuevoPaciente && (
+            <div className="flex gap-2 items-end bg-green-50 p-3 rounded-lg">
+              <div className="flex flex-col flex-1">
+                <label className="text-xs text-gray-500 mb-1">Nombre</label>
+                <input className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="Nombre" value={formNuevoPaciente.nombre} onChange={e => setFormNuevoPaciente(f => ({ ...f, nombre: e.target.value }))} />
+              </div>
+              <div className="flex flex-col flex-1">
+                <label className="text-xs text-gray-500 mb-1">Apellido</label>
+                <input className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="Apellido" value={formNuevoPaciente.apellido} onChange={e => setFormNuevoPaciente(f => ({ ...f, apellido: e.target.value }))} />
+              </div>
+              <button onClick={crearPaciente} className="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 text-sm font-medium">Crear</button>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-600 mb-1">Profesional</label>
+          <select className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 w-full ${errores.profesional_id ? 'border-red-400' : 'border-gray-300'}`} name="profesional_id" value={form.profesional_id} onChange={handleChange}>
+            <option value="">Seleccionar profesional</option>
+            {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
+          </select>
+          {errores.profesional_id && <span className="text-red-500 text-xs mt-1">{errores.profesional_id}</span>}
+        </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-600 mb-1">Hora de la cita</label>
+          <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.fecha_hora ? 'border-red-400' : 'border-gray-300'}`} name="fecha_hora" type="datetime-local" value={form.fecha_hora} onChange={handleChange} />
+          {errores.fecha_hora && <span className="text-red-500 text-xs mt-1">{errores.fecha_hora}</span>}
+        </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-600 mb-1">Observaciones (opcional)</label>
+          <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="observaciones" value={form.observaciones} onChange={handleChange} />
+        </div>
+      </div>
+
+      <div className="flex gap-3 mt-6">
+        <button onClick={async () => {
+          const e = validar()
+          if (Object.keys(e).length > 0) { setErrores(e); return }
+          const res = await axios.post(API, form)
+          const paciente = pacientes.find(p => p.id === parseInt(form.paciente_id))
+          setCitaRecienAgendada({ ...res.data, paciente_id: form.paciente_id, paciente_nombre: paciente?.nombre, paciente_apellido: paciente?.apellido })
+          setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+          setBusquedaPaciente('')
+          setErrores({})
+          setMostrarNuevoPaciente(false)
+          setModalAgendar(null)
+          cargar()
+        }} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">Agendar</button>
+        <button onClick={() => { setModalAgendar(null); setBusquedaPaciente(''); setErrores({}) }} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancelar</button>
+      </div>
+    </div>
+  </div>
+)}
 
     <div className="flex items-center justify-between mb-6">
       <h2 className="text-2xl font-bold text-green-800">Agenda</h2>
@@ -508,12 +600,13 @@ export default function Agenda() {
               }}
               selectable
               onSelectSlot={({ start }) => {
-                const fechaHora = start.toISOString().slice(0, 16)
-                setForm(f => ({ ...f, fecha_hora: fechaHora }))
-                setMostrarFormulario(true)
-                setVistaActiva('agenda')
-                window.scrollTo(0, 0)
-              }}
+              const fechaHora = start.toISOString().slice(0, 16)
+              setForm({ paciente_id: '', profesional_id: '', fecha_hora: fechaHora, estado: 'pendiente', observaciones: '' })
+              setBusquedaPaciente('')
+              setErrores({})
+              setMostrarNuevoPaciente(false)
+              setModalAgendar(true)
+            }}
               style={{ height: '100%' }}
             />
           </div>
