@@ -380,6 +380,29 @@ export default function Agenda() {
                   )}
                 </div>
 
+                <div className="flex flex-col gap-2 sm:col-span-full">
+                  <button
+                    type="button"
+                    onClick={() => setMostrarNuevoPaciente(!mostrarNuevoPaciente)}
+                    className="text-green-700 text-sm hover:underline text-left font-medium"
+                  >
+                    + Registrar paciente nuevo
+                  </button>
+                  {mostrarNuevoPaciente && (
+                    <div className="flex gap-2 items-end bg-green-50 p-3 rounded-lg">
+                      <div className="flex flex-col flex-1">
+                        <label className="text-xs text-gray-500 mb-1">Nombre</label>
+                        <input className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="Nombre" value={formNuevoPaciente.nombre} onChange={e => setFormNuevoPaciente(f => ({ ...f, nombre: e.target.value }))} />
+                      </div>
+                      <div className="flex flex-col flex-1">
+                        <label className="text-xs text-gray-500 mb-1">Apellido</label>
+                        <input className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="Apellido" value={formNuevoPaciente.apellido} onChange={e => setFormNuevoPaciente(f => ({ ...f, apellido: e.target.value }))} />
+                      </div>
+                      <button onClick={crearPaciente} className="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 text-sm font-medium">Crear</button>
+                    </div>
+                  )}
+                </div>
+
                 {/* Profesional */}
                 <div className="flex flex-col">
                   <label className="text-sm text-gray-600 mb-1">Profesional</label>
