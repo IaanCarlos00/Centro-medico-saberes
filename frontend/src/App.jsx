@@ -57,8 +57,8 @@ function Layout({ usuario, onLogout }) {
   const linksMatrona = [
     { to: '/', label: 'Mi Agenda' },
     { to: '/pacientes', label: 'Pacientes' },
+    { to: '/citas', label: 'Agenda' },
     { to: '/pagos', label: 'Pagos' },
-    { to: '/bloqueos', label: 'Bloquear horarios' },
     { to: '/pap', label: 'PAP' },
     { to: '/flujos', label: 'Flujos' },
   ]
@@ -128,7 +128,6 @@ function Layout({ usuario, onLogout }) {
              <Route path="/" element={<Inicio />} />
             <Route path="/pacientes" element={<Pacientes />} />
             <Route path="/citas" element={<Agenda />} />
-            <Route path="/bloqueos" element={<Bloqueos />} />
             <Route path="/procedimientos" element={<Procedimientos />} />
             <Route path="/cambiar-password" element={<CambiarPassword />} />
             <Route path="/pap" element={<Pap />} />
@@ -139,8 +138,8 @@ function Layout({ usuario, onLogout }) {
           {rol === 'matrona' && <>
             <Route path="/" element={<InicioMatrona usuario={usuario} />} />
             <Route path="/pacientes" element={<Pacientes />} />
+            <Route path="/citas" element={<Agenda />} />
             <Route path="/pagos" element={<Pagos />} />
-            <Route path="/bloqueos" element={<Bloqueos />} />
             <Route path="/cambiar-password" element={<CambiarPassword />} />
             <Route path="/pap" element={<Pap />} />
             <Route path="/flujos" element={<Flujos />} />
