@@ -221,14 +221,14 @@ export default function Fichas({ paciente, onVolver }) {
               <button onClick={() => { setModalSelector(false); setVista('ingreso1') }} className="flex items-center gap-3 p-4 rounded-xl border-2 border-orange-500 hover:bg-orange-50 transition-colors text-left">
                 <span className="text-2xl">📝</span>
                 <div>
-                  <p className="font-bold text-green-800">Ficha Ingreso — Matrona 1</p>
+                  <p className="font-bold text-green-800">Ficha Ingreso — Matrona V</p>
                   <p className="text-xs text-gray-500">{fichasI1.length} ficha{fichasI1.length !== 1 ? 's' : ''} registrada{fichasI1.length !== 1 ? 's' : ''}</p>
                 </div>
               </button>
               <button onClick={() => { setModalSelector(false); setVista('ingreso2') }} className="flex items-center gap-3 p-4 rounded-xl border-2 border-blue-500 hover:bg-blue-50 transition-colors text-left">
                 <span className="text-2xl">🗂️</span>
                 <div>
-                  <p className="font-bold text-green-800">Ficha Ingreso — Matrona 2</p>
+                  <p className="font-bold text-green-800">Ficha Ingreso — Matrona J</p>
                   <p className="text-xs text-gray-500">{fichasI2.length} ficha{fichasI2.length !== 1 ? 's' : ''} registrada{fichasI2.length !== 1 ? 's' : ''}</p>
                 </div>
               </button>
