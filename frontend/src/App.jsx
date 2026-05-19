@@ -43,6 +43,7 @@ function Layout({ usuario, onLogout }) {
     { to: '/procedimientos', label: 'Procedimientos' },
     { to: '/pap', label: 'PAP' },
     { to: '/flujos', label: 'Flujos' },
+    { to: '/encuestas', label: 'Encuestas' },
   ]
 
   const linksSecretaria = [
@@ -53,6 +54,7 @@ function Layout({ usuario, onLogout }) {
     { to: '/procedimientos', label: 'Procedimientos' },
     { to: '/pap', label: 'PAP' },
     { to: '/flujos', label: 'Flujos' },
+    { to: '/encuestas', label: 'Encuestas' },
   ]
 
   const linksMatrona = [
@@ -62,6 +64,7 @@ function Layout({ usuario, onLogout }) {
     { to: '/pagos', label: 'Pagos' },
     { to: '/pap', label: 'PAP' },
     { to: '/flujos', label: 'Flujos' },
+    { to: '/encuestas', label: 'Encuestas' },
   ]
 
   const links = rol === 'admin' ? linksAdmin : rol === 'secretaria' ? linksSecretaria : linksMatrona
@@ -122,6 +125,7 @@ function Layout({ usuario, onLogout }) {
             <Route path="/procedimientos" element={<Procedimientos />} />
             <Route path="/pap" element={<Pap />} />
             <Route path="/flujos" element={<Flujos />} />
+            <Route path="/encuestas" element={<Encuestas />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}
 
@@ -134,6 +138,7 @@ function Layout({ usuario, onLogout }) {
             <Route path="/cambiar-password" element={<CambiarPassword />} />
             <Route path="/pap" element={<Pap />} />
             <Route path="/flujos" element={<Flujos />} />
+            <Route path="/encuestas" element={<Encuestas />} />
             <Route path="*" element={<Navigate to="/pacientes" />} />
           </>}
 
@@ -145,6 +150,7 @@ function Layout({ usuario, onLogout }) {
             <Route path="/cambiar-password" element={<CambiarPassword />} />
             <Route path="/pap" element={<Pap />} />
             <Route path="/flujos" element={<Flujos />} />
+            <Route path="/encuestas" element={<Encuestas />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}
         </Routes>
