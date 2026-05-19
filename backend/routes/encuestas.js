@@ -22,7 +22,7 @@ router.post('/enviar/:paciente_id', async (req, res) => {
     const token = Buffer.from(`${enc.rows[0].id}-${p.id}`).toString('base64')
 
     await resend.emails.send({
-      from: 'Saberes <onboarding@resend.dev>',
+      from: 'Saberes <no-reply@saberes.cl>',
       to: p.email,
       subject: '¿Cómo fue tu experiencia en Saberes?',
       html: `
