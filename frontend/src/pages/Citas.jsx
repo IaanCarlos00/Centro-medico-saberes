@@ -128,7 +128,7 @@ export default function Agenda() {
   const [pacientes, setPacientes] = useState([])
   const [profesionales, setProfesionales] = useState([])
   const [vistaActiva, setVistaActiva] = useState('agenda') // 'agenda' | 'historial'
-  const [vistaCalendario, setVistaCalendario] = useState(Views.WEEK)
+  const [vistaCalendario, setVistaCalendario] = useState(window.innerWidth < 768 ? Views.DAY : Views.WEEK)
   const [fecha, setFecha] = useState(new Date())
   const [citaSeleccionada, setCitaSeleccionada] = useState(null)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
@@ -712,7 +712,7 @@ export default function Agenda() {
           )}
 
           {/* Calendario */}
-          <div className="bg-white rounded-xl shadow p-4" style={{ height: 640 }}>
+          <div className="bg-white rounded-xl shadow p-4" style={{ height: window.innerWidth < 768 ? 500 : 640 }}>
             <Calendar
               localizer={localizer}
               events={eventos}
@@ -724,11 +724,11 @@ export default function Agenda() {
               onView={setVistaCalendario}
               date={fecha}
               onNavigate={setFecha}
-              views={[Views.WEEK, Views.DAY, Views.AGENDA]}
+              views={window.innerWidth < 768 ? [Views.DAY, Views.AGENDA] : [Views.WEEK, Views.DAY, Views.AGENDA]}
               min={new Date(0, 0, 0, 8, 0, 0)}
               max={new Date(0, 0, 0, 20, 0, 0)}
               step={30}
-              timeslots={1}
+              timeslots={2}
               eventPropGetter={evento => ({
               style: {
                 backgroundColor: evento.tipo === 'bloqueo' ? '#ef4444' :
