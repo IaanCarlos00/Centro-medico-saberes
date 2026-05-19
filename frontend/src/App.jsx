@@ -15,6 +15,7 @@ import Procedimientos from './pages/Procedimientos'
 import Pap from './pages/Pap'
 import Flujos from './pages/Flujos'
 import Encuesta from './pages/Encuesta'
+import Encuestas from './pages/Encuestas'
 
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
