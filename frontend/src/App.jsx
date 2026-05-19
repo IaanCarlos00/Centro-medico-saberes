@@ -14,6 +14,7 @@ import CambiarPassword from './pages/CambiarPassword'
 import Procedimientos from './pages/Procedimientos'
 import Pap from './pages/Pap'
 import Flujos from './pages/Flujos'
+import Encuesta from './pages/Encuesta'
 
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
@@ -174,10 +175,15 @@ function App() {
   if (!usuario) return <Login onLogin={handleLogin} />
 
   return (
-    <BrowserRouter>
-      <Layout usuario={usuario} onLogout={handleLogout} />
-    </BrowserRouter>
-  )
+  <BrowserRouter>
+    <Routes>
+      <Route path="/encuesta/:token" element={<Encuesta />} />
+      <Route path="*" element={
+        usuario ? <Layout usuario={usuario} onLogout={handleLogout} /> : <Login onLogin={handleLogin} />
+      } />
+    </Routes>
+  </BrowserRouter>
+)
 }
 
 export default App

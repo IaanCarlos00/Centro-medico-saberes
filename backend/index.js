@@ -14,6 +14,7 @@ const bloqueosRouter = require('./routes/bloqueos');
 const procedimientosRouter = require('./routes/procedimientos');
 const papRouter = require('./routes/pap');
 const flujosRouter = require('./routes/flujos');
+const encuestasRouter = require('./routes/encuestas');
 
 const app = express();
 const PORT = 3000;
@@ -34,6 +35,7 @@ app.use('/bloqueos', bloqueosRouter);
 app.use('/procedimientos', procedimientosRouter);
 app.use('/pap', papRouter);
 app.use('/flujos', flujosRouter);
+app.use('/encuestas', encuestasRouter);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
