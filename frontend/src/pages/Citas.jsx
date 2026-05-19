@@ -155,13 +155,19 @@ export default function Agenda() {
   const usuarioProfesionalId = localStorage.getItem('profesional_id')
   const usuarioId = localStorage.getItem('id')
   const dropdownRef = useRef(null)
+  const [catalogo, setCatalogo] = useState([])
+  const [procedimientoSeleccionado, setProcedimientoSeleccionado] = useState(null)
+  const [metodoPago, setMetodoPago] = useState('efectivo')
+  const API_PROC = 'https://centro-medico-saberes-production.up.railway.app/procedimientos'
+  const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 
   const cargar = async () => {
-  const [c, p, pr, bl] = await Promise.all([axios.get(API), axios.get(API_PAC), axios.get(API_PRO), axios.get(API_BLOQUEOS)])
+  const [c, p, pr, bl, cat] = await Promise.all([axios.get(API), axios.get(API_PAC), axios.get(API_PRO), axios.get(API_BLOQUEOS), axios.get(`${API_PROC}/catalogo`)])
   setCitas(c.data)
   setPacientes(p.data)
   setProfesionales(pr.data)
   setBloqueos(bl.data)
+  setCatalogo(cat.data)
 }
 
   useEffect(() => { cargar() }, [])
@@ -401,19 +407,56 @@ export default function Agenda() {
           <label className="text-sm text-gray-600 mb-1">Observaciones (opcional)</label>
           <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="observaciones" value={form.observaciones} onChange={handleChange} />
         </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-600 mb-1">Procedimiento (opcional)</label>
+          <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={procedimientoSeleccionado?.id || ''} onChange={e => {
+            const proc = catalogo.find(c => c.id === parseInt(e.target.value))
+            setProcedimientoSeleccionado(proc || null)
+          }}>
+            <option value="">Sin procedimiento — quedará pendiente</option>
+            {catalogo.map(c => <option key={c.id} value={c.id}>{c.nombre} — ${Number(c.monto).toLocaleString('es-CL')}</option>)}
+          </select>
+        </div>
+
+        {procedimientoSeleccionado && (
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Método de pago</label>
+            <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={metodoPago} onChange={e => setMetodoPago(e.target.value)}>
+              <option value="fonasa">🏥 Fonasa</option>
+              <option value="efectivo">💵 Efectivo</option>
+              <option value="transferencia">🏦 Transferencia</option>
+              <option value="debito">💳 Débito</option>
+              <option value="credito">💳 Crédito</option>
+            </select>
+          </div>
+        )}
       </div>
 
       <div className="flex gap-3 mt-6">
         <button onClick={async () => {
           const e = validar()
           if (Object.keys(e).length > 0) { setErrores(e); return }
-          const res = await axios.post(API, form)
+          const estadoCita = procedimientoSeleccionado ? 'confirmada' : 'pendiente'
+          const res = await axios.post(API, { ...form, estado: estadoCita })
           const paciente = pacientes.find(p => p.id === parseInt(form.paciente_id))
+          if (procedimientoSeleccionado) {
+            await axios.post(API_PROC, {
+              paciente_id: form.paciente_id,
+              catalogo_procedimiento_id: procedimientoSeleccionado.id,
+              nombre: procedimientoSeleccionado.nombre,
+              monto: procedimientoSeleccionado.monto,
+              metodo: metodoPago,
+              estado: 'pagado'
+            })
+          }
           setCitaRecienAgendada({ ...res.data, paciente_id: form.paciente_id, paciente_nombre: paciente?.nombre, paciente_apellido: paciente?.apellido })
           setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
           setBusquedaPaciente('')
           setErrores({})
           setMostrarNuevoPaciente(false)
+          setProcedimientoSeleccionado(null)
+          setMetodoPago('efectivo')
           setModalAgendar(null)
           cargar()
         }} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">Agendar</button>
