@@ -27,7 +27,7 @@ const messages = {
 }
 
 const estadoColor = {
-  pendiente: { bg: '#f59e0b', badge: 'bg-yellow-100 text-yellow-700' },
+  pendiente: { bg: '#d1d5db', badge: 'bg-gray-100 text-gray-600' },
   confirmada: { bg: '#3b82f6', badge: 'bg-blue-100 text-blue-700' },
   realizada: { bg: '#22c55e', badge: 'bg-green-100 text-green-700' },
   cancelada: { bg: '#ef4444', badge: 'bg-red-100 text-red-700' },
@@ -547,7 +547,7 @@ export default function Agenda() {
           if (!profId) return alert('Selecciona un profesional')
           await axios.post(API_BLOQUEOS, {
             fecha_inicio: modalBloquear.fechaHora,
-            fecha_fin: modalBloquear.fechaHora.slice(0, 11) + String(parseInt(modalBloquear.fechaHora.slice(11, 13)) + 0).padStart(2, '0') + ':30',
+            fecha_fin: modalBloquear.fechaHoraFin || modalBloquear.fechaHora.slice(0, 14) + '30',
             motivo: motivoBloqueo || null,
             creado_por: usuarioId || null,
             profesional_id: profId
@@ -729,19 +729,39 @@ export default function Agenda() {
               max={new Date(0, 0, 0, 20, 0, 0)}
               step={30}
               timeslots={2}
-              eventPropGetter={evento => ({
-              style: {
-                backgroundColor: evento.tipo === 'bloqueo' ? '#ef4444' :
-                  estadoColor[evento.resource?.estado]?.bg || '#6b7280',
+              eventPropGetter={evento => {
+                  let bg = '#6b7280'
+                  if (evento.tipo === 'bloqueo') {
+                    bg = '#ef4444'
+                  } else {
+                    const estado = evento.resource?.estado
+                    const profId = String(evento.resource?.profesional_id)
+                    if (estado === 'pendiente') {
+                      bg = '#d1d5db'
+                    } else if (estado === 'confirmada') {
+                      // Color por profesional — ajusta los IDs según los tuyos
+                      if (profId === '2') bg = '#f97316' // Valentina — naranjo
+                      else if (profId === '1') bg = '#06b6d4' // Javiera — celeste
+                      else bg = '#3b82f6'
+                    } else if (estado === 'realizada') {
+                      bg = '#22c55e'
+                    } else if (estado === 'cancelada') {
+                      bg = '#ef4444'
+                    }
+                  }
+                  return ({
+                    style: {
+                      backgroundColor: bg,
                 borderRadius: '6px',
-                border: 'none',
-                color: 'white',
-                fontSize: '12px',
-                padding: '2px 6px',
-                cursor: 'pointer',
-                opacity: evento.tipo === 'bloqueo' ? 0.85 : 1
-              }
-            })}
+      border: 'none',
+      color: estado === 'pendiente' ? '#6b7280' : 'white',
+      fontSize: '12px',
+      padding: '2px 6px',
+      cursor: 'pointer',
+      opacity: evento.tipo === 'bloqueo' ? 0.85 : 1
+    }
+  })
+}}
             onSelectEvent={e => {
                   if (e.tipo === 'bloqueo') {
                     if (confirm('¿Eliminar este bloqueo?')) {
@@ -752,14 +772,15 @@ export default function Agenda() {
                   setCitaSeleccionada(e.resource)
                 }}
               selectable
-              onSelectSlot={({ start }) => {
+              onSelectSlot={({ start, end }) => {
                   const offset = start.getTimezoneOffset() * 60000
                   const fechaHora = new Date(start.getTime() - offset).toISOString().slice(0, 16)
+                  const fechaHoraFin = new Date(end.getTime() - offset).toISOString().slice(0, 16)
                   setForm({ paciente_id: '', profesional_id: '', fecha_hora: fechaHora, estado: 'pendiente', observaciones: '' })
                   setBusquedaPaciente('')
                   setErrores({})
                   setMostrarNuevoPaciente(false)
-                  setModalOpcion({ fechaHora, start })
+                  setModalOpcion({ fechaHora, fechaHoraFin, start, end })
                 }}
               style={{ height: '100%' }}
             />
