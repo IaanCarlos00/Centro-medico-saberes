@@ -730,37 +730,38 @@ export default function Agenda() {
               step={30}
               timeslots={2}
               eventPropGetter={evento => {
-                  let bg = '#6b7280'
-                  if (evento.tipo === 'bloqueo') {
-                    bg = '#ef4444'
-                  } else {
-                    const estado = evento.resource?.estado
-                    const profId = String(evento.resource?.profesional_id)
-                    if (estado === 'pendiente') {
-                      bg = '#d1d5db'
-                    } else if (estado === 'confirmada') {
-                      // Color por profesional — ajusta los IDs según los tuyos
-                      if (profId === '2') bg = '#f97316' // Valentina — naranjo
-                      else if (profId === '1') bg = '#06b6d4' // Javiera — celeste
-                      else bg = '#3b82f6'
-                    } else if (estado === 'realizada') {
-                      bg = '#22c55e'
-                    } else if (estado === 'cancelada') {
-                      bg = '#ef4444'
-                    }
-                  }
-                  return ({
-                    style: {
-                      backgroundColor: bg,
-                borderRadius: '6px',
+  let bg = '#6b7280'
+  let textColor = 'white'
+  if (evento.tipo === 'bloqueo') {
+    bg = '#ef4444'
+  } else {
+    const estado = evento.resource?.estado
+    const profId = String(evento.resource?.profesional_id)
+    if (estado === 'pendiente') {
+      bg = '#d1d5db'
+      textColor = '#6b7280'
+    } else if (estado === 'confirmada') {
+      if (profId === '2') bg = '#f97316'
+      else if (profId === '1') bg = '#06b6d4'
+      else bg = '#3b82f6'
+    } else if (estado === 'realizada') {
+      bg = '#22c55e'
+    } else if (estado === 'cancelada') {
+      bg = '#ef4444'
+    }
+  }
+  return {
+    style: {
+      backgroundColor: bg,
+      borderRadius: '6px',
       border: 'none',
-      color: estado === 'pendiente' ? '#6b7280' : 'white',
+      color: textColor,
       fontSize: '12px',
       padding: '2px 6px',
       cursor: 'pointer',
       opacity: evento.tipo === 'bloqueo' ? 0.85 : 1
     }
-  })
+  }
 }}
             onSelectEvent={e => {
                   if (e.tipo === 'bloqueo') {
