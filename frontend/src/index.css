@@ -1,5 +1,1 @@
 @import "tailwindcss";
-
-.rbc-time-slot:first-child {
-  display: none;
-}
