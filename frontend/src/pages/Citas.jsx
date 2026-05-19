@@ -725,10 +725,10 @@ export default function Agenda() {
               date={fecha}
               onNavigate={setFecha}
               views={window.innerWidth < 768 ? [Views.DAY, Views.AGENDA] : [Views.WEEK, Views.DAY, Views.AGENDA]}
-              min={new Date(0, 0, 0, 8, 0, 0)}
+              min={new Date(0, 0, 0, 8, 30, 0)}
               max={new Date(0, 0, 0, 20, 0, 0)}
               step={30}
-              timeslots={2}
+              timeslots={1}
               eventPropGetter={evento => {
   let bg = '#6b7280'
   let textColor = 'white'
