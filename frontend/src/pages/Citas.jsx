@@ -259,7 +259,7 @@ export default function Agenda() {
   const eventos = [
   ...citas.map(c => ({
     id: c.id,
-    title: `${c.paciente_nombre} ${c.paciente_apellido}`,
+    title: c.procedimiento_nombre ? `${c.paciente_nombre} ${c.paciente_apellido} — ${c.procedimiento_nombre}` : `${c.paciente_nombre} ${c.paciente_apellido}`,
     start: new Date(c.fecha_hora.replace(' ', 'T')),
   end: new Date(new Date(c.fecha_hora.replace(' ', 'T')).getTime() + 30 * 60000),
     resource: c,
@@ -438,7 +438,7 @@ export default function Agenda() {
           const e = validar()
           if (Object.keys(e).length > 0) { setErrores(e); return }
           const estadoCita = procedimientoSeleccionado ? 'confirmada' : 'pendiente'
-          const res = await axios.post(API, { ...form, estado: estadoCita })
+          const res = await axios.post(API, { ...form, estado: estadoCita, procedimiento_nombre: procedimientoSeleccionado?.nombre || null })
           const paciente = pacientes.find(p => p.id === parseInt(form.paciente_id))
           if (procedimientoSeleccionado) {
             await axios.post(API_PROC, {
