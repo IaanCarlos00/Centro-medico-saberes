@@ -4,7 +4,7 @@ const pool = require('../db')
 const { Resend } = require('resend')
 
 const resend = new Resend('re_CGpgATbp_5o65CMMtivJ4UXp4RjxLFdQF')
-const BASE_URL = 'https://centro-medico-saberes.vercel.app'
+const BASE_URL = 'https://saberes.cl'
 
 // Enviar encuesta a un paciente
 router.post('/enviar/:paciente_id', async (req, res) => {

@@ -19,7 +19,13 @@ const encuestasRouter = require('./routes/encuestas');
 const app = express();
 const PORT = 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: [
+    'https://centro-medico-saberes.vercel.app',
+    'https://saberes.cl',
+    'https://www.saberes.cl'
+  ]
+}))
 app.use(express.json());
 
 // Rutas
