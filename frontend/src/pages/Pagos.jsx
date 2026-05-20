@@ -39,7 +39,7 @@ export default function Pagos() {
   const [filtroMetodo, setFiltroMetodo] = useState('')
   const [mostrarForm, setMostrarForm] = useState(false)
   const [editando, setEditando] = useState(null)
-  const [form, setForm] = useState({ paciente_id: '', monto: '', metodo: 'efectivo', estado: 'pagado', notas: '' })
+  const [form, setForm] = useState({ paciente_id: '', monto: '', metodo: 'débito', estado: 'pagado', notas: '' })
   const [errores, setErrores] = useState({})
   const [busquedaPaciente, setBusquedaPaciente] = useState('')
   const [mostrarDropdown, setMostrarDropdown] = useState(false)
@@ -99,7 +99,7 @@ export default function Pagos() {
     } else {
       await axios.post(API, form)
     }
-    setForm({ paciente_id: '', monto: '', metodo: 'efectivo', estado: 'pagado', notas: '' })
+    setForm({ paciente_id: '', monto: '', metodo: 'débito', estado: 'pagado', notas: '' })
     setBusquedaPaciente('')
     setErrores({})
     setMostrarForm(false)
@@ -122,7 +122,7 @@ export default function Pagos() {
 
   const cancelar = () => {
     setEditando(null)
-    setForm({ paciente_id: '', monto: '', metodo: 'efectivo', estado: 'pagado', notas: '' })
+    setForm({ paciente_id: '', monto: '', metodo: 'débito', estado: 'pagado', notas: '' })
     setBusquedaPaciente('')
     setErrores({})
     setMostrarForm(false)
