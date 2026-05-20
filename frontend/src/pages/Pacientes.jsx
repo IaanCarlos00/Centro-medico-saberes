@@ -10,8 +10,13 @@ function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
   const [errores, setErrores] = useState({})
 
   const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-    setErrores({ ...errores, [e.target.name]: '' })
+    const { name, value } = e.target
+    if (name === 'rut') {
+      setForm({ ...form, rut: formatearRut(value) })
+    } else {
+      setForm({ ...form, [name]: value })
+    }
+    setErrores({ ...errores, [name]: '' })
   }
 
   const guardar = async () => {
@@ -65,6 +70,16 @@ function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
   )
 }
 
+function formatearRut(rut) {
+  if (!rut) return ''
+  const limpio = rut.replace(/[^0-9kK]/g, '').toUpperCase()
+  if (limpio.length < 2) return limpio
+  const cuerpo = limpio.slice(0, -1)
+  const dv = limpio.slice(-1)
+  const cuerpoFormateado = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  return `${cuerpoFormateado}-${dv}`
+}
+
 export default function Pacientes() {
   const [pacientes, setPacientes] = useState([])
   const [deudores, setDeudores] = useState([])
@@ -87,8 +102,13 @@ export default function Pacientes() {
   useEffect(() => { cargar() }, [])
 
   const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-    setErrores({ ...errores, [e.target.name]: '' })
+    const { name, value } = e.target
+    if (name === 'rut') {
+      setForm({ ...form, rut: formatearRut(value) })
+    } else {
+      setForm({ ...form, [name]: value })
+    }
+    setErrores({ ...errores, [name]: '' })
   }
 
   const validar = () => {
