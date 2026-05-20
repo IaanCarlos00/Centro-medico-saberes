@@ -110,10 +110,10 @@ function ModalRegistrarPago({ paciente, cita, onConfirmar, onCerrar }) {
           <div className="flex flex-col">
             <label className="text-sm text-gray-600 mb-1">Método de pago</label>
             <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="metodo" value={form.metodo} onChange={handleChange}>
-              <option value="fonasa">🏥 Fonasa</option>
+              <option value="debito">💳 Débito</option>
               <option value="efectivo">💵 Efectivo</option>
               <option value="transferencia">🏦 Transferencia</option>
-              <option value="debito">💳 Débito</option>
+              <option value="fonasa">🏥 Fonasa</option>
               <option value="credito">💳 Crédito</option>
             </select>
           </div>

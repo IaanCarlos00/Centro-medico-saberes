@@ -100,10 +100,10 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
               <div className="flex flex-col">
                 <label className="text-xs text-gray-500 mb-1">Método de pago</label>
                 <select className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" name="metodo" value={form.metodo} onChange={handleChange}>
-                  <option value="fonasa">🏥 Fonasa</option>
+                  <option value="debito">💳 Débito</option>
                   <option value="efectivo">💵 Efectivo</option>
                   <option value="transferencia">🏦 Transferencia</option>
-                  <option value="debito">💳 Débito</option>
+                  <option value="fonasa">🏥 Fonasa</option>
                   <option value="credito">💳 Crédito</option>
                 </select>
               </div>
