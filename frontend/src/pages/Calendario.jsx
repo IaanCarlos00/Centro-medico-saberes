@@ -62,7 +62,11 @@ export default function Calendario() {
     setEventos(evs)
   }
 
-  useEffect(() => { cargar() }, [])
+  useEffect(() => {
+    cargar()
+    const intervalo = setInterval(() => cargar(), 30000) // recarga cada 30 segundos
+    return () => clearInterval(intervalo)
+  }, [])
 
   const eventStyleGetter = evento => ({
     style: {

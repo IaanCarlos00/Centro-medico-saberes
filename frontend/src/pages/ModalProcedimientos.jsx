@@ -25,7 +25,11 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
     setProcedimientos(proc.data)
   }
 
-  useEffect(() => { cargar() }, [])
+  useEffect(() => {
+    cargar()
+    const intervalo = setInterval(() => cargar(), 30000) // recarga cada 30 segundos
+    return () => clearInterval(intervalo)
+  }, [])
 
   const handleChange = e => {
     const { name, value } = e.target

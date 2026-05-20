@@ -56,7 +56,11 @@ export default function Bloqueos() {
     setProfesionales(pr.data)
   }
 
-  useEffect(() => { cargar() }, [])
+  useEffect(() => {
+    cargar()
+    const intervalo = setInterval(() => cargar(), 30000) // recarga cada 30 segundos
+    return () => clearInterval(intervalo)
+  }, [])
 
   const colorPorProfesional = (profesional_id) => {
     const idx = profesionales.findIndex(p => p.id === parseInt(profesional_id))

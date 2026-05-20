@@ -158,6 +158,7 @@ export default function Agenda() {
   const [catalogo, setCatalogo] = useState([])
   const [procedimientoSeleccionado, setProcedimientoSeleccionado] = useState(null)
   const [metodoPago, setMetodoPago] = useState('efectivo')
+  const [citasPendientesAviso, setCitasPendientesAviso] = useState([])
   const API_PROC = 'https://centro-medico-saberes-production.up.railway.app/procedimientos'
   const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 
@@ -170,7 +171,22 @@ export default function Agenda() {
   setCatalogo(cat.data)
 }
 
-  useEffect(() => { cargar() }, [])
+  useEffect(() => {
+    cargar()
+    const intervalo = setInterval(() => cargar(), 30000) // recarga cada 30 segundos
+    return () => clearInterval(intervalo)
+  }, [])
+
+  useEffect(() => {
+    const ahora = new Date()
+    const citasPasadasSinFinalizar = citas.filter(c => {
+      const horaCita = new Date(c.fecha_hora.replace(' ', 'T'))
+      return (c.estado === 'pendiente' || c.estado === 'confirmada') && horaCita < ahora
+    })
+    if (citasPasadasSinFinalizar.length > 0) {
+      setCitasPendientesAviso(citasPasadasSinFinalizar)
+    }
+  }, [citas])
 
   useEffect(() => {
     const handleClick = e => {
@@ -301,6 +317,38 @@ export default function Agenda() {
 
   return (
   <div>
+    {citasPendientesAviso.length > 0 && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+    <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md">
+      <h3 className="text-lg font-bold text-green-800 mb-2">⏰ Citas sin finalizar</h3>
+      <p className="text-sm text-gray-500 mb-4">Las siguientes citas ya pasaron su hora:</p>
+      <div className="flex flex-col gap-2 mb-5 max-h-48 overflow-y-auto">
+        {citasPendientesAviso.map(c => (
+          <div key={c.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
+            <div>
+              <p className="font-medium text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</p>
+              <p className="text-xs text-gray-400">{c.fecha_hora?.slice(0,16).replace('T',' ')}</p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={async () => {
+                await axios.put(`${API}/${c.id}`, { ...c, estado: 'realizada' })
+                setCitasPendientesAviso(prev => prev.filter(p => p.id !== c.id))
+                cargar()
+              }} className="text-green-700 text-xs font-medium hover:underline">Atendida</button>
+              <button onClick={async () => {
+                await axios.put(`${API}/${c.id}`, { ...c, estado: 'cancelada' })
+                setCitasPendientesAviso(prev => prev.filter(p => p.id !== c.id))
+                cargar()
+              }} className="text-red-500 text-xs font-medium hover:underline">No asistió</button>
+            </div>
+          </div>
+        ))}
+      </div>
+      <button onClick={() => setCitasPendientesAviso([])} className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Resolver después</button>
+    </div>
+  </div>
+)}
+
     {modalPago && (
       <ModalPago
         cita={modalPago}

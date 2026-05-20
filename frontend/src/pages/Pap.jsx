@@ -30,7 +30,11 @@ export default function Pap() {
     setProfesionales(pro.data)
   }
 
-  useEffect(() => { cargar() }, [])
+  useEffect(() => {
+    cargar()
+    const intervalo = setInterval(() => cargar(), 30000) // recarga cada 30 segundos
+    return () => clearInterval(intervalo)
+  }, [])
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value })

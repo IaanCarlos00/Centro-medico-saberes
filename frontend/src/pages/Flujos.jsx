@@ -30,7 +30,11 @@ export default function Flujos() {
     setProfesionales(pro.data)
   }
 
-  useEffect(() => { cargar() }, [])
+  useEffect(() => {
+    cargar()
+    const intervalo = setInterval(() => cargar(), 30000) // recarga cada 30 segundos
+    return () => clearInterval(intervalo)
+  }, [])
 
   const handleChange = e => {
     const { name, value, type, checked } = e.target
