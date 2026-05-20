@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 
-const API = 'https://centro-medico-saberes.onrender.com/encuestas'
-const API_PAC = 'https://centro-medico-saberes.onrender.com/pacientes'
+const API = 'https://centro-medico-saberes-production.up.railway.app/encuestas'
+const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
 
 export default function Encuestas() {
   const [encuestas, setEncuestas] = useState([])

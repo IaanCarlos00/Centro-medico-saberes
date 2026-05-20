@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 
-const API = 'https://centro-medico-saberes.onrender.com/procedimientos'
+const API = 'https://centro-medico-saberes-production.up.railway.app/procedimientos'
 
 function formatCLP(n) {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(n)

@@ -5,8 +5,8 @@ import { format, parse, startOfWeek, getDay } from 'date-fns'
 import { es } from 'date-fns/locale'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 
-const API = 'https://centro-medico-saberes.onrender.com/bloqueos'
-const API_PRO = 'https://centro-medico-saberes.onrender.com/profesionales'
+const API = 'https://centro-medico-saberes-production.up.railway.app/bloqueos'
+const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
 
 const localizer = dateFnsLocalizer({
   format: (date, formatStr, options) => format(date, formatStr, { locale: es, ...options }),

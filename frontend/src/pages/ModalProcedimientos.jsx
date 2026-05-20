@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 
-const API_PROC = 'https://centro-medico-saberes.onrender.com/procedimientos'
+const API_PROC = 'https://centro-medico-saberes-production.up.railway.app/procedimientos'
 
 const formatFecha = fecha => {
   if (!fecha) return ''
@@ -60,7 +60,7 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
     await axios.post(API_PROC, { ...form, paciente_id: paciente.id })
     // Si viene de una cita, confirmarla automáticamente
     if (citaId) {
-      await axios.put(`https://centro-medico-saberes.onrender.com/citas/${citaId}`, { estado: 'confirmada' })
+      await axios.put(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`, { estado: 'confirmada' })
     }
     setForm({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'débito', estado: 'pagado', notas: '' })
     cargar()

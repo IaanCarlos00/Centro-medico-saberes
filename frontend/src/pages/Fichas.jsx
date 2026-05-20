@@ -4,9 +4,9 @@ import FichaIngreso1 from './FichaIngreso1'
 import FichaIngreso2 from './FichaIngreso2'
 import ModalProcedimientos from './ModalProcedimientos'
 
-const API = 'https://centro-medico-saberes.onrender.com/fichas'
-const API_PRO = 'https://centro-medico-saberes.onrender.com/profesionales'
-const API_FI = 'https://centro-medico-saberes.onrender.com/fichas-ingreso'
+const API = 'https://centro-medico-saberes-production.up.railway.app/fichas'
+const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
+const API_FI = 'https://centro-medico-saberes-production.up.railway.app/fichas-ingreso'
 
 const hoyStr = new Date().toISOString().slice(0, 10)
 

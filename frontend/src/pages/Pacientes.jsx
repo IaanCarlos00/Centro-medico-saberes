@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import Fichas from './Fichas'
 
-const API = 'https://centro-medico-saberes.onrender.com/pacientes'
-const API_PAGOS = 'https://centro-medico-saberes.onrender.com/pagos'
+const API = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
+const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 
 function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
   const [form, setForm] = useState({ rut: paciente.rut || '', fecha_nacimiento: paciente.fecha_nacimiento?.slice(0,10) || '', telefono: paciente.telefono || '', email: paciente.email || '' })

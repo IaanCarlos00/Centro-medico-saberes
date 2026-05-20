@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import axios from 'axios'
 
-const API = 'https://centro-medico-saberes.onrender.com/auth/cambiar-password'
+const API = 'https://centro-medico-saberes-production.up.railway.app/auth/cambiar-password'
 
 export default function CambiarPassword() {
   const [form, setForm] = useState({ password_actual: '', password_nuevo: '', password_confirmar: '' })

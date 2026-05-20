@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import axios from 'axios'
 
-const API = 'https://centro-medico-saberes.onrender.com/auth'
+const API = 'https://centro-medico-saberes-production.up.railway.app/auth'
 
 export default function Login({ onLogin }) {
   const [form, setForm] = useState({ email: '', password: '' })
