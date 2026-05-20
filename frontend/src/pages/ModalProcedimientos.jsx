@@ -13,7 +13,7 @@ const formatCLP = n => new Intl.NumberFormat('es-CL', { style: 'currency', curre
 export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
   const [catalogo, setCatalogo] = useState([])
   const [procedimientos, setProcedimientos] = useState([])
-  const [form, setForm] = useState({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'efectivo', estado: 'pagado', notas: '' })
+  const [form, setForm] = useState({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'débito', estado: 'pagado', notas: '' })
   const [errores, setErrores] = useState({})
 
   const cargar = async () => {
@@ -52,7 +52,7 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
     if (citaId) {
       await axios.put(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`, { estado: 'confirmada' })
     }
-    setForm({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'efectivo', estado: 'pagado', notas: '' })
+    setForm({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'débito', estado: 'pagado', notas: '' })
     cargar()
   }
 

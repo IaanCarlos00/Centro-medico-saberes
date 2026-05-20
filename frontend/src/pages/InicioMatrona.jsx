@@ -75,7 +75,7 @@ function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
 }
 
 function ModalRegistrarPago({ paciente, cita, onConfirmar, onCerrar }) {
-  const [form, setForm] = useState({ monto: '', metodo: 'efectivo', estado: 'pagado', notas: '' })
+  const [form, setForm] = useState({ monto: '', metodo: 'débito', estado: 'pagado', notas: '' })
   const [errores, setErrores] = useState({})
 
   const handleChange = e => {
