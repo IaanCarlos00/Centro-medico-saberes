@@ -156,10 +156,15 @@ export default function InicioMatrona({ usuario }) {
     try {
       const [c, p] = await Promise.all([axios.get(API_CITAS), axios.get(API_PAC)])
       const hoyStr = new Date().toISOString().slice(0, 10)
+      const profesionalId = localStorage.getItem('profesional_id')
       const citasHoy = c.data
-        .filter(ci => ci.fecha_hora?.slice(0, 10) === hoyStr)
+        .filter(ci => {
+          const esHoy = ci.fecha_hora?.slice(0, 10) === hoyStr
+          const esSuya = !profesionalId || String(ci.profesional_id) === String(profesionalId)
+          return esHoy && esSuya
+        })
         .sort((a, b) => a.fecha_hora.localeCompare(b.fecha_hora))
-      setCitas(citasHoy)
+            setCitas(citasHoy)
       const mapa = {}
       p.data.forEach(pac => { mapa[pac.id] = pac })
       setPacientesMap(mapa)
