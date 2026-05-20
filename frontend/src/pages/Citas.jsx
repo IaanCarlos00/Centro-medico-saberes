@@ -203,9 +203,11 @@ export default function Agenda() {
   const e = {}
   if (!form.paciente_id) e.paciente_id = 'Selecciona un paciente'
   if (!form.profesional_id) e.profesional_id = 'Selecciona un profesional'
-  const bloqueosProfesional = bloqueos.filter(b => !b.profesional_id || String(b.profesional_id) === String(form.profesional_id))
-  const errorFecha = validarFechaHora(form.fecha_hora, bloqueosProfesional)
-  if (errorFecha) e.fecha_hora = errorFecha
+  if (!editando) {
+    const bloqueosProfesional = bloqueos.filter(b => !b.profesional_id || String(b.profesional_id) === String(form.profesional_id))
+    const errorFecha = validarFechaHora(form.fecha_hora, bloqueosProfesional)
+    if (errorFecha) e.fecha_hora = errorFecha
+  }
   return e
 }
 
