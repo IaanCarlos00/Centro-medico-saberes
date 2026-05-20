@@ -808,7 +808,6 @@ export default function Agenda() {
                 <div className="flex flex-col gap-2 mt-5">
                   <div className="flex gap-2">
                     <button onClick={() => editar(citaSeleccionada)} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium text-sm">Editar</button>
-                    <button onClick={() => { setModalPago(citaSeleccionada); setCitaSeleccionada(null) }} className="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg hover:bg-blue-100 font-medium text-sm">💰 Pago</button>
                   </div>
                   <div className="flex gap-2">
                     <button onClick={async () => {
