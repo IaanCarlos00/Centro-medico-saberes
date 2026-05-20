@@ -52,11 +52,7 @@ export default function Pagos() {
     setResumen(r.data)
   }
 
-  useEffect(() => {
-    cargar()
-    const intervalo = setInterval(() => cargar(), 30000) // recarga cada 30 segundos
-    return () => clearInterval(intervalo)
-  }, [])
+  useEffect(() => { cargar() }, [])
 
   useEffect(() => {
     const handleClick = e => {

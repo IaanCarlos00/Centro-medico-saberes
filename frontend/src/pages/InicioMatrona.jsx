@@ -175,11 +175,7 @@ export default function InicioMatrona({ usuario }) {
     }
   }
 
-  useEffect(() => {
-    cargar()
-    const intervalo = setInterval(() => cargar(), 30000) // recarga cada 30 segundos
-    return () => clearInterval(intervalo)
-  }, [])
+  useEffect(() => { cargar() }, [])
 
   const getPaciente = id => pacientesMap[parseInt(id)] || null
 
