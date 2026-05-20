@@ -139,11 +139,29 @@ export default function Pacientes() {
   }
 
   const eliminar = async id => {
-    if (confirm('¿Eliminar paciente?')) {
-      await axios.delete(`${API}/${id}`)
-      cargar()
+  const paciente = pacientes.find(p => p.id === id)
+  if (!confirm(`¿Eliminar a ${paciente.nombre} ${paciente.apellido}?`)) return
+  
+  try {
+    await axios.delete(`${API}/${id}`)
+    cargar()
+  } catch (err) {
+    if (err.response?.data?.error === 'tiene_registros') {
+      const r = err.response.data.resumen
+      const detalle = [
+        r.citas > 0 && `${r.citas} cita(s)`,
+        r.fichas > 0 && `${r.fichas} ficha(s) clínica(s)`,
+        r.pagos > 0 && `${r.pagos} pago(s)`,
+        r.procedimientos > 0 && `${r.procedimientos} procedimiento(s)`,
+        r.pap > 0 && `${r.pap} PAP`,
+        r.flujos > 0 && `${r.flujos} flujo(s)`,
+      ].filter(Boolean).join(', ')
+      alert(`No se puede eliminar a ${paciente.nombre} ${paciente.apellido} porque tiene registros asociados:\n\n${detalle}\n\nElimina primero esos registros.`)
+    } else {
+      alert('Error al eliminar el paciente')
     }
   }
+}
 
   const cancelar = () => {
     setEditando(null)

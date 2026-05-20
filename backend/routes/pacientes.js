@@ -70,12 +70,36 @@ router.put('/:id', async (req, res) => {
 // Eliminar paciente
 router.delete('/:id', async (req, res) => {
   try {
-    const result = await pool.query('DELETE FROM paciente WHERE id=$1 RETURNING *', [req.params.id]);
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Paciente no encontrado' });
-    res.json({ mensaje: 'Paciente eliminado' });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+    const id = req.params.id
 
-module.exports = router;
+    // Verificar datos asociados
+    const [citas, fichas, pagos, procedimientos, pap, flujos] = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM cita WHERE paciente_id = $1', [id]),
+      pool.query('SELECT COUNT(*) FROM ficha_clinica WHERE paciente_id = $1', [id]),
+      pool.query('SELECT COUNT(*) FROM pago WHERE paciente_id = $1', [id]),
+      pool.query('SELECT COUNT(*) FROM procedimiento WHERE paciente_id = $1', [id]),
+      pool.query('SELECT COUNT(*) FROM pap WHERE paciente_id = $1', [id]),
+      pool.query('SELECT COUNT(*) FROM flujo WHERE paciente_id = $1', [id]),
+    ])
+
+    const resumen = {
+      citas: parseInt(citas.rows[0].count),
+      fichas: parseInt(fichas.rows[0].count),
+      pagos: parseInt(pagos.rows[0].count),
+      procedimientos: parseInt(procedimientos.rows[0].count),
+      pap: parseInt(pap.rows[0].count),
+      flujos: parseInt(flujos.rows[0].count),
+    }
+
+    const tieneRegistros = Object.values(resumen).some(v => v > 0)
+
+    if (tieneRegistros) {
+      return res.status(409).json({ error: 'tiene_registros', resumen })
+    }
+
+    await pool.query('DELETE FROM paciente WHERE id=$1', [id])
+    res.json({ mensaje: 'Paciente eliminado' })
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
