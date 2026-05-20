@@ -6,7 +6,7 @@ const API = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
 const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 
 function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
-  const [form, setForm] = useState({ rut: paciente.rut || '', fecha_nacimiento: paciente.fecha_nacimiento?.slice(0,10) || '', telefono: paciente.telefono || '' })
+  const [form, setForm] = useState({ rut: paciente.rut || '', fecha_nacimiento: paciente.fecha_nacimiento?.slice(0,10) || '', telefono: paciente.telefono || '', email: paciente.email || '' })
   const [errores, setErrores] = useState({})
 
   const handleChange = e => {
@@ -50,6 +50,10 @@ function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
             <label className="text-sm text-gray-600 mb-1">Teléfono *</label>
             <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.telefono ? 'border-red-400' : 'border-gray-300'}`} name="telefono" placeholder="+56 9 1234 5678" value={form.telefono} onChange={handleChange} />
             {errores.telefono && <span className="text-red-500 text-xs mt-1">{errores.telefono}</span>}
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Email (opcional)</label>
+            <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="email" type="email" placeholder="correo@ejemplo.cl" value={form.email || ''} onChange={handleChange} />
           </div>
         </div>
         <div className="flex gap-3 mt-6">
