@@ -173,6 +173,17 @@ export default function FichaIngreso1({ paciente, onVolver }) {
         <span className="text-gray-400 text-sm">/ {paciente.nombre} {paciente.apellido}</span>
       </div>
 
+      <div className="bg-green-50 rounded-xl p-4 mb-6 border border-green-100">
+        <p className="text-xs font-bold text-green-800 uppercase mb-2">Datos del paciente</p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+          <div><span className="text-gray-500 text-xs">Nombre</span><p className="font-medium text-gray-800">{paciente.nombre} {paciente.apellido}</p></div>
+          <div><span className="text-gray-500 text-xs">RUT</span><p className="font-medium text-gray-800">{paciente.rut || '—'}</p></div>
+          <div><span className="text-gray-500 text-xs">Fecha de nacimiento</span><p className="font-medium text-gray-800">{paciente.fecha_nacimiento ? new Date(paciente.fecha_nacimiento.slice(0,10) + 'T12:00:00').toLocaleDateString('es-CL') : '—'}</p></div>
+          <div><span className="text-gray-500 text-xs">Teléfono</span><p className="font-medium text-gray-800">{paciente.telefono || '—'}</p></div>
+          {paciente.email && <div><span className="text-gray-500 text-xs">Email</span><p className="font-medium text-gray-800">{paciente.email}</p></div>}
+        </div>
+      </div>
+
       <div className="bg-white rounded-xl shadow p-6 mb-6">
         <h3 className="text-lg font-bold text-gray-800 mb-6">{editando ? 'Editar ficha' : 'Nueva ficha de ingreso'}</h3>
 
