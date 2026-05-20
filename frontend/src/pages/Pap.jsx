@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 
-const API = 'https://centro-medico-saberes-production.up.railway.app/pap'
-const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
-const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
+const API = 'https://centro-medico-saberes.onrender.com/pap'
+const API_PAC = 'https://centro-medico-saberes.onrender.com/pacientes'
+const API_PRO = 'https://centro-medico-saberes.onrender.com/profesionales'
 
 const hoyStr = new Date().toISOString().slice(0, 10)
 

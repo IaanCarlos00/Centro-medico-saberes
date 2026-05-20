@@ -7,10 +7,10 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 import dayjs from 'dayjs'
 import ModalProcedimientos from './ModalProcedimientos'
 
-const API = 'https://centro-medico-saberes-production.up.railway.app/citas'
-const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
-const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
-const API_BLOQUEOS = 'https://centro-medico-saberes-production.up.railway.app/bloqueos'
+const API = 'https://centro-medico-saberes.onrender.com/citas'
+const API_PAC = 'https://centro-medico-saberes.onrender.com/pacientes'
+const API_PRO = 'https://centro-medico-saberes.onrender.com/profesionales'
+const API_BLOQUEOS = 'https://centro-medico-saberes.onrender.com/bloqueos'
 
 const localizer = dateFnsLocalizer({
   format: (date, formatStr, options) => format(date, formatStr, { locale: es, ...options }),
@@ -61,7 +61,7 @@ function validarFechaHora(fechaHora, bloqueos = []) {
 function ModalPago({ cita, onConfirmar, onCerrar }) {
   const [form, setForm] = useState({ monto: '', metodo: 'fonasa', estado: 'pagado', notas: '' })
   const [errores, setErrores] = useState({})
-  const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
+  const API_PAGOS = 'https://centro-medico-saberes.onrender.com/pagos'
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -159,8 +159,8 @@ export default function Agenda() {
   const [procedimientoSeleccionado, setProcedimientoSeleccionado] = useState(null)
   const [metodoPago, setMetodoPago] = useState('efectivo')
   const [citasPendientesAviso, setCitasPendientesAviso] = useState([])
-  const API_PROC = 'https://centro-medico-saberes-production.up.railway.app/procedimientos'
-  const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
+  const API_PROC = 'https://centro-medico-saberes.onrender.com/procedimientos'
+  const API_PAGOS = 'https://centro-medico-saberes.onrender.com/pagos'
 
   const cargar = async () => {
   const [c, p, pr, bl, cat] = await Promise.all([axios.get(API), axios.get(API_PAC), axios.get(API_PRO), axios.get(API_BLOQUEOS), axios.get(`${API_PROC}/catalogo`)])

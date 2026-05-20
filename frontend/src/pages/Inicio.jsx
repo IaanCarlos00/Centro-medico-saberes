@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 
-const API = 'https://centro-medico-saberes-production.up.railway.app/dashboard'
+const API = 'https://centro-medico-saberes.onrender.com/dashboard'
 
 const estadoBadge = {
   pendiente: 'bg-yellow-100 text-yellow-700',

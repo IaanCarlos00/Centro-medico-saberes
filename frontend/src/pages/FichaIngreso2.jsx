@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import ModalProcedimientos from './ModalProcedimientos'
 
-const API = 'https://centro-medico-saberes-production.up.railway.app/fichas-ingreso'
-const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
+const API = 'https://centro-medico-saberes.onrender.com/fichas-ingreso'
+const API_PRO = 'https://centro-medico-saberes.onrender.com/profesionales'
 
 const formatFecha = fecha => {
   if (!fecha) return ''

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
 
-const API = 'https://centro-medico-saberes-production.up.railway.app/encuestas'
+const API = 'https://centro-medico-saberes.onrender.com/encuestas'
 
 export default function Encuesta() {
   const { token } = useParams()

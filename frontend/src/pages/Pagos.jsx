@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from 'react'
 import axios from 'axios'
 
-const API = 'https://centro-medico-saberes-production.up.railway.app/pagos'
-const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
+const API = 'https://centro-medico-saberes.onrender.com/pagos'
+const API_PAC = 'https://centro-medico-saberes.onrender.com/pacientes'
 
 const metodoBadge = {
   fonasa: 'bg-teal-100 text-teal-700',

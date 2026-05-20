@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 
-const API = 'https://centro-medico-saberes-production.up.railway.app/auth'
+const API = 'https://centro-medico-saberes.onrender.com/auth'
 
 const rolBadge = {
   admin: 'bg-purple-100 text-purple-700',
