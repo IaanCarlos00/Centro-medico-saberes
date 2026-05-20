@@ -336,7 +336,8 @@ export default function Agenda() {
     {modalProcedimientosCita && (
       <ModalProcedimientos
         paciente={{ id: modalProcedimientosCita.paciente_id, nombre: modalProcedimientosCita.paciente_nombre || '', apellido: modalProcedimientosCita.paciente_apellido || '' }}
-        onCerrar={() => setModalProcedimientosCita(null)}
+        citaId={modalProcedimientosCita.id}
+        onCerrar={() => { setModalProcedimientosCita(null); cargar() }}
       />
     )}
 
@@ -804,11 +805,19 @@ export default function Agenda() {
                   </div>
                   {citaSeleccionada.observaciones && <div><span className="font-semibold text-gray-600">Observaciones:</span> <span className="text-gray-800">{citaSeleccionada.observaciones}</span></div>}
                 </div>
-                <div className="flex gap-3 mt-5">
-                  <button onClick={() => editar(citaSeleccionada)} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">Editar</button>
-                  <button onClick={() => { setModalPago(citaSeleccionada); setCitaSeleccionada(null) }} className="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg hover:bg-blue-100 font-medium">💰 Pago</button>
-                  <button onClick={() => eliminar(citaSeleccionada.id)} className="flex-1 bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 font-medium">Eliminar</button>
-                  <button onClick={() => setCitaSeleccionada(null)} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Cerrar</button>
+                <div className="flex flex-col gap-2 mt-5">
+                  <div className="flex gap-2">
+                    <button onClick={() => editar(citaSeleccionada)} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium text-sm">Editar</button>
+                    <button onClick={() => { setModalPago(citaSeleccionada); setCitaSeleccionada(null) }} className="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg hover:bg-blue-100 font-medium text-sm">💰 Pago</button>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={async () => {
+                      setModalProcedimientosCita(citaSeleccionada)
+                      setCitaSeleccionada(null)
+                    }} className="flex-1 bg-purple-50 text-purple-600 py-2 rounded-lg hover:bg-purple-100 font-medium text-sm">📋 Procedimiento</button>
+                    <button onClick={() => eliminar(citaSeleccionada.id)} className="flex-1 bg-red-50 text-red-600 py-2 rounded-lg hover:bg-red-100 font-medium text-sm">Eliminar</button>
+                    <button onClick={() => setCitaSeleccionada(null)} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium text-sm">Cerrar</button>
+                  </div>
                 </div>
               </div>
             </div>

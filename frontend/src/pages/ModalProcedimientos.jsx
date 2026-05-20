@@ -10,7 +10,7 @@ const formatFecha = fecha => {
 
 const formatCLP = n => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(n)
 
-export default function ModalProcedimientos({ paciente, onCerrar }) {
+export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
   const [catalogo, setCatalogo] = useState([])
   const [procedimientos, setProcedimientos] = useState([])
   const [form, setForm] = useState({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'efectivo', estado: 'pagado', notas: '' })
@@ -44,6 +44,10 @@ export default function ModalProcedimientos({ paciente, onCerrar }) {
     if (!form.monto || isNaN(form.monto) || Number(form.monto) <= 0) e.monto = 'Ingresa un monto válido'
     if (Object.keys(e).length > 0) { setErrores(e); return }
     await axios.post(API_PROC, { ...form, paciente_id: paciente.id })
+    // Si viene de una cita, confirmarla automáticamente
+    if (citaId) {
+      await axios.put(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`, { estado: 'confirmada' })
+    }
     setForm({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'efectivo', estado: 'pagado', notas: '' })
     cargar()
   }
