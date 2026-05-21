@@ -60,7 +60,8 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
     await axios.post(API_PROC, { ...form, paciente_id: paciente.id })
     // Si viene de una cita, confirmarla automáticamente
     if (citaId) {
-      await axios.put(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`, { estado: 'confirmada' })
+      const citaActual = await axios.get(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`)
+      await axios.put(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`, { ...citaActual.data, estado: 'confirmada' })
     }
     setForm({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'débito', estado: 'pagado', notas: '' })
     cargar()
