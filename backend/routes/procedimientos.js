@@ -7,7 +7,10 @@ router.get('/catalogo', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM catalogo_procedimiento WHERE activo = TRUE ORDER BY nombre')
     res.json(result.rows)
-  } catch (error) { res.status(500).json({ error: error.message }) }
+  } catch (error) { 
+    console.error('Error en procedimiento:', error.message)
+    res.status(500).json({ error: error.message }) 
+  }
 })
 
 router.post('/catalogo', async (req, res) => {
