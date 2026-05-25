@@ -185,13 +185,9 @@ export default function InicioMatrona({ usuario }) {
     try {
       const res = await axios.get(`${API_PAC}/${cita.paciente_id}`)
       const paciente = res.data
-      if (!paciente.rut || !paciente.fecha_nacimiento || !paciente.telefono) {
-        setModalCompletar({ paciente, cita })
-      } else {
-        await cambiarEstado(cita.id, cita, 'en_atencion')
-        setPacienteAtendiendo(paciente)
-        setCitaAtendiendo(cita)
-      }
+      await cambiarEstado(cita.id, cita, 'en_atencion')
+      setPacienteAtendiendo(paciente)
+      setCitaAtendiendo(cita)
     } catch (err) {
       console.error('Error al obtener paciente:', err)
     }
