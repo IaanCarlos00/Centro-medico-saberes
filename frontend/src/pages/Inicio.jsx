@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/dashboard'
 
@@ -181,6 +182,19 @@ export default function Inicio() {
           )}
 
           {/* Accesos rápidos */}
+          {datos.atencionesPorMes && datos.atencionesPorMes.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">📊 Atenciones realizadas (últimos 6 meses)</h3>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={datos.atencionesPorMes}>
+                  <XAxis dataKey="mes_nombre" tick={{ fontSize: 12 }} />
+                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                  <Tooltip formatter={(value) => [`${value} atenciones`, 'Total']} />
+                  <Bar dataKey="total" fill="#166534" radius={[4,4,0,0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link to="/pacientes" className="bg-green-700 text-white rounded-2xl p-5 hover:bg-green-800 transition-colors flex items-center gap-4 shadow-sm">
               <span className="text-4xl">👤</span>
