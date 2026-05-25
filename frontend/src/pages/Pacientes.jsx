@@ -4,6 +4,10 @@ import Fichas from './Fichas'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
 const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
+const API_CITAS = 'https://centro-medico-saberes-production.up.railway.app/citas'
+const API_PROC = 'https://centro-medico-saberes-production.up.railway.app/procedimientos'
+const API_PAP = 'https://centro-medico-saberes-production.up.railway.app/pap'
+const API_FLUJOS = 'https://centro-medico-saberes-production.up.railway.app/flujos'
 
 function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
   const [form, setForm] = useState({ rut: paciente.rut || '', fecha_nacimiento: paciente.fecha_nacimiento?.slice(0,10) || '', telefono: paciente.telefono || '', email: paciente.email || '' })
@@ -89,6 +93,9 @@ export default function Pacientes() {
   const [errores, setErrores] = useState({})
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null)
   const [modalCompletar, setModalCompletar] = useState(null)
+  const [modalHistorial, setModalHistorial] = useState(null)
+  const [historial, setHistorial] = useState({ citas: [], procedimientos: [], pap: [], flujos: [], pagos: [] })
+  const [cargandoHistorial, setCargandoHistorial] = useState(false)
 
   const rol = localStorage.getItem('rol')
 
@@ -182,6 +189,26 @@ export default function Pacientes() {
     )
   })
 
+  const verHistorial = async p => {
+  setModalHistorial(p)
+  setCargandoHistorial(true)
+  const [citas, proc, pap, flujos, pagos] = await Promise.all([
+    axios.get(API_CITAS),
+    axios.get(`${API_PROC}/paciente/${p.id}`),
+    axios.get(`${API_PAP}/paciente/${p.id}`),
+    axios.get(`${API_FLUJOS}/paciente/${p.id}`),
+    axios.get(API_PAGOS)
+  ])
+  setHistorial({
+    citas: citas.data.filter(c => c.paciente_id === p.id).slice(0, 10),
+    procedimientos: proc.data,
+    pap: pap.data,
+    flujos: flujos.data,
+    pagos: pagos.data.filter(pg => pg.paciente_id === p.id).slice(0, 10)
+  })
+  setCargandoHistorial(false)
+}
+
   if (pacienteSeleccionado) {
     return <Fichas paciente={pacienteSeleccionado} onVolver={() => setPacienteSeleccionado(null)} />
   }
@@ -195,6 +222,96 @@ export default function Pacientes() {
           onCerrar={() => setModalCompletar(null)}
         />
       )}
+
+      {modalHistorial && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={() => setModalHistorial(null)}>
+    <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+      <div className="flex justify-between items-center mb-4">
+        <div>
+          <h3 className="text-lg font-bold text-green-800">Historial — {modalHistorial.nombre} {modalHistorial.apellido}</h3>
+          <p className="text-xs text-gray-400">{modalHistorial.rut} · {modalHistorial.telefono}</p>
+        </div>
+        <button onClick={() => setModalHistorial(null)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+      </div>
+      {cargandoHistorial ? (
+        <p className="text-center text-gray-400 py-8">Cargando historial...</p>
+      ) : (
+        <div className="flex flex-col gap-5">
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase mb-2">📅 Últimas citas ({historial.citas.length})</p>
+            {historial.citas.length === 0 ? <p className="text-sm text-gray-400">Sin citas</p> : (
+              <div className="flex flex-col gap-1">
+                {historial.citas.map(c => (
+                  <div key={c.id} className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-lg">
+                    <span className="text-gray-700">{c.fecha_hora?.slice(0,16).replace('T',' ')}</span>
+                    <span className="text-gray-500 text-xs">{c.profesional_nombre} {c.profesional_apellido}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.estado === 'realizada' ? 'bg-green-100 text-green-700' : c.estado === 'cancelada' ? 'bg-red-100 text-red-600' : c.estado === 'confirmada' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>{c.estado}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase mb-2">🔬 Procedimientos ({historial.procedimientos.length})</p>
+            {historial.procedimientos.length === 0 ? <p className="text-sm text-gray-400">Sin procedimientos</p> : (
+              <div className="flex flex-col gap-1">
+                {historial.procedimientos.map(p => (
+                  <div key={p.id} className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-lg">
+                    <span className="text-gray-700">{p.nombre}</span>
+                    <span className="text-gray-500 text-xs">${Number(p.monto).toLocaleString('es-CL')}</span>
+                    <span className="text-xs text-gray-400">{p.fecha?.slice(0,10)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase mb-2">🧪 PAP ({historial.pap.length})</p>
+            {historial.pap.length === 0 ? <p className="text-sm text-gray-400">Sin PAP</p> : (
+              <div className="flex flex-col gap-1">
+                {historial.pap.map(p => (
+                  <div key={p.id} className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-lg">
+                    <span className="text-gray-700">{p.nombre}</span>
+                    <span className="text-xs text-gray-400">{p.fecha_toma?.slice(0,10)}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${p.estado_envio === 'enviado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_envio}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase mb-2">🔬 Flujos ({historial.flujos.length})</p>
+            {historial.flujos.length === 0 ? <p className="text-sm text-gray-400">Sin flujos</p> : (
+              <div className="flex flex-col gap-1">
+                {historial.flujos.map(f => (
+                  <div key={f.id} className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-lg">
+                    <span className="text-gray-700">{f.nombre}</span>
+                    <span className="text-xs text-gray-400">{f.fecha_toma?.slice(0,10)}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${f.entregado ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{f.entregado ? 'Entregado' : 'Pendiente'}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          <div>
+            <p className="text-xs font-bold text-gray-500 uppercase mb-2">💰 Pagos ({historial.pagos.length})</p>
+            {historial.pagos.length === 0 ? <p className="text-sm text-gray-400">Sin pagos</p> : (
+              <div className="flex flex-col gap-1">
+                {historial.pagos.map(pg => (
+                  <div key={pg.id} className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-lg">
+                    <span className="text-gray-700">${Number(pg.monto).toLocaleString('es-CL')}</span>
+                    <span className="text-xs text-gray-400">{pg.metodo}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${pg.estado === 'pagado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>{pg.estado}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+)}
 
       <h2 className="text-2xl font-bold text-green-800 mb-6">Pacientes</h2>
 
