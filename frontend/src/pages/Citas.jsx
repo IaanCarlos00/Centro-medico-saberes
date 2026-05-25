@@ -840,8 +840,10 @@ export default function Agenda() {
                   const hh = Math.floor(h)
                   const mm = h % 1 === 0 ? '00' : '30'
                   const horaStr = `${String(hh).padStart(2,'0')}:${mm}`
+                  const ahora = new Date()
+                  const horaActual = `${String(ahora.getHours()).padStart(2,'0')}:${String(ahora.getMinutes()).padStart(2,'0')}`
                   const ocupada = citasHoy.some(c => c.fecha_hora?.slice(11,16) === horaStr)
-                  if (!ocupada) horasDisponibles.push(horaStr)
+                  if (!ocupada && horaStr > horaActual) horasDisponibles.push(horaStr)
                 }
                 return (
                   <div className="bg-white rounded-xl shadow p-4 mb-4">
