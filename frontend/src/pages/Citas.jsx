@@ -156,6 +156,7 @@ export default function Agenda() {
   const usuarioId = localStorage.getItem('id')
   const dropdownRef = useRef(null)
   const [catalogo, setCatalogo] = useState([])
+  const [tipoAgendamiento, setTipoAgendamiento] = useState('confirmado')
   const [procedimientoSeleccionado, setProcedimientoSeleccionado] = useState(null)
   const [metodoPago, setMetodoPago] = useState('efectivo')
   const [citasPendientesAviso, setCitasPendientesAviso] = useState([])
@@ -273,7 +274,9 @@ export default function Agenda() {
   const eventos = [
   ...citas.map(c => ({
     id: c.id,
-    title: c.procedimiento_nombre ? `${c.paciente_nombre} ${c.paciente_apellido} — ${c.procedimiento_nombre}` : `${c.paciente_nombre} ${c.paciente_apellido}`,
+    title: c.paciente_nombre
+  ? (c.procedimiento_nombre ? `${c.paciente_nombre} ${c.paciente_apellido} — ${c.procedimiento_nombre}` : `${c.paciente_nombre} ${c.paciente_apellido}`)
+  : `⏳ ${c.referencia || 'Reserva tentativa'}`,
     start: new Date(c.fecha_hora.replace(' ', 'T')),
   end: new Date(new Date(c.fecha_hora.replace(' ', 'T')).getTime() + 30 * 60000),
     resource: c,
@@ -388,7 +391,12 @@ export default function Agenda() {
     {modalAgendar && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={() => setModalAgendar(null)}>
     <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-      <h3 className="text-lg font-bold text-green-800 mb-5">🗓️ Agendar cita</h3>
+      <h3 className="text-lg font-bold text-green-800 mb-4">🗓️ Agendar cita</h3>
+      <div className="flex gap-2 mb-4">
+        <button onClick={() => setTipoAgendamiento('confirmado')} className={`flex-1 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${tipoAgendamiento === 'confirmado' ? 'border-green-600 bg-green-50 text-green-800' : 'border-gray-200 text-gray-500'}`}>✅ Confirmada</button>
+        <button onClick={() => setTipoAgendamiento('tentativo')} className={`flex-1 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${tipoAgendamiento === 'tentativo' ? 'border-yellow-500 bg-yellow-50 text-yellow-800' : 'border-gray-200 text-gray-500'}`}>⏳ Tentativa</button>
+      </div>
+      {tipoAgendamiento === 'confirmado' ? (
       <div className="flex flex-col gap-4">
         <div className="flex flex-col relative" ref={dropdownRef}>
           <label className="text-sm text-gray-600 mb-1">Paciente</label>
@@ -479,9 +487,57 @@ export default function Agenda() {
           </div>
         )}
       </div>
+) : (
+  <div className="flex flex-col gap-4">
+    <div className="flex flex-col">
+      <label className="text-sm text-gray-600 mb-1">Referencia (opcional)</label>
+      <input
+        className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        placeholder="Nombre, teléfono, últimos 4 dígitos..."
+        value={form.referencia || ''}
+        onChange={e => setForm(f => ({ ...f, referencia: e.target.value }))}
+      />
+      <p className="text-xs text-gray-400 mt-1">Puede dejarse en blanco si no hay datos</p>
+    </div>
+    <div className="flex flex-col">
+      <label className="text-sm text-gray-600 mb-1">Profesional *</label>
+      <select className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 w-full ${errores.profesional_id ? 'border-red-400' : 'border-gray-300'}`} name="profesional_id" value={form.profesional_id} onChange={handleChange}>
+        <option value="">Seleccionar profesional</option>
+        {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
+      </select>
+      {errores.profesional_id && <span className="text-red-500 text-xs mt-1">{errores.profesional_id}</span>}
+    </div>
+    <div className="flex flex-col">
+      <label className="text-sm text-gray-600 mb-1">Hora de la cita</label>
+      <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-400 ${errores.fecha_hora ? 'border-red-400' : 'border-gray-300'}`} name="fecha_hora" type="datetime-local" value={form.fecha_hora} onChange={handleChange} />
+      {errores.fecha_hora && <span className="text-red-500 text-xs mt-1">{errores.fecha_hora}</span>}
+    </div>
+  </div>
+)}
 
       <div className="flex gap-3 mt-6">
         <button onClick={async () => {
+          if (tipoAgendamiento === 'tentativo') {
+            const e = {}
+            if (!form.profesional_id) e.profesional_id = 'Selecciona un profesional'
+            const errorFecha = validarFechaHora(form.fecha_hora, bloqueos.filter(b => !b.profesional_id || String(b.profesional_id) === String(form.profesional_id)))
+            if (errorFecha) e.fecha_hora = errorFecha
+            if (Object.keys(e).length > 0) { setErrores(e); return }
+            await axios.post(API, {
+              paciente_id: null,
+              profesional_id: form.profesional_id,
+              fecha_hora: form.fecha_hora,
+              estado: 'pendiente',
+              referencia: form.referencia || null
+            })
+            setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+            setBusquedaPaciente('')
+            setErrores({})
+            setTipoAgendamiento('confirmado')
+            setModalAgendar(null)
+            cargar()
+            return
+          }
           const e = validar()
           if (Object.keys(e).length > 0) { setErrores(e); return }
           const estadoCita = procedimientoSeleccionado ? 'confirmada' : 'pendiente'
@@ -506,7 +562,7 @@ export default function Agenda() {
           setMetodoPago('efectivo')
           setModalAgendar(null)
           cargar()
-        }} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">Agendar</button>
+        }} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">{tipoAgendamiento === 'tentativo' ? '⏳ Reservar tentativa' : 'Agendar'}</button>
         <button onClick={() => { setModalAgendar(null); setBusquedaPaciente(''); setErrores({}) }} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancelar</button>
       </div>
     </div>
