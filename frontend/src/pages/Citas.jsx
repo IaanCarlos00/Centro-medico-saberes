@@ -43,10 +43,10 @@ function validarFechaHora(fechaHora, bloqueos = []) {
   const diaSemana = fecha.getDay()
   const hora = fechaHora.slice(11, 16)
 
-  if (fecha < ahora) return 'No puedes agendar en una fecha u hora que ya pasó'
   if (diaSemana === 0) return 'No se pueden agendar citas los domingos'
-  if (hora < '08:30') return 'La primera hora disponible es 08:30'
-  if (hora > '19:30') return 'La última hora disponible es 19:30'
+  if (hora < '08:30') return 'advertencia:Fuera de horario: la hora ingresada es antes de las 08:30. ¿Deseas continuar de todos modos?'
+  if (hora > '19:30') return 'advertencia:Fuera de horario: la hora ingresada es después de las 19:30. ¿Deseas continuar de todos modos?'
+  if (fecha < ahora) return 'advertencia:Esta fecha y hora ya pasaron. ¿Deseas agendar de todos modos?'
 
   const bloqueado = bloqueos.find(b => {
     const inicio = new Date(b.fecha_inicio)
