@@ -382,11 +382,12 @@ export default function Pacientes() {
                 </td>
                 <td className="px-4 py-3 flex gap-2 flex-wrap">
                   {rol !== 'secretaria' && (
-                    <button onClick={() => setPacienteSeleccionado(p)} className="text-blue-600 hover:underline text-sm font-medium">Fichas</button>
-                  )}
-                  {necesitaCompletar(p) && (
-                    <button onClick={() => setModalCompletar(p)} className="text-yellow-600 hover:underline text-sm font-medium">Completar</button>
-                  )}
+                  <button onClick={() => setPacienteSeleccionado(p)} className="text-blue-600 hover:underline text-sm font-medium">Fichas</button>
+                )}
+                <button onClick={() => verHistorial(p)} className="text-purple-600 hover:underline text-sm font-medium">Historial</button>
+                {necesitaCompletar(p) && (
+                  <button onClick={() => setModalCompletar(p)} className="text-yellow-600 hover:underline text-sm font-medium">Completar</button>
+                )}
                   <button onClick={() => editar(p)} className="text-gray-500 hover:underline text-sm font-medium">Editar</button>
                   <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
                 </td>
@@ -413,6 +414,7 @@ export default function Pacientes() {
                 {rol !== 'secretaria' && (
                   <button onClick={() => setPacienteSeleccionado(p)} className="text-blue-600 text-sm font-medium">Fichas</button>
                 )}
+                <button onClick={() => verHistorial(p)} className="text-purple-600 text-sm font-medium">Historial</button>
                 {necesitaCompletar(p) && (
                   <button onClick={() => setModalCompletar(p)} className="text-yellow-600 text-sm font-medium">Completar</button>
                 )}
