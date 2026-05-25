@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { frases } from '../data/frases'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 
@@ -27,6 +28,12 @@ export default function Inicio() {
   const [cargando, setCargando] = useState(true)
   const nombre = localStorage.getItem('nombre')
 
+  const getFrase = () => {
+    const usuarioId = parseInt(localStorage.getItem('id') || '1')
+    const diaNro = Math.floor(Date.now() / 86400000)
+    return frases[(diaNro + usuarioId) % frases.length]
+  }
+
   const hoy = new Date().toLocaleDateString('es-CL', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   })
@@ -43,6 +50,7 @@ export default function Inicio() {
         <div>
           <h2 className="text-2xl md:text-3xl font-bold text-green-800">Bienvenido, {nombre} 👋</h2>
           <p className="text-gray-400 capitalize mt-1">{hoy}</p>
+          <p className="text-green-700 text-sm italic mt-2">✨ {getFrase()}</p>
         </div>
         <img src="/logo.png" alt="Saberes" className="h-14 w-14 rounded-full object-cover shadow hidden md:block" />
       </div>
