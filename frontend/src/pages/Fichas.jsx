@@ -27,6 +27,13 @@ export default function Fichas({ paciente, onVolver }) {
   const [errores, setErrores] = useState({})
   const [modalSelector, setModalSelector] = useState(false)
   const [modalProcedimientos, setModalProcedimientos] = useState(false)
+  const [editandoDatos, setEditandoDatos] = useState(false)
+  const [formDatos, setFormDatos] = useState({
+    rut: paciente.rut || '',
+    telefono: paciente.telefono || '',
+    fecha_nacimiento: paciente.fecha_nacimiento?.slice(0,10) || '',
+    email: paciente.email || ''
+  })
 
   const cargar = async () => {
     const [f, pr, fi1, fi2] = await Promise.all([

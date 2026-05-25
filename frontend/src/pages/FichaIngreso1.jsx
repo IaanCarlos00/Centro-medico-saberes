@@ -51,6 +51,13 @@ export default function FichaIngreso1({ paciente, onVolver }) {
   const [form, setForm] = useState(campoVacio)
   const [editando, setEditando] = useState(null)
   const [modalProcedimientos, setModalProcedimientos] = useState(false)
+  const [editandoDatos, setEditandoDatos] = useState(false)
+  const [formDatos, setFormDatos] = useState({
+    rut: paciente.rut || '',
+    telefono: paciente.telefono || '',
+    fecha_nacimiento: paciente.fecha_nacimiento?.slice(0,10) || '',
+    email: paciente.email || ''
+  })
 
   const cargar = async () => {
     const [f, pr] = await Promise.all([
