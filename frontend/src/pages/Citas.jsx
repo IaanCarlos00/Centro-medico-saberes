@@ -829,6 +829,32 @@ export default function Agenda() {
 
           {/* Calendario */}
           <div className="bg-white rounded-xl shadow p-4" style={{ height: window.innerWidth < 768 ? 500 : 640 }}>
+            {/* Resumen disponibilidad del día */}
+              {(() => {
+                const hoyStr = new Date().toISOString().slice(0,10)
+                const citasHoy = citas.filter(c => c.fecha_hora?.slice(0,10) === hoyStr)
+                const horasDisponibles = []
+                const inicio = 8.5 // 8:30
+                const fin = 19.5 // 19:30
+                for (let h = inicio; h < fin; h += 0.5) {
+                  const hh = Math.floor(h)
+                  const mm = h % 1 === 0 ? '00' : '30'
+                  const horaStr = `${String(hh).padStart(2,'0')}:${mm}`
+                  const ocupada = citasHoy.some(c => c.fecha_hora?.slice(11,16) === horaStr)
+                  if (!ocupada) horasDisponibles.push(horaStr)
+                }
+                return (
+                  <div className="bg-white rounded-xl shadow p-4 mb-4">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">⏰ Horas disponibles hoy ({horasDisponibles.length})</p>
+                    <div className="flex flex-wrap gap-1">
+                      {horasDisponibles.slice(0, 12).map(h => (
+                        <span key={h} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">{h}</span>
+                      ))}
+                      {horasDisponibles.length > 12 && <span className="text-xs text-gray-400 px-2 py-1">+{horasDisponibles.length - 12} más</span>}
+                    </div>
+                  </div>
+                )
+              })()}
             <Calendar
               localizer={localizer}
               events={eventos}
