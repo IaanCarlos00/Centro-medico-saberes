@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts/es6'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/dashboard'
 
@@ -185,14 +184,19 @@ export default function Inicio() {
           {datos.atencionesPorMes && datos.atencionesPorMes.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
               <h3 className="text-lg font-bold text-gray-800 mb-4">📊 Atenciones realizadas (últimos 6 meses)</h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={datos.atencionesPorMes}>
-                  <XAxis dataKey="mes_nombre" tick={{ fontSize: 12 }} />
-                  <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-                  <Tooltip formatter={(value) => [`${value} atenciones`, 'Total']} />
-                  <Bar dataKey="total" fill="#166534" radius={[4,4,0,0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="flex items-end gap-3 h-40">
+                {datos.atencionesPorMes.map((m, i) => {
+                  const max = Math.max(...datos.atencionesPorMes.map(x => parseInt(x.total)))
+                  const altura = max > 0 ? (parseInt(m.total) / max) * 100 : 0
+                  return (
+                    <div key={i} className="flex flex-col items-center flex-1 gap-1">
+                      <span className="text-xs font-bold text-green-800">{m.total}</span>
+                      <div className="w-full bg-green-700 rounded-t-lg transition-all" style={{ height: `${altura}%`, minHeight: altura > 0 ? '4px' : '0' }}></div>
+                      <span className="text-xs text-gray-500">{m.mes_nombre}</span>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
