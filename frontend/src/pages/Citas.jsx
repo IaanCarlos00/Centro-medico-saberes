@@ -557,7 +557,8 @@ export default function Agenda() {
               nombre: procedimientoSeleccionado.nombre,
               monto: procedimientoSeleccionado.monto,
               metodo: metodoPago,
-              estado: 'pagado'
+              estado: 'pagado',
+              profesional_id: localStorage.getItem('profesional_id') || null
             })
           }
           setCitaRecienAgendada({ ...res.data, paciente_id: form.paciente_id, paciente_nombre: paciente?.nombre, paciente_apellido: paciente?.apellido })

@@ -47,7 +47,7 @@ router.get('/paciente/:paciente_id', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-  const { paciente_id, catalogo_procedimiento_id, nombre, monto, metodo, estado, notas } = req.body
+  const { paciente_id, catalogo_procedimiento_id, nombre, monto, metodo, estado, notas, profesional_id } = req.body
   try {
     const proc = await pool.query(
       'INSERT INTO procedimiento (paciente_id, catalogo_procedimiento_id, nombre, monto, metodo, estado, notas) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
@@ -61,17 +61,17 @@ router.post('/', async (req, res) => {
     // Si el procedimiento es PAP, crear registro automático en tabla pap
     if (nombre && nombre.toUpperCase().includes('PAP')) {
       await pool.query(
-        'INSERT INTO pap (paciente_id, nombre, fecha_toma, estado_envio) VALUES ($1,$2,CURRENT_DATE,$3)',
-        [paciente_id, nombre, 'pendiente']
-      )
+      'INSERT INTO pap (paciente_id, nombre, fecha_toma, estado_envio, profesional_id) VALUES ($1,$2,CURRENT_DATE,$3,$4)',
+      [paciente_id, nombre, 'pendiente', profesional_id || null]
+    )
     }
 
     // Si el procedimiento es Flujo o Panel, crear registro automático en tabla flujo
     const nombreUpper = nombre ? nombre.toUpperCase() : ''
     if (nombreUpper.includes('FLUJO') || nombreUpper.includes('PANEL')) {
       await pool.query(
-        'INSERT INTO flujo (paciente_id, nombre, tipo_examen, fecha_toma, entregado) VALUES ($1,$2,$3,CURRENT_DATE,$4)',
-        [paciente_id, nombre, nombreUpper.includes('FLUJO') ? 'Flujo particular' : 'Panel particular', false]
+        'INSERT INTO flujo (paciente_id, nombre, tipo_examen, fecha_toma, entregado, profesional_id) VALUES ($1,$2,$3,CURRENT_DATE,$4,$5)',
+        [paciente_id, nombre, nombreUpper.includes('FLUJO') ? 'Flujo particular' : 'Panel particular', false, profesional_id || null]
       )
     }
 

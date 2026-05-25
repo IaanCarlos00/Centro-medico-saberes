@@ -57,7 +57,11 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
     if (!form.nombre.trim()) e.nombre = 'El nombre es obligatorio'
     if (!form.monto || isNaN(form.monto) || Number(form.monto) <= 0) e.monto = 'Ingresa un monto válido'
     if (Object.keys(e).length > 0) { setErrores(e); return }
-    await axios.post(API_PROC, { ...form, paciente_id: paciente.id })
+    await axios.post(API_PROC, { 
+      ...form, 
+      paciente_id: paciente.id,
+      profesional_id: localStorage.getItem('profesional_id') || null
+    })
     // Si viene de una cita, confirmarla automáticamente
     if (citaId) {
       const citaActual = await axios.get(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`)
