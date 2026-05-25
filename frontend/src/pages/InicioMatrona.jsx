@@ -313,6 +313,7 @@ export default function InicioMatrona({ usuario }) {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</p>
+                        {c.procedimiento_nombre && <p className="text-xs text-blue-600 mt-0.5 font-medium">📋 {c.procedimiento_nombre}</p>}
                         {c.observaciones && <p className="text-xs text-gray-500 mt-0.5">{c.observaciones}</p>}
                         {incompleto && <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full mt-1 inline-block">Datos incompletos</span>}
                       </div>
