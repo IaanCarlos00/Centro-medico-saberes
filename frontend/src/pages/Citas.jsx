@@ -160,6 +160,7 @@ export default function Agenda() {
   const [procedimientoSeleccionado, setProcedimientoSeleccionado] = useState(null)
   const [metodoPago, setMetodoPago] = useState('efectivo')
   const [citasPendientesAviso, setCitasPendientesAviso] = useState([])
+  const [citaTentativaOrigen, setCitaTentativaOrigen] = useState(null)
   const API_PROC = 'https://centro-medico-saberes-production.up.railway.app/procedimientos'
   const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 
@@ -548,6 +549,10 @@ export default function Agenda() {
           const e = validar()
           if (Object.keys(e).length > 0) { setErrores(e); return }
           const estadoCita = procedimientoSeleccionado ? 'confirmada' : 'pendiente'
+          if (citaTentativaOrigen?.id) {
+            await axios.delete(`${API}/${citaTentativaOrigen.id}`)
+            setCitaTentativaOrigen(null)
+          }
           const res = await axios.post(API, { ...form, estado: estadoCita, procedimiento_nombre: procedimientoSeleccionado?.nombre || null })
           const paciente = pacientes.find(p => p.id === parseInt(form.paciente_id))
           if (procedimientoSeleccionado) {
@@ -903,6 +908,23 @@ export default function Agenda() {
             <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4" onClick={() => setCitaSeleccionada(null)}>
               <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
                 <h3 className="text-lg font-bold text-green-800 mb-4">Detalle de cita</h3>
+                {!citaSeleccionada.paciente_id && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-3">
+                    <p className="text-sm font-medium text-yellow-800 mb-1">⏳ Reserva tentativa</p>
+                    {citaSeleccionada.referencia && <p className="text-xs text-yellow-700">Referencia: {citaSeleccionada.referencia}</p>}
+                    <button onClick={() => {
+                      setForm({ paciente_id: '', profesional_id: citaSeleccionada.profesional_id, fecha_hora: citaSeleccionada.fecha_hora?.slice(0,16), estado: 'pendiente', observaciones: '' })
+                      setBusquedaPaciente('')
+                      setErrores({})
+                      setTipoAgendamiento('confirmado')
+                      setCitaTentativaOrigen(citaSeleccionada)
+                      setCitaSeleccionada(null)
+                      setModalAgendar(true)
+                    }} className="mt-2 text-xs bg-yellow-500 text-white px-3 py-1.5 rounded-lg hover:bg-yellow-600 font-medium">
+                      Convertir en cita confirmada
+                    </button>
+                  </div>
+                )}
                 <div className="flex flex-col gap-2 text-sm">
                   <div><span className="font-semibold text-gray-600">Paciente:</span> <span className="text-gray-800">{citaSeleccionada.paciente_nombre} {citaSeleccionada.paciente_apellido}</span></div>
                   <div><span className="font-semibold text-gray-600">Profesional:</span> <span className="text-gray-800">{citaSeleccionada.profesional_nombre} {citaSeleccionada.profesional_apellido}</span></div>
