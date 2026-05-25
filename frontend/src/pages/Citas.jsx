@@ -219,7 +219,14 @@ export default function Agenda() {
   if (!editando) {
     const bloqueosProfesional = bloqueos.filter(b => !b.profesional_id || String(b.profesional_id) === String(form.profesional_id))
     const errorFecha = validarFechaHora(form.fecha_hora, bloqueosProfesional)
-    if (errorFecha) e.fecha_hora = errorFecha
+  if (errorFecha) {
+    if (errorFecha.startsWith('advertencia:')) {
+      const mensaje = errorFecha.replace('advertencia:', '')
+      if (!confirm(mensaje)) e.fecha_hora = 'Agendamiento cancelado'
+    } else {
+      e.fecha_hora = errorFecha
+    }
+  }
   }
   return e
 }
