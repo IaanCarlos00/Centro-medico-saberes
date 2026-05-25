@@ -179,18 +179,16 @@ function App() {
     setUsuario(null)
   }
 
-  if (!usuario) return <Login onLogin={handleLogin} />
-
   return (
-  <BrowserRouter>
-    <Routes>
-      <Route path="/encuesta/:token" element={<Encuesta />} />
-      <Route path="*" element={
-        usuario ? <Layout usuario={usuario} onLogout={handleLogout} /> : <Login onLogin={handleLogin} />
-      } />
-    </Routes>
-  </BrowserRouter>
-)
+    <BrowserRouter>
+      <Routes>
+        <Route path="/encuesta/:token" element={<Encuesta />} />
+        <Route path="*" element={
+          usuario ? <Layout usuario={usuario} onLogout={handleLogout} /> : <Login onLogin={handleLogin} />
+        } />
+      </Routes>
+    </BrowserRouter>
+  )
 }
 
 export default App
