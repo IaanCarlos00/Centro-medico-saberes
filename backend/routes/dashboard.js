@@ -15,7 +15,8 @@ router.get('/', async (req, res) => {
       citasRealizadas,
       citasCanceladas,
       proximasCitas,
-      pacientesDeuda
+      pacientesDeuda,
+      atencionesPorMes
     ] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM paciente'),
       pool.query('SELECT COUNT(*) FROM profesional'),
@@ -29,7 +30,7 @@ router.get('/', async (req, res) => {
                p.nombre AS paciente_nombre, p.apellido AS paciente_apellido,
                pr.nombre AS profesional_nombre, pr.apellido AS profesional_apellido
         FROM cita c
-        JOIN paciente p ON c.paciente_id = p.id
+        LEFT JOIN paciente p ON c.paciente_id = p.id
         JOIN profesional pr ON c.profesional_id = pr.id
         WHERE DATE(c.fecha_hora) = $1
         ORDER BY c.fecha_hora ASC
@@ -43,7 +44,19 @@ router.get('/', async (req, res) => {
         WHERE pg.estado = 'pendiente'
         GROUP BY pa.id, pa.nombre, pa.apellido, pa.rut, pa.telefono
         ORDER BY monto_pendiente DESC
+      `),
+      pool.query(`
+        SELECT 
+          TO_CHAR(fecha_hora, 'YYYY-MM') AS mes,
+          TO_CHAR(fecha_hora, 'Mon') AS mes_nombre,
+          COUNT(*) AS total
+        FROM cita
+        WHERE estado = 'realizada'
+          AND fecha_hora >= NOW() - INTERVAL '6 months'
+        GROUP BY TO_CHAR(fecha_hora, 'YYYY-MM'), TO_CHAR(fecha_hora, 'Mon')
+        ORDER BY mes ASC
       `)
+      
     ])
 
     res.json({
@@ -57,7 +70,8 @@ router.get('/', async (req, res) => {
         cancelada: parseInt(citasCanceladas.rows[0].count),
       },
       proximasCitas: proximasCitas.rows,
-      pacientesDeuda: pacientesDeuda.rows
+      pacientesDeuda: pacientesDeuda.rows,
+      atencionesPorMes: atencionesPorMes.rows
     })
   } catch (error) {
     res.status(500).json({ error: error.message })
