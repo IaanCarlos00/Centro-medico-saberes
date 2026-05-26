@@ -39,7 +39,7 @@ export default function Pagos() {
   const [filtroMetodo, setFiltroMetodo] = useState('')
   const [mostrarForm, setMostrarForm] = useState(false)
   const [editando, setEditando] = useState(null)
-  const [form, setForm] = useState({ paciente_id: '', monto: '', metodo: 'debito', estado: 'pagado', notas: '' })
+  const [form, setForm] = useState({ paciente_id: '', monto: '', metodo: 'debito', estado: 'pagado', notas: '', numero_bono: '', estado_bono: 'pendiente' })
   const [errores, setErrores] = useState({})
   const [busquedaPaciente, setBusquedaPaciente] = useState('')
   const [mostrarDropdown, setMostrarDropdown] = useState(false)
@@ -103,7 +103,7 @@ export default function Pagos() {
   }
 
   const editar = p => {
-    setForm({ paciente_id: p.paciente_id, monto: p.monto, metodo: p.metodo, estado: p.estado, notas: p.notas || '' })
+    setForm({ paciente_id: p.paciente_id, monto: p.monto, metodo: p.metodo, estado: p.estado, notas: p.notas || '', numero_bono: p.numero_bono || '', estado_bono: p.estado_bono || 'pendiente' })
     setBusquedaPaciente(`${p.paciente_nombre} ${p.paciente_apellido}`)
     setEditando(p.id)
     setMostrarForm(true)
@@ -118,7 +118,7 @@ export default function Pagos() {
 
   const cancelar = () => {
     setEditando(null)
-    setForm({ paciente_id: '', monto: '', metodo: 'debito', estado: 'pagado', notas: '' })
+    setForm({ paciente_id: '', monto: '', metodo: 'debito', estado: 'pagado', notas: '', numero_bono: '', estado_bono: 'pendiente' })
     setBusquedaPaciente('')
     setErrores({})
     setMostrarForm(false)
@@ -250,13 +250,28 @@ export default function Pagos() {
               </select>
             </div>
 
-            {/* Notas */}
+            {form.metodo === 'fonasa' && (
+              <>
+                <div className="flex flex-col">
+                  <label className="text-sm text-gray-600 mb-1">Número de bono</label>
+                  <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="numero_bono" placeholder="Ej: 123456789" value={form.numero_bono || ''} onChange={handleChange} />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-sm text-gray-600 mb-1">Estado del bono</label>
+                  <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="estado_bono" value={form.estado_bono || 'pendiente'} onChange={handleChange}>
+                    <option value="pendiente">⏳ Pendiente verificación</option>
+                    <option value="verificado">✅ Verificado</option>
+                    <option value="rechazado">❌ Rechazado</option>
+                  </select>
+                </div>
+              </>
+            )}
             <div className="flex flex-col sm:col-span-2">
               <label className="text-sm text-gray-600 mb-1">Notas (opcional)</label>
               <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="notas" placeholder="Ej: Control mensual, primera consulta..." value={form.notas} onChange={handleChange} />
             </div>
-          </div>
 
+          </div>
           <div className="flex gap-3 mt-4">
             <button onClick={guardar} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">
               {editando ? 'Actualizar' : 'Registrar pago'}
@@ -322,7 +337,10 @@ export default function Pagos() {
                 <td className="px-4 py-3">
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
                 </td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{p.notas}</td>
+                <td className="px-4 py-3 text-gray-500 text-xs">
+                  {p.notas}
+                  {p.numero_bono && <p className="text-blue-600">🏥 Bono: {p.numero_bono} <span className={`px-1 rounded text-xs ${p.estado_bono === 'verificado' ? 'bg-green-100 text-green-700' : p.estado_bono === 'rechazado' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_bono}</span></p>}
+                </td>
                 <td className="px-4 py-3 flex gap-2">
                   <button onClick={() => editar(p)} className="text-green-700 hover:underline text-sm font-medium">Editar</button>
                   <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
