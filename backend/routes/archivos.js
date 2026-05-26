@@ -22,9 +22,9 @@ router.post('/subir', upload.single('archivo'), async (req, res) => {
       cloudinary.uploader.upload_stream(
         { 
           folder: `saberes/pacientes/${paciente_id}`, 
-          resource_type: 'raw',
-          type: 'upload',
-          access_mode: 'public'
+          resource_type: 'image',
+          format: 'pdf',
+          type: 'upload'
         },
         (error, result) => error ? reject(error) : resolve(result)
       ).end(req.file.buffer)
