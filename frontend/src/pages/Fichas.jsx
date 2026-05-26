@@ -7,6 +7,7 @@ import ModalProcedimientos from './ModalProcedimientos'
 const API = 'https://centro-medico-saberes-production.up.railway.app/fichas'
 const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
 const API_FI = 'https://centro-medico-saberes-production.up.railway.app/fichas-ingreso'
+const API_ARCHIVOS = 'https://centro-medico-saberes-production.up.railway.app/archivos'
 
 const hoyStr = new Date().toISOString().slice(0, 10)
 
@@ -27,6 +28,9 @@ export default function Fichas({ paciente, onVolver }) {
   const [errores, setErrores] = useState({})
   const [modalSelector, setModalSelector] = useState(false)
   const [modalProcedimientos, setModalProcedimientos] = useState(false)
+  const [archivos, setArchivos] = useState([])
+  const [subiendoArchivo, setSubiendoArchivo] = useState(false)
+  const [descripcionArchivo, setDescripcionArchivo] = useState('')
   const [editandoDatos, setEditandoDatos] = useState(false)
   const [formDatos, setFormDatos] = useState({
     rut: paciente.rut || '',
@@ -36,17 +40,19 @@ export default function Fichas({ paciente, onVolver }) {
   })
 
   const cargar = async () => {
-    const [f, pr, fi1, fi2] = await Promise.all([
-      axios.get(`${API}/paciente/${paciente.id}`),
-      axios.get(API_PRO),
-      axios.get(`${API_FI}/1/paciente/${paciente.id}`),
-      axios.get(`${API_FI}/2/paciente/${paciente.id}`)
-    ])
-    setFichas(f.data)
-    setProfesionales(pr.data)
-    setFichasI1(fi1.data)
-    setFichasI2(fi2.data)
-  }
+  const [f, pr, fi1, fi2, arch] = await Promise.all([
+    axios.get(`${API}/paciente/${paciente.id}`),
+    axios.get(API_PRO),
+    axios.get(`${API_FI}/1/paciente/${paciente.id}`),
+    axios.get(`${API_FI}/2/paciente/${paciente.id}`),
+    axios.get(`${API_ARCHIVOS}/paciente/${paciente.id}`)
+  ])
+  setFichas(f.data)
+  setProfesionales(pr.data)
+  setFichasI1(fi1.data)
+  setFichasI2(fi2.data)
+  setArchivos(arch.data)
+}
 
   useEffect(() => { cargar() }, [])
 
@@ -103,6 +109,27 @@ export default function Fichas({ paciente, onVolver }) {
     setForm({ motivo_consulta: '', diagnostico: '', tratamiento: '', observaciones: '', profesional_id: '', fecha: hoyStr })
     setErrores({})
     setVista(null)
+  }
+
+  const subirArchivo = async e => {
+    const archivo = e.target.files[0]
+    if (!archivo) return
+    setSubiendoArchivo(true)
+    const formData = new FormData()
+    formData.append('archivo', archivo)
+    formData.append('paciente_id', paciente.id)
+    formData.append('descripcion', descripcionArchivo)
+    await axios.post(`${API_ARCHIVOS}/subir`, formData, { headers: { 'Content-Type': 'multipart/form-data' } })
+    setDescripcionArchivo('')
+    setSubiendoArchivo(false)
+    cargar()
+  }
+
+  const eliminarArchivo = async id => {
+    if (confirm('¿Eliminar archivo?')) {
+      await axios.delete(`${API_ARCHIVOS}/${id}`)
+      cargar()
+    }
   }
 
   const imprimirPDF = f => {
@@ -373,6 +400,42 @@ export default function Fichas({ paciente, onVolver }) {
           </div>
         </div>
       )}
+
+      {/* Archivos */}
+      <div className="bg-white rounded-xl shadow p-5 mt-4">
+        <h3 className="text-lg font-bold text-gray-700 mb-3">📎 Archivos del paciente</h3>
+        <div className="flex flex-col gap-3 mb-4">
+          <input
+            className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+            placeholder="Descripción del archivo (opcional)"
+            value={descripcionArchivo}
+            onChange={e => setDescripcionArchivo(e.target.value)}
+          />
+          <label className={`cursor-pointer bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 font-medium text-sm text-center ${subiendoArchivo ? 'opacity-50' : ''}`}>
+            {subiendoArchivo ? 'Subiendo...' : '+ Subir archivo (PDF o Word)'}
+            <input type="file" accept=".pdf,.doc,.docx" className="hidden" onChange={subirArchivo} disabled={subiendoArchivo} />
+          </label>
+        </div>
+        {archivos.length === 0 ? (
+          <p className="text-sm text-gray-400">No hay archivos subidos</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {archivos.map(a => (
+              <div key={a.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p className="text-sm font-medium text-gray-800">📄 {a.nombre}</p>
+                  {a.descripcion && <p className="text-xs text-gray-400">{a.descripcion}</p>}
+                  <p className="text-xs text-gray-400">{new Date(a.created_at).toLocaleDateString('es-CL')}</p>
+                </div>
+                <div className="flex gap-2">
+                  <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-sm hover:underline font-medium">Ver</a>
+                  <button onClick={() => eliminarArchivo(a.id)} className="text-red-500 text-sm hover:underline font-medium">Eliminar</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
