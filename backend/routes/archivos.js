@@ -20,7 +20,11 @@ router.post('/subir', upload.single('archivo'), async (req, res) => {
 
     const result = await new Promise((resolve, reject) => {
       cloudinary.uploader.upload_stream(
-        { folder: `saberes/pacientes/${paciente_id}`, resource_type: 'auto' },
+        { 
+          folder: `saberes/pacientes/${paciente_id}`, 
+          resource_type: 'raw',
+          format: req.file.mimetype === 'application/pdf' ? 'pdf' : undefined
+        },
         (error, result) => error ? reject(error) : resolve(result)
       ).end(req.file.buffer)
     })

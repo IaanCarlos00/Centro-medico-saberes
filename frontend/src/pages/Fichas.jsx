@@ -428,7 +428,7 @@ export default function Fichas({ paciente, onVolver }) {
                   <p className="text-xs text-gray-400">{new Date(a.created_at).toLocaleDateString('es-CL')}</p>
                 </div>
                 <div className="flex gap-2">
-                  <a href={a.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-sm hover:underline font-medium">Ver</a>
+                  <a href={a.url.replace('/upload/', '/upload/fl_attachment/')} target="_blank" rel="noopener noreferrer" className="text-blue-600 text-sm hover:underline font-medium">Ver</a>
                   <button onClick={() => eliminarArchivo(a.id)} className="text-red-500 text-sm hover:underline font-medium">Eliminar</button>
                 </div>
               </div>
