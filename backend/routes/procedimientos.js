@@ -47,15 +47,15 @@ router.get('/paciente/:paciente_id', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-  const { paciente_id, catalogo_procedimiento_id, nombre, monto, metodo, estado, notas, profesional_id } = req.body
+  const { paciente_id, catalogo_procedimiento_id, nombre, monto, metodo, estado, notas, profesional_id, numero_bono } = req.body
   try {
     const proc = await pool.query(
       'INSERT INTO procedimiento (paciente_id, catalogo_procedimiento_id, nombre, monto, metodo, estado, notas) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
       [paciente_id, catalogo_procedimiento_id || null, nombre, monto, metodo, estado || 'pagado', notas || null]
     )
     await pool.query(
-      'INSERT INTO pago (paciente_id, monto, metodo, estado, notas) VALUES ($1,$2,$3,$4,$5)',
-      [paciente_id, monto, metodo, estado || 'pagado', `Procedimiento: ${nombre}`]
+      'INSERT INTO pago (paciente_id, monto, metodo, estado, notas, numero_bono, estado_bono) VALUES ($1,$2,$3,$4,$5,$6,$7)',
+      [paciente_id, monto, metodo, estado || 'pagado', `Procedimiento: ${nombre}`, numero_bono || null, metodo === 'fonasa' ? 'pendiente' : null]
     )
 
     // Si el procedimiento es PAP, crear registro automático en tabla pap
