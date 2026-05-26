@@ -180,7 +180,9 @@ export default function Agenda() {
     const ahora = new Date()
     const citasPasadasSinFinalizar = citas.filter(c => {
       const horaCita = new Date(c.fecha_hora.replace(' ', 'T'))
-      return (c.estado === 'pendiente' || c.estado === 'confirmada') && horaCita < ahora
+      const esMatrona = usuarioRol === 'matrona'
+      const esSuCita = !esMatrona || String(c.profesional_id) === String(usuarioProfesionalId)
+      return (c.estado === 'pendiente' || c.estado === 'confirmada') && horaCita < ahora && esSuCita
     })
     if (citasPasadasSinFinalizar.length > 0) {
       setCitasPendientesAviso(citasPasadasSinFinalizar)
