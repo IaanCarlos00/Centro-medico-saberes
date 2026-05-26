@@ -170,6 +170,33 @@ export default function Pagos() {
         </div>
       )}
 
+      {/* Bonos pendientes */}
+        {pagos.filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono).length > 0 && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+            <h3 className="text-sm font-bold text-yellow-800 mb-3">⏳ Bonos Fonasa pendientes de verificar ({pagos.filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono).length})</h3>
+            <div className="flex flex-col gap-2">
+              {pagos.filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono).map(p => (
+                <div key={p.id} className="flex items-center justify-between bg-white rounded-lg p-3">
+                  <div>
+                    <p className="text-sm font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
+                    <p className="text-xs text-gray-500">🏥 Bono: {p.numero_bono} · {new Date(p.fecha).toLocaleDateString('es-CL')}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={async () => {
+                      await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'verificado' })
+                      cargar()
+                    }} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium">✅ Verificado</button>
+                    <button onClick={async () => {
+                      await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'rechazado' })
+                      cargar()
+                    }} className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-lg hover:bg-red-200 font-medium">❌ Rechazado</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       {/* Botón nuevo pago */}
       <div className="flex justify-end mb-4">
         <button

@@ -358,6 +358,7 @@ export default function Pacientes() {
               <th className="px-4 py-3 text-left">Apellido</th>
               <th className="px-4 py-3 text-left">RUT</th>
               <th className="px-4 py-3 text-left">Teléfono</th>
+              <th className="px-4 py-3 text-left">Email</th>
               <th className="px-4 py-3 text-left">Estado</th>
               <th className="px-4 py-3 text-left">Acciones</th>
             </tr>
@@ -369,6 +370,7 @@ export default function Pacientes() {
                 <td className="px-4 py-3 text-gray-800">{p.apellido}</td>
                 <td className="px-4 py-3 text-gray-600">{p.rut || <span className="text-yellow-600 text-xs">Pendiente</span>}</td>
                 <td className="px-4 py-3 text-gray-600">{p.telefono || <span className="text-yellow-600 text-xs">Pendiente</span>}</td>
+                <td className="px-4 py-3 text-gray-600">{p.email || <span className="text-gray-400 text-xs">—</span>}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-col gap-1">
                     {necesitaCompletar(p)
