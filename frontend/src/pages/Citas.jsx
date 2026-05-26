@@ -161,6 +161,7 @@ export default function Agenda() {
   const [metodoPago, setMetodoPago] = useState('efectivo')
   const [citasPendientesAviso, setCitasPendientesAviso] = useState([])
   const [citaTentativaOrigen, setCitaTentativaOrigen] = useState(null)
+  const [numeroBono, setNumeroBono] = useState('')
   const API_PROC = 'https://centro-medico-saberes-production.up.railway.app/procedimientos'
   const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 
@@ -483,16 +484,29 @@ export default function Agenda() {
         </div>
 
         {procedimientoSeleccionado && (
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-600 mb-1">Método de pago</label>
-            <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={metodoPago} onChange={e => setMetodoPago(e.target.value)}>
-              <option value="debito">💳 Débito</option>
-              <option value="efectivo">💵 Efectivo</option>
-              <option value="transferencia">🏦 Transferencia</option>
-              <option value="fonasa">🏥 Fonasa</option>
-              <option value="credito">💳 Crédito</option>
-            </select>
-          </div>
+          <>
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-1">Método de pago</label>
+              <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={metodoPago} onChange={e => setMetodoPago(e.target.value)}>
+                <option value="debito">💳 Débito</option>
+                <option value="efectivo">💵 Efectivo</option>
+                <option value="transferencia">🏦 Transferencia</option>
+                <option value="fonasa">🏥 Fonasa</option>
+                <option value="credito">💳 Crédito</option>
+              </select>
+            </div>
+            {metodoPago === 'fonasa' && (
+              <div className="flex flex-col">
+                <label className="text-sm text-gray-600 mb-1">Número de bono</label>
+                <input
+                  className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
+                  placeholder="Ej: 123456789"
+                  value={numeroBono}
+                  onChange={e => setNumeroBono(e.target.value)}
+                />
+              </div>
+            )}
+          </>
         )}
       </div>
 ) : (
@@ -563,7 +577,8 @@ export default function Agenda() {
               monto: procedimientoSeleccionado.monto,
               metodo: metodoPago,
               estado: 'pagado',
-              profesional_id: localStorage.getItem('profesional_id') || null
+              profesional_id: localStorage.getItem('profesional_id') || null,
+              numero_bono: metodoPago === 'fonasa' ? numeroBono : null
             })
           }
           setCitaRecienAgendada({ ...res.data, paciente_id: form.paciente_id, paciente_nombre: paciente?.nombre, paciente_apellido: paciente?.apellido })
@@ -572,7 +587,8 @@ export default function Agenda() {
           setErrores({})
           setMostrarNuevoPaciente(false)
           setProcedimientoSeleccionado(null)
-          setMetodoPago('efectivo')
+          setMetodoPago('debito')
+          setNumeroBono('')
           setModalAgendar(null)
           cargar()
         }} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">{tipoAgendamiento === 'tentativo' ? '⏳ Reservar tentativa' : 'Agendar'}</button>
