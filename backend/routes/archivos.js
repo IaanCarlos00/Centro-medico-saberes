@@ -23,7 +23,8 @@ router.post('/subir', upload.single('archivo'), async (req, res) => {
         { 
           folder: `saberes/pacientes/${paciente_id}`, 
           resource_type: 'raw',
-          format: req.file.mimetype === 'application/pdf' ? 'pdf' : undefined
+          type: 'upload',
+          access_mode: 'public'
         },
         (error, result) => error ? reject(error) : resolve(result)
       ).end(req.file.buffer)
