@@ -21,6 +21,7 @@ export default function Login({ onLogin }) {
       localStorage.setItem('rol', res.data.rol)
       localStorage.setItem('email', res.data.email)
       localStorage.setItem('profesional_id', res.data.profesional_id !== null && res.data.profesional_id !== undefined ? String(res.data.profesional_id) : '')
+      localStorage.setItem('id', res.data.id)
       onLogin(res.data)
     } catch (err) {
       setError('Email o contraseña incorrectos')

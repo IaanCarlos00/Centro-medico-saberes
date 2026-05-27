@@ -23,7 +23,7 @@ router.post('/login', async (req, res) => {
       { expiresIn: '8h' }
     )
 
-    res.json({ token, nombre: usuario.nombre, rol: usuario.rol, email: usuario.email, profesional_id: usuario.profesional_id || null })
+    res.json({ token, id: usuario.id, nombre: usuario.nombre, rol: usuario.rol, email: usuario.email, profesional_id: usuario.profesional_id || null })
   } catch (error) {
     res.status(500).json({ error: error.message })
   }
