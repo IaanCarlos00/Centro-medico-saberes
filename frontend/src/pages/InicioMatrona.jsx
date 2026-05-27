@@ -144,7 +144,6 @@ export default function InicioMatrona({ usuario }) {
   const [pacientesMap, setPacientesMap] = useState({})
   const [cargando, setCargando] = useState(true)
   const [modalCompletar, setModalCompletar] = useState(null)
-  const [modalPago, setModalPago] = useState(null)
   const [pacienteAtendiendo, setPacienteAtendiendo] = useState(null)
   const [citaAtendiendo, setCitaAtendiendo] = useState(null)
 
@@ -208,16 +207,12 @@ export default function InicioMatrona({ usuario }) {
   const finalizarAtencion = async () => {
     if (citaAtendiendo) {
       await cambiarEstado(citaAtendiendo.id, citaAtendiendo, 'realizada')
-      setModalPago({ paciente: pacienteAtendiendo, cita: citaAtendiendo })
-      // Preguntar si enviar encuesta
       if (pacienteAtendiendo.email) {
-        setTimeout(() => {
-          if (confirm(`¿Deseas enviar una encuesta de satisfacción a ${pacienteAtendiendo.nombre} ${pacienteAtendiendo.apellido}?`)) {
-            axios.post(`https://centro-medico-saberes-production.up.railway.app/encuestas/enviar/${pacienteAtendiendo.id}`)
-              .then(() => alert('Encuesta enviada correctamente'))
-              .catch(() => alert('Error al enviar la encuesta'))
-          }
-        }, 500)
+        if (confirm(`¿Deseas enviar una encuesta de satisfacción a ${pacienteAtendiendo.nombre} ${pacienteAtendiendo.apellido}?`)) {
+          axios.post(`https://centro-medico-saberes-production.up.railway.app/encuestas/enviar/${pacienteAtendiendo.id}`)
+            .then(() => alert('✅ Encuesta enviada correctamente'))
+            .catch(() => alert('Error al enviar la encuesta'))
+        }
       }
     }
     setPacienteAtendiendo(null)
