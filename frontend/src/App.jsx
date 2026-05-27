@@ -117,44 +117,44 @@ function Layout({ usuario, onLogout }) {
       <main className="max-w-6xl mx-auto p-4 md:p-6">
         <Routes>
           {rol === 'admin' && <>
-            <Route path="/" element={<Inicio />} />
-            <Route path="/pacientes" element={<Pacientes />} />
-            <Route path="/profesionales" element={<Profesionales />} />
-            <Route path="/citas" element={<Agenda />} />
-            <Route path="/pagos" element={<Pagos />} />
-            <Route path="/usuarios" element={<Usuarios />} />
-            <Route path="/reportes" element={<Reportes />} />
-            <Route path="/cambiar-password" element={<CambiarPassword />} />
-            <Route path="/procedimientos" element={<Procedimientos />} />
-            <Route path="/pap" element={<Pap />} />
-            <Route path="/flujos" element={<Flujos />} />
-            <Route path="/encuestas" element={<Encuestas />} />
-            <Route path="/logs" element={<Logs />} />
+            <Route index element={<Inicio />} />
+            <Route path="pacientes" element={<Pacientes />} />
+            <Route path="profesionales" element={<Profesionales />} />
+            <Route path="citas" element={<Agenda />} />
+            <Route path="pagos" element={<Pagos />} />
+            <Route path="usuarios" element={<Usuarios />} />
+            <Route path="reportes" element={<Reportes />} />
+            <Route path="cambiar-password" element={<CambiarPassword />} />
+            <Route path="procedimientos" element={<Procedimientos />} />
+            <Route path="pap" element={<Pap />} />
+            <Route path="flujos" element={<Flujos />} />
+            <Route path="encuestas" element={<Encuestas />} />
+            <Route path="logs" element={<Logs />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}
 
           {rol === 'secretaria' && <>
-             <Route path="/" element={<Inicio />} />
-            <Route path="/pacientes" element={<Pacientes />} />
-            <Route path="/citas" element={<Agenda />} />
-            <Route path="/pagos" element={<Pagos />} />
-            <Route path="/procedimientos" element={<Procedimientos />} />
-            <Route path="/cambiar-password" element={<CambiarPassword />} />
-            <Route path="/pap" element={<Pap />} />
-            <Route path="/flujos" element={<Flujos />} />
-            <Route path="/encuestas" element={<Encuestas />} />
+            <Route index element={<Inicio />} />
+            <Route path="pacientes" element={<Pacientes />} />
+            <Route path="citas" element={<Agenda />} />
+            <Route path="pagos" element={<Pagos />} />
+            <Route path="procedimientos" element={<Procedimientos />} />
+            <Route path="cambiar-password" element={<CambiarPassword />} />
+            <Route path="pap" element={<Pap />} />
+            <Route path="flujos" element={<Flujos />} />
+            <Route path="encuestas" element={<Encuestas />} />
             <Route path="*" element={<Navigate to="/pacientes" />} />
           </>}
 
           {rol === 'matrona' && <>
-            <Route path="/" element={<InicioMatrona usuario={usuario} />} />
-            <Route path="/pacientes" element={<Pacientes />} />
-            <Route path="/citas" element={<Agenda />} />
-            <Route path="/pagos" element={<Pagos />} />
-            <Route path="/cambiar-password" element={<CambiarPassword />} />
-            <Route path="/pap" element={<Pap />} />
-            <Route path="/flujos" element={<Flujos />} />
-            <Route path="/encuestas" element={<Encuestas />} />
+            <Route index element={<InicioMatrona usuario={usuario} />} />
+            <Route path="pacientes" element={<Pacientes />} />
+            <Route path="citas" element={<Agenda />} />
+            <Route path="pagos" element={<Pagos />} />
+            <Route path="cambiar-password" element={<CambiarPassword />} />
+            <Route path="pap" element={<Pap />} />
+            <Route path="flujos" element={<Flujos />} />
+            <Route path="encuestas" element={<Encuestas />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}
         </Routes>
