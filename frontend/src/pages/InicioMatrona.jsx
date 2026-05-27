@@ -209,6 +209,16 @@ export default function InicioMatrona({ usuario }) {
     if (citaAtendiendo) {
       await cambiarEstado(citaAtendiendo.id, citaAtendiendo, 'realizada')
       setModalPago({ paciente: pacienteAtendiendo, cita: citaAtendiendo })
+      // Preguntar si enviar encuesta
+      if (pacienteAtendiendo.email) {
+        setTimeout(() => {
+          if (confirm(`¿Deseas enviar una encuesta de satisfacción a ${pacienteAtendiendo.nombre} ${pacienteAtendiendo.apellido}?`)) {
+            axios.post(`https://centro-medico-saberes-production.up.railway.app/encuestas/enviar/${pacienteAtendiendo.id}`)
+              .then(() => alert('Encuesta enviada correctamente'))
+              .catch(() => alert('Error al enviar la encuesta'))
+          }
+        }, 500)
+      }
     }
     setPacienteAtendiendo(null)
     setCitaAtendiendo(null)
