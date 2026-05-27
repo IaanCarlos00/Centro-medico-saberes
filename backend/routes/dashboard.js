@@ -16,7 +16,8 @@ router.get('/', async (req, res) => {
       citasCanceladas,
       proximasCitas,
       pacientesDeuda,
-      atencionesPorMes
+      atencionesPorMes,
+      logsRecientes
     ] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM paciente'),
       pool.query('SELECT COUNT(*) FROM profesional'),
