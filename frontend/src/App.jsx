@@ -16,6 +16,7 @@ import Pap from './pages/Pap'
 import Flujos from './pages/Flujos'
 import Encuesta from './pages/Encuesta'
 import Encuestas from './pages/Encuestas'
+import Logs from './pages/Logs'
 
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
@@ -45,6 +46,7 @@ function Layout({ usuario, onLogout }) {
     { to: '/pap', label: 'PAP' },
     { to: '/flujos', label: 'Flujos' },
     { to: '/encuestas', label: 'Encuestas' },
+    { to: '/logs', label: 'Actividad' },
   ]
 
   const linksSecretaria = [
@@ -127,6 +129,7 @@ function Layout({ usuario, onLogout }) {
             <Route path="/pap" element={<Pap />} />
             <Route path="/flujos" element={<Flujos />} />
             <Route path="/encuestas" element={<Encuestas />} />
+            <Route path="/logs" element={<Logs />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}
 
