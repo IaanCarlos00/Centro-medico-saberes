@@ -116,6 +116,12 @@ export default function Encuestas() {
             )}
             {e.comentario && <p className="text-sm text-gray-600 italic">"{e.comentario}"</p>}
             {e.respondida_en && <p className="text-xs text-gray-400 mt-1">Respondida el {new Date(e.respondida_en).toLocaleDateString('es-CL')}</p>}
+            <button onClick={async () => {
+              if (confirm('¿Eliminar esta encuesta?')) {
+                await axios.delete(`${API}/${e.id}`)
+                cargar()
+              }
+            }} className="text-red-500 text-xs hover:underline font-medium mt-2">Eliminar</button>
           </div>
         ))}
         {filtradas.length === 0 && <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">No hay encuestas registradas</div>}

@@ -89,4 +89,10 @@ router.get('/', async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }) }
 })
 
+router.delete('/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM encuesta WHERE id = $1', [req.params.id])
+    res.json({ mensaje: 'Encuesta eliminada' })
+  } catch (error) { res.status(500).json({ error: error.message }) }
+})
 module.exports = router
