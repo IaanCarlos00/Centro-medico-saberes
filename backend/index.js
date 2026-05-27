@@ -16,6 +16,7 @@ const papRouter = require('./routes/pap');
 const flujosRouter = require('./routes/flujos');
 const encuestasRouter = require('./routes/encuestas');
 const archivosRouter = require('./routes/archivos');
+const logsRouter = require('./routes/logs');
 
 const app = express();
 const PORT = 3000;
@@ -44,6 +45,7 @@ app.use('/pap', papRouter);
 app.use('/flujos', flujosRouter);
 app.use('/encuestas', encuestasRouter);
 app.use('/archivos', archivosRouter);
+app.use('/logs', logsRouter);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
