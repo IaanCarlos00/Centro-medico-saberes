@@ -12,13 +12,14 @@ const formatFecha = fecha => {
 
 const campoVacio = {
   profesional_id: '', fecha: new Date().toISOString().slice(0,10),
-  direccion: '', paridad: '', fur: '', mac: '',
+  direccion: '', ocupacion: '', paridad: '', fur: '', ciclos_menstruales: '', mac: '',
   ant_morbidos: '', ant_familiares: '', ant_ca_mama: '', medicamentos: '',
   tabaco: '', alcohol: '', drogas: '', alergias: '', cirugias: '',
-  examenes_sangre: '', ivs: '', orientacion_sexual: 'hetero', parejas_sexuales: '',
+  examenes_sangre: '', ivs: '', orientacion_sexual: '', parejas_sexuales: '',
   pareja_actual: '', menarquia: '', its: '', uso_pstv: '', eco_tv: '', pap: '',
-  presion_arterial: '', peso: '', altura: '', efm: 'normal', especulo: '',
-  motivo_consulta: '', indicaciones: '', observaciones: ''
+  presion_arterial: '', peso: '', altura: '', efm: '', especulo: '',
+  motivo_consulta: '', indicaciones: '', observaciones: '',
+  alimentacion: '', ejercicio: '', vacuna_vph: ''
 }
 
 function Seccion({ titulo, children }) {
@@ -258,10 +259,12 @@ export default function FichaIngreso1({ paciente, onVolver }) {
         </Seccion>
         <Seccion titulo="Datos Personales">
           <Campo label="Dirección" name="direccion" form={form} onChange={handleChange} />
+          <Campo label="Ocupación" name="ocupacion" form={form} onChange={handleChange} />
         </Seccion>
         <Seccion titulo="Antecedentes">
           <Campo label="Paridad" name="paridad" form={form} onChange={handleChange} />
           <Campo label="FUR" name="fur" form={form} onChange={handleChange} />
+          <Campo label="Ciclos menstruales" name="ciclos_menstruales" form={form} onChange={handleChange} />
           <Campo label="MAC" name="mac" form={form} onChange={handleChange} />
           <Campo label="Ant. mórbidos" name="ant_morbidos" form={form} onChange={handleChange} type="textarea" />
           <Campo label="Ant. familiares" name="ant_familiares" form={form} onChange={handleChange} type="textarea" />
@@ -270,11 +273,14 @@ export default function FichaIngreso1({ paciente, onVolver }) {
           <Campo label="Tabaco" name="tabaco" form={form} onChange={handleChange} />
           <Campo label="Alcohol" name="alcohol" form={form} onChange={handleChange} />
           <Campo label="Drogas" name="drogas" form={form} onChange={handleChange} />
+          <Campo label="Alimentación" name="alimentacion" form={form} onChange={handleChange} />
+          <Campo label="Ejercicio" name="ejercicio" form={form} onChange={handleChange} />
           <Campo label="Alergias" name="alergias" form={form} onChange={handleChange} />
           <Campo label="Cirugías" name="cirugias" form={form} onChange={handleChange} />
           <Campo label="Exámenes de sangre" name="examenes_sangre" form={form} onChange={handleChange} type="textarea" fullWidth />
+          <Campo label="Vacuna VPH" name="vacuna_vph" form={form} onChange={handleChange} />
         </Seccion>
-        <Seccion titulo="Historia Sexual">
+        <Seccion titulo="Antecedentes Ginecológicos">
           <Campo label="IVS" name="ivs" form={form} onChange={handleChange} />
           <Campo label="Orientación sexual" name="orientacion_sexual" form={form} onChange={handleChange} />
           <Campo label="Parejas sexuales" name="parejas_sexuales" form={form} onChange={handleChange} />
