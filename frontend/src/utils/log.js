@@ -3,6 +3,7 @@ import axios from 'axios'
 const API_LOGS = 'https://centro-medico-saberes-production.up.railway.app/logs'
 
 export const registrarLog = async (accion, entidad, entidad_id, detalle) => {
+  console.log('registrando log:', accion, entidad, entidad_id, detalle)
   try {
     await axios.post(API_LOGS, {
       usuario_id: localStorage.getItem('id'),
