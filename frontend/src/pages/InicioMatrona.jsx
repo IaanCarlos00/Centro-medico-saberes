@@ -5,7 +5,6 @@ import Fichas from './Fichas'
 
 const API_CITAS = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
-const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 
 const estadoColor = {
   pendiente: 'bg-yellow-100 text-yellow-700',
@@ -261,14 +260,6 @@ export default function InicioMatrona({ usuario }) {
         />
       )}
 
-      {modalPago && (
-        <ModalRegistrarPago
-          paciente={modalPago.paciente}
-          cita={modalPago.cita}
-          onConfirmar={() => { setModalPago(null); cargar() }}
-          onCerrar={() => setModalPago(null)}
-        />
-      )}
 
       <div className="flex items-center justify-between mb-6">
         <div>
