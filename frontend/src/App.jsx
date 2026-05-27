@@ -186,7 +186,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/encuesta/:token" element={<Encuesta />} />
-        <Route path="*" element={
+        <Route path="/*" element={
           usuario ? <Layout usuario={usuario} onLogout={handleLogout} /> : <Login onLogin={handleLogin} />
         } />
       </Routes>
