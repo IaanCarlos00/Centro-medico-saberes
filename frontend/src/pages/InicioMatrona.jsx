@@ -156,9 +156,25 @@ export default function InicioMatrona({ usuario }) {
   }
 
   if (pacienteAtendiendo) {
-    return (
-      <div>
-        <div className="flex items-center gap-3 mb-4 flex-wrap">
+  return (
+    <div>
+      {modalFinalizar && (
+        <ModalConfirmar
+          titulo="¿Finalizar atención?"
+          mensaje="La cita quedará marcada como realizada."
+          textoConfirmar="✅ Finalizar"
+          textoColor="bg-green-700 hover:bg-green-800"
+          onConfirmar={() => { setModalFinalizar(false); finalizarAtencion() }}
+          onCancelar={() => {
+            setModalFinalizar(false)
+            setPacienteAtendiendo(null)
+            setCitaAtendiendo(null)
+            cargar()
+          }}
+        />
+      )}
+      {toast && <Toast mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={() => setToast(null)} />}
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
           <span className="text-sm text-gray-500">Atendiendo a <strong>{pacienteAtendiendo.nombre} {pacienteAtendiendo.apellido}</strong></span>
           <button
             onClick={() => setModalFinalizar(true)}
