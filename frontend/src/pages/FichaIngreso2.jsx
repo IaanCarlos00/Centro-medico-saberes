@@ -42,6 +42,16 @@ function Campo({ label, name, form, onChange, type = 'text', fullWidth = false }
   )
 }
 
+const calcularEdad = fecha => {
+  if (!fecha) return null
+  const hoy = new Date()
+  const nac = new Date(fecha.slice(0,10) + 'T12:00:00')
+  let edad = hoy.getFullYear() - nac.getFullYear()
+  const m = hoy.getMonth() - nac.getMonth()
+  if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--
+  return edad
+}
+
 export default function FichaIngreso2({ paciente, onVolver }) {
   const [fichas, setFichas] = useState([])
   const [profesionales, setProfesionales] = useState([])
