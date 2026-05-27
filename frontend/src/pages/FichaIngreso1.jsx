@@ -191,6 +191,14 @@ export default function FichaIngreso1({ paciente, onVolver }) {
     <div className="flex flex-col gap-3">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="flex flex-col">
+          <label className="text-xs text-gray-500 mb-1">Nombre</label>
+          <input className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formDatos.nombre || paciente.nombre} onChange={e => setFormDatos(f => ({ ...f, nombre: e.target.value }))} placeholder="Nombre" />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-500 mb-1">Apellido</label>
+          <input className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formDatos.apellido || paciente.apellido} onChange={e => setFormDatos(f => ({ ...f, apellido: e.target.value }))} placeholder="Apellido" />
+        </div>
+        <div className="flex flex-col">
           <label className="text-xs text-gray-500 mb-1">RUT</label>
           <input className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formDatos.rut} onChange={e => setFormDatos(f => ({ ...f, rut: e.target.value }))} placeholder="12.345.678-9" />
         </div>
@@ -208,7 +216,12 @@ export default function FichaIngreso1({ paciente, onVolver }) {
         </div>
       </div>
       <button onClick={async () => {
-        await axios.put(`https://centro-medico-saberes-production.up.railway.app/pacientes/${paciente.id}`, { ...paciente, ...formDatos })
+        await axios.put(`https://centro-medico-saberes-production.up.railway.app/pacientes/${paciente.id}`, { 
+          ...paciente, 
+          ...formDatos,
+          nombre: formDatos.nombre || paciente.nombre,
+          apellido: formDatos.apellido || paciente.apellido
+        })
         setEditandoDatos(false)
         Object.assign(paciente, formDatos)
       }} className="bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-800 self-start">Guardar</button>
@@ -217,8 +230,7 @@ export default function FichaIngreso1({ paciente, onVolver }) {
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
       <div><span className="text-gray-500 text-xs">Nombre</span><p className="font-medium text-gray-800">{paciente.nombre} {paciente.apellido}</p></div>
       <div><span className="text-gray-500 text-xs">RUT</span><p className="font-medium text-gray-800">{paciente.rut || '—'}</p></div>
-      <div><span className="text-gray-500 text-xs">Fecha de nacimiento</span><p className="font-medium text-gray-800">{paciente.fecha_nacimiento ? new Date(paciente.fecha_nacimiento.slice(0,10) + 'T12:00:00').toLocaleDateString('es-CL') : '—'}</p></div>
-      <div><span className="text-gray-500 text-xs">Teléfono</span><p className="font-medium text-gray-800">{paciente.telefono || '—'}</p></div>
+      <div><span className="text-gray-500 text-xs">Fecha de nacimiento</span><p className="font-medium text-gray-800">{paciente.fecha_nacimiento ? `${new Date(paciente.fecha_nacimiento.slice(0,10) + 'T12:00:00').toLocaleDateString('es-CL')} (${calcularEdad(paciente.fecha_nacimiento)} años)` : '—'}</p></div>
       {paciente.email && <div><span className="text-gray-500 text-xs">Email</span><p className="font-medium text-gray-800">{paciente.email}</p></div>}
     </div>
   )}
