@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { frases } from '../data/frases'
 import axios from 'axios'
 import Fichas from './Fichas'
+import ModalConfirmar from '../components/ModalConfirmar'
+import Toast from '../components/Toast'
 
 const API_CITAS = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
@@ -82,6 +84,8 @@ export default function InicioMatrona({ usuario }) {
   const [pacienteAtendiendo, setPacienteAtendiendo] = useState(null)
   const [citaAtendiendo, setCitaAtendiendo] = useState(null)
   const [modalEncuesta, setModalEncuesta] = useState(null)
+  const [modalFinalizar, setModalFinalizar] = useState(false)
+  const [toast, setToast] = useState(null)
 
   const getFrase = () => {
     const usuarioId = parseInt(localStorage.getItem('id') || '1')
@@ -157,15 +161,7 @@ export default function InicioMatrona({ usuario }) {
         <div className="flex items-center gap-3 mb-4 flex-wrap">
           <span className="text-sm text-gray-500">Atendiendo a <strong>{pacienteAtendiendo.nombre} {pacienteAtendiendo.apellido}</strong></span>
           <button
-            onClick={() => {
-              if (confirm('¿Deseas finalizar la atención?\n\nAcepta = Finalizar y marcar como realizada\nCancela = Solo volver, retomar después')) {
-                finalizarAtencion()
-              } else {
-                setPacienteAtendiendo(null)
-                setCitaAtendiendo(null)
-                cargar()
-              }
-            }}
+            onClick={() => setModalFinalizar(true)}
             className="ml-auto bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-800"
           >
             ✅ Finalizar atención
@@ -175,6 +171,22 @@ export default function InicioMatrona({ usuario }) {
       </div>
     )
   }
+
+  {modalFinalizar && (
+    <ModalConfirmar
+      titulo="¿Finalizar atención?"
+      mensaje="La cita quedará marcada como realizada."
+      textoConfirmar="✅ Finalizar"
+      textoColor="bg-green-700 hover:bg-green-800"
+      onConfirmar={() => { setModalFinalizar(false); finalizarAtencion() }}
+      onCancelar={() => {
+        setModalFinalizar(false)
+        setPacienteAtendiendo(null)
+        setCitaAtendiendo(null)
+        cargar()
+      }}
+    />
+  )}
 
   return (
     <div>
@@ -193,6 +205,8 @@ export default function InicioMatrona({ usuario }) {
         />
       )}
 
+      {toast && <Toast mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={() => setToast(null)} />}
+
       {modalEncuesta && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm text-center">
@@ -202,8 +216,8 @@ export default function InicioMatrona({ usuario }) {
             <div className="flex gap-3">
               <button onClick={async () => {
                 await axios.post(`https://centro-medico-saberes-production.up.railway.app/encuestas/enviar/${modalEncuesta.id}`)
-                  .then(() => alert('✅ Encuesta enviada correctamente'))
-                  .catch(() => alert('Error al enviar la encuesta'))
+                  .then(() => setToast({ mensaje: 'Encuesta enviada correctamente', tipo: 'exito' }))
+                  .catch(() => setToast({ mensaje: 'Error al enviar la encuesta', tipo: 'error' }))
                 setModalEncuesta(null)
               }} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">Sí, enviar</button>
               <button onClick={() => setModalEncuesta(null)} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">No por ahora</button>
