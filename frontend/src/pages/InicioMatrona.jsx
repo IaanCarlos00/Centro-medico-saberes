@@ -81,6 +81,7 @@ export default function InicioMatrona({ usuario }) {
   const [modalCompletar, setModalCompletar] = useState(null)
   const [pacienteAtendiendo, setPacienteAtendiendo] = useState(null)
   const [citaAtendiendo, setCitaAtendiendo] = useState(null)
+  const [modalEncuesta, setModalEncuesta] = useState(null)
 
   const getFrase = () => {
     const usuarioId = parseInt(localStorage.getItem('id') || '1')
@@ -143,11 +144,7 @@ export default function InicioMatrona({ usuario }) {
     if (citaAtendiendo) {
       await cambiarEstado(citaAtendiendo.id, citaAtendiendo, 'realizada')
       if (pacienteAtendiendo.email) {
-        if (confirm(`¿Deseas enviar una encuesta de satisfacción a ${pacienteAtendiendo.nombre} ${pacienteAtendiendo.apellido}?`)) {
-          axios.post(`https://centro-medico-saberes-production.up.railway.app/encuestas/enviar/${pacienteAtendiendo.id}`)
-            .then(() => alert('✅ Encuesta enviada correctamente'))
-            .catch(() => alert('Error al enviar la encuesta'))
-        }
+        setModalEncuesta(pacienteAtendiendo)
       }
     }
     setPacienteAtendiendo(null)
@@ -194,6 +191,25 @@ export default function InicioMatrona({ usuario }) {
           }}
           onCerrar={() => setModalCompletar(null)}
         />
+      )}
+
+      {modalEncuesta && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm text-center">
+            <span className="text-5xl mb-4 block">⭐</span>
+            <h3 className="text-lg font-bold text-green-800 mb-2">¿Enviar encuesta de satisfacción?</h3>
+            <p className="text-sm text-gray-500 mb-6">{modalEncuesta.nombre} {modalEncuesta.apellido} recibirá un email para evaluar su atención.</p>
+            <div className="flex gap-3">
+              <button onClick={async () => {
+                await axios.post(`https://centro-medico-saberes-production.up.railway.app/encuestas/enviar/${modalEncuesta.id}`)
+                  .then(() => alert('✅ Encuesta enviada correctamente'))
+                  .catch(() => alert('Error al enviar la encuesta'))
+                setModalEncuesta(null)
+              }} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">Sí, enviar</button>
+              <button onClick={() => setModalEncuesta(null)} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">No por ahora</button>
+            </div>
+          </div>
+        </div>
       )}
 
 
