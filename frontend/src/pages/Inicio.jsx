@@ -207,6 +207,23 @@ export default function Inicio() {
               </div>
             </div>
           )}
+
+          {/* Actividad reciente */}
+            {datos.logsRecientes && datos.logsRecientes.length > 0 && (
+              <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
+                <h3 className="text-lg font-bold text-gray-800 mb-4">📋 Actividad reciente</h3>
+                <div className="flex flex-col gap-2">
+                  {datos.logsRecientes.map(l => (
+                    <div key={l.id} className="flex items-center gap-3 text-sm p-2 bg-gray-50 rounded-lg">
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${l.accion === 'crear' ? 'bg-green-100 text-green-700' : l.accion === 'editar' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'}`}>{l.accion}</span>
+                      <span className="text-gray-600 capitalize">{l.entidad}</span>
+                      <span className="text-gray-500">{l.detalle}</span>
+                      <span className="text-gray-400 text-xs ml-auto">{l.usuario_nombre} · {new Date(l.created_at).toLocaleString('es-CL')}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link to="/pacientes" className="bg-green-700 text-white rounded-2xl p-5 hover:bg-green-800 transition-colors flex items-center gap-4 shadow-sm">
               <span className="text-4xl">👤</span>

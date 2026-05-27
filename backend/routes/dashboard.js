@@ -55,7 +55,8 @@ router.get('/', async (req, res) => {
           AND fecha_hora >= NOW() - INTERVAL '6 months'
         GROUP BY TO_CHAR(fecha_hora, 'YYYY-MM'), TO_CHAR(fecha_hora, 'Mon')
         ORDER BY mes ASC
-      `)
+      `),
+      pool.query(`SELECT * FROM log_actividad ORDER BY created_at DESC LIMIT 10`)
       
     ])
 
@@ -71,7 +72,8 @@ router.get('/', async (req, res) => {
       },
       proximasCitas: proximasCitas.rows,
       pacientesDeuda: pacientesDeuda.rows,
-      atencionesPorMes: atencionesPorMes.rows
+      atencionesPorMes: atencionesPorMes.rows,
+      logsRecientes: logsRecientes.rows
     })
   } catch (error) {
     res.status(500).json({ error: error.message })
