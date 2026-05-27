@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import axios from 'axios'
+import { registrarLog } from '../utils/log'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
@@ -91,9 +92,11 @@ export default function Pagos() {
     if (Object.keys(e).length > 0) { setErrores(e); return }
     if (editando) {
       await axios.put(`${API}/${editando}`, form)
+      await registrarLog('editar', 'pago', editando, `Pago de ${busquedaPaciente}`)
       setEditando(null)
     } else {
       await axios.post(API, form)
+      await registrarLog('crear', 'pago', null, `Pago de ${busquedaPaciente}`)
     }
     setForm({ paciente_id: '', monto: '', metodo: 'debito', estado: 'pagado', notas: '' })
     setBusquedaPaciente('')
@@ -112,6 +115,7 @@ export default function Pagos() {
   const eliminar = async id => {
     if (confirm('¿Eliminar pago?')) {
       await axios.delete(`${API}/${id}`)
+      await registrarLog('eliminar', 'pago', id, `Pago eliminado`)
       cargar()
     }
   }

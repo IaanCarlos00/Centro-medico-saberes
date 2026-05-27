@@ -6,6 +6,7 @@ import { es } from 'date-fns/locale'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import dayjs from 'dayjs'
 import ModalProcedimientos from './ModalProcedimientos'
+import { registrarLog } from '../utils/log'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
@@ -241,10 +242,12 @@ export default function Agenda() {
 
   if (editando) {
     await axios.put(`${API}/${editando}`, form)
+    await registrarLog('editar', 'cita', editando, `Cita de ${busquedaPaciente}`)
     setEditando(null)
   } else {
     const res = await axios.post(API, form)
     const paciente = pacientes.find(p => p.id === parseInt(form.paciente_id))
+    await registrarLog('crear', 'cita', res.data.id, `Cita de ${paciente?.nombre} ${paciente?.apellido}`)
     setCitaRecienAgendada({ ...res.data, paciente_id: form.paciente_id, paciente_nombre: paciente?.nombre, paciente_apellido: paciente?.apellido })
   }
   setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
@@ -268,6 +271,7 @@ export default function Agenda() {
   const eliminar = async id => {
     if (confirm('¿Eliminar cita?')) {
       await axios.delete(`${API}/${id}`)
+      await registrarLog('eliminar', 'cita', id, `Cita eliminada`)
       setCitaSeleccionada(null)
       cargar()
     }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import Fichas from './Fichas'
+import { registrarLog } from '../utils/log'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
 const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
@@ -130,14 +131,16 @@ export default function Pacientes() {
     if (Object.keys(e).length > 0) { setErrores(e); return }
     if (editando) {
       await axios.put(`${API}/${editando}`, form)
+      await registrarLog('editar', 'paciente', editando, `${form.nombre} ${form.apellido}`)
       setEditando(null)
     } else {
       await axios.post(API, form)
+      await registrarLog('crear', 'paciente', null, `${form.nombre} ${form.apellido}`)
     }
-    setForm({ nombre: '', apellido: '', rut: '', fecha_nacimiento: '', telefono: '', email: '' })
-    setErrores({})
-    cargar()
-  }
+      setForm({ nombre: '', apellido: '', rut: '', fecha_nacimiento: '', telefono: '', email: '' })
+      setErrores({})
+      cargar()
+    }
 
   const editar = p => {
     setForm({ nombre: p.nombre, apellido: p.apellido, rut: p.rut || '', fecha_nacimiento: p.fecha_nacimiento?.slice(0,10) || '', telefono: p.telefono || '', email: p.email || '' })
@@ -146,29 +149,30 @@ export default function Pacientes() {
   }
 
   const eliminar = async id => {
-  const paciente = pacientes.find(p => p.id === id)
-  if (!confirm(`¿Eliminar a ${paciente.nombre} ${paciente.apellido}?`)) return
-  
-  try {
-    await axios.delete(`${API}/${id}`)
-    cargar()
-  } catch (err) {
-    if (err.response?.data?.error === 'tiene_registros') {
-      const r = err.response.data.resumen
-      const detalle = [
-        r.citas > 0 && `${r.citas} cita(s)`,
-        r.fichas > 0 && `${r.fichas} ficha(s) clínica(s)`,
-        r.pagos > 0 && `${r.pagos} pago(s)`,
-        r.procedimientos > 0 && `${r.procedimientos} procedimiento(s)`,
-        r.pap > 0 && `${r.pap} PAP`,
-        r.flujos > 0 && `${r.flujos} flujo(s)`,
-      ].filter(Boolean).join(', ')
-      alert(`No se puede eliminar a ${paciente.nombre} ${paciente.apellido} porque tiene registros asociados:\n\n${detalle}\n\nElimina primero esos registros.`)
-    } else {
-      alert('Error al eliminar el paciente')
+    const paciente = pacientes.find(p => p.id === id)
+    if (!confirm(`¿Eliminar a ${paciente.nombre} ${paciente.apellido}?`)) return
+    
+    try {
+      await axios.delete(`${API}/${id}`)
+      await registrarLog('eliminar', 'paciente', id, `${paciente.nombre} ${paciente.apellido}`)
+      cargar()
+    } catch (err) {
+      if (err.response?.data?.error === 'tiene_registros') {
+        const r = err.response.data.resumen
+        const detalle = [
+          r.citas > 0 && `${r.citas} cita(s)`,
+          r.fichas > 0 && `${r.fichas} ficha(s) clínica(s)`,
+          r.pagos > 0 && `${r.pagos} pago(s)`,
+          r.procedimientos > 0 && `${r.procedimientos} procedimiento(s)`,
+          r.pap > 0 && `${r.pap} PAP`,
+          r.flujos > 0 && `${r.flujos} flujo(s)`,
+        ].filter(Boolean).join(', ')
+        alert(`No se puede eliminar a ${paciente.nombre} ${paciente.apellido} porque tiene registros asociados:\n\n${detalle}\n\nElimina primero esos registros.`)
+      } else {
+        alert('Error al eliminar el paciente')
+      }
     }
   }
-}
 
   const cancelar = () => {
     setEditando(null)
