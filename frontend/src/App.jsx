@@ -130,7 +130,6 @@ function Layout({ usuario, onLogout }) {
             <Route path="/flujos" element={<Flujos />} />
             <Route path="/encuestas" element={<Encuestas />} />
             <Route path="/logs" element={<Logs />} />
-            <Route path="*" element={<Navigate to="/" />} />
           </>}
 
           {rol === 'secretaria' && <>
