@@ -3,6 +3,8 @@ import axios from 'axios'
 import FichaIngreso1 from './FichaIngreso1'
 import FichaIngreso2 from './FichaIngreso2'
 import ModalProcedimientos from './ModalProcedimientos'
+import ModalConfirmar from '../components/ModalConfirmar'
+import Toast from '../components/Toast'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/fichas'
 const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
@@ -32,6 +34,8 @@ export default function Fichas({ paciente, onVolver }) {
   const [subiendoArchivo, setSubiendoArchivo] = useState(false)
   const [descripcionArchivo, setDescripcionArchivo] = useState('')
   const [editandoDatos, setEditandoDatos] = useState(false)
+  const [modalEliminar, setModalEliminar] = useState(null)
+  const [toast, setToast] = useState(null)
   const [formDatos, setFormDatos] = useState({
     rut: paciente.rut || '',
     telefono: paciente.telefono || '',
@@ -98,10 +102,14 @@ export default function Fichas({ paciente, onVolver }) {
   }
 
   const eliminar = async id => {
-    if (confirm('¿Eliminar ficha?')) {
-      await axios.delete(`${API}/${id}`)
-      cargar()
-    }
+    setModalEliminar(id)
+  }
+
+  const confirmarEliminar = async () => {
+    await axios.delete(`${API}/${modalEliminar}`)
+    setModalEliminar(null)
+    setToast({ mensaje: 'Ficha eliminada', tipo: 'exito' })
+    cargar()
   }
 
   const cancelar = () => {
@@ -174,8 +182,18 @@ export default function Fichas({ paciente, onVolver }) {
   if (vista === 'ingreso2') return <FichaIngreso2 paciente={paciente} onVolver={() => { setVista(null); cargar() }} />
 
   if (vista === 'control') return (
-  <div>
-    {modalProcedimientos && (
+    <div>
+      {toast && <Toast mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={() => setToast(null)} />}
+      {modalEliminar && (
+        <ModalConfirmar
+          titulo="¿Eliminar ficha?"
+          mensaje="Esta acción no se puede deshacer."
+          textoConfirmar="Eliminar"
+          onConfirmar={confirmarEliminar}
+          onCancelar={() => setModalEliminar(null)}
+        />
+      )}
+      {modalProcedimientos && (
       <ModalProcedimientos
         paciente={paciente}
         onCerrar={() => setModalProcedimientos(false)}
