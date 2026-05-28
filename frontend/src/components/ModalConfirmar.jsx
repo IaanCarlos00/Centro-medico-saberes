@@ -1,6 +1,6 @@
 export default function ModalConfirmar({ titulo, mensaje, onConfirmar, onCancelar, textoConfirmar = 'Confirmar', textoColor = 'bg-red-500 hover:bg-red-600' }) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100] px-4">
       <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm text-center">
         <h3 className="text-lg font-bold text-gray-800 mb-2">{titulo}</h3>
         {mensaje && <p className="text-sm text-gray-500 mb-6">{mensaje}</p>}
