@@ -7,6 +7,8 @@ import 'react-big-calendar/lib/css/react-big-calendar.css'
 import dayjs from 'dayjs'
 import ModalProcedimientos from './ModalProcedimientos'
 import { registrarLog } from '../utils/log'
+import ModalConfirmar from '../components/ModalConfirmar'
+import Toast from '../components/Toast'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
@@ -163,6 +165,9 @@ export default function Agenda() {
   const [citasPendientesAviso, setCitasPendientesAviso] = useState([])
   const [citaTentativaOrigen, setCitaTentativaOrigen] = useState(null)
   const [numeroBono, setNumeroBono] = useState('')
+  const [modalEliminarCita, setModalEliminarCita] = useState(null)
+  const [modalEliminarBloqueo, setModalEliminarBloqueo] = useState(null)
+  const [toast, setToast] = useState(null)
   const API_PROC = 'https://centro-medico-saberes-production.up.railway.app/procedimientos'
   const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 
@@ -269,12 +274,15 @@ export default function Agenda() {
   }
 
   const eliminar = async id => {
-    if (confirm('¿Eliminar cita?')) {
-      await axios.delete(`${API}/${id}`)
-      await registrarLog('eliminar', 'cita', id, `Cita eliminada`)
-      setCitaSeleccionada(null)
-      cargar()
-    }
+    setModalEliminarCita(id)
+  }
+
+  const confirmarEliminarCita = async () => {
+    await axios.delete(`${API}/${modalEliminarCita}`)
+    setModalEliminarCita(null)
+    setCitaSeleccionada(null)
+    setToast({ mensaje: 'Cita eliminada', tipo: 'exito' })
+    cargar()
   }
 
   const cancelar = () => {
@@ -361,6 +369,32 @@ export default function Agenda() {
       <button onClick={() => setCitasPendientesAviso([])} className="w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Resolver después</button>
     </div>
   </div>
+)}
+
+{toast && <Toast mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={() => setToast(null)} />}
+{modalEliminarCita && (
+  <ModalConfirmar
+    titulo="¿Eliminar cita?"
+    mensaje="Esta acción no se puede deshacer."
+    textoConfirmar="Eliminar"
+    onConfirmar={confirmarEliminarCita}
+    onCancelar={() => setModalEliminarCita(null)}
+  />
+)}
+{modalEliminarBloqueo && (
+  <ModalConfirmar
+    titulo="¿Eliminar bloqueo?"
+    mensaje="El horario quedará disponible nuevamente."
+    textoConfirmar="Eliminar"
+    onConfirmar={() => {
+      axios.delete(`${API_BLOQUEOS}/${modalEliminarBloqueo}`).then(() => {
+        setModalEliminarBloqueo(null)
+        setToast({ mensaje: 'Bloqueo eliminado', tipo: 'exito' })
+        cargar()
+      })
+    }}
+    onCancelar={() => setModalEliminarBloqueo(null)}
+  />
 )}
 
     {modalPago && (
@@ -931,9 +965,7 @@ export default function Agenda() {
 }}
             onSelectEvent={e => {
                   if (e.tipo === 'bloqueo') {
-                    if (confirm('¿Eliminar este bloqueo?')) {
-                      axios.delete(`${API_BLOQUEOS}/${e.resource.id}`).then(() => cargar())
-                    }
+                    setModalEliminarBloqueo(e.resource.id)
                     return
                   }
                   setCitaSeleccionada(e.resource)
