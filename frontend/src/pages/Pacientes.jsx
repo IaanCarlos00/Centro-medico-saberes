@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import Fichas from './Fichas'
 import { registrarLog } from '../utils/log'
+import ModalConfirmar from '../components/ModalConfirmar'
+import Toast from '../components/Toast'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
 const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
@@ -97,6 +99,8 @@ export default function Pacientes() {
   const [modalHistorial, setModalHistorial] = useState(null)
   const [historial, setHistorial] = useState({ citas: [], procedimientos: [], pap: [], flujos: [], pagos: [] })
   const [cargandoHistorial, setCargandoHistorial] = useState(false)
+  const [modalEliminar, setModalEliminar] = useState(null)
+  const [toast, setToast] = useState(null)
 
   const rol = localStorage.getItem('rol')
 
@@ -150,12 +154,16 @@ export default function Pacientes() {
 
   const eliminar = async id => {
     const paciente = pacientes.find(p => p.id === id)
-    if (!confirm(`¿Eliminar a ${paciente.nombre} ${paciente.apellido}?`)) return
-    
+    setModalEliminar(paciente)
+  }
+
+  const confirmarEliminar = async () => {
+    const paciente = modalEliminar
+    setModalEliminar(null)
     try {
-      await axios.delete(`${API}/${id}`)
-      await registrarLog('eliminar', 'paciente', id, `${paciente.nombre} ${paciente.apellido}`)
+      await axios.delete(`${API}/${paciente.id}`)
       cargar()
+      setToast({ mensaje: 'Paciente eliminado correctamente', tipo: 'exito' })
     } catch (err) {
       if (err.response?.data?.error === 'tiene_registros') {
         const r = err.response.data.resumen
@@ -167,9 +175,9 @@ export default function Pacientes() {
           r.pap > 0 && `${r.pap} PAP`,
           r.flujos > 0 && `${r.flujos} flujo(s)`,
         ].filter(Boolean).join(', ')
-        alert(`No se puede eliminar a ${paciente.nombre} ${paciente.apellido} porque tiene registros asociados:\n\n${detalle}\n\nElimina primero esos registros.`)
+        setToast({ mensaje: `No se puede eliminar: tiene ${detalle}`, tipo: 'error' })
       } else {
-        alert('Error al eliminar el paciente')
+        setToast({ mensaje: 'Error al eliminar el paciente', tipo: 'error' })
       }
     }
   }
@@ -224,6 +232,17 @@ export default function Pacientes() {
           paciente={modalCompletar}
           onConfirmar={() => { setModalCompletar(null); cargar() }}
           onCerrar={() => setModalCompletar(null)}
+        />
+      )}
+
+      {toast && <Toast mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={() => setToast(null)} />}
+      {modalEliminar && (
+        <ModalConfirmar
+          titulo={`¿Eliminar a ${modalEliminar.nombre} ${modalEliminar.apellido}?`}
+          mensaje="Esta acción no se puede deshacer."
+          textoConfirmar="Eliminar"
+          onConfirmar={confirmarEliminar}
+          onCancelar={() => setModalEliminar(null)}
         />
       )}
 
