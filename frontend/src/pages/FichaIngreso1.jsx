@@ -19,7 +19,7 @@ const campoVacio = {
   pareja_actual: '', menarquia: '', its: '', uso_pstv: '', eco_tv: '', pap: '',
   presion_arterial: '', peso: '', altura: '', efm: '', especulo: '',
   motivo_consulta: '', indicaciones: '', observaciones: '',
-  alimentacion: '', ejercicio: '', vacuna_vph: ''
+  alimentacion: '', ejercicio: '', vacuna_vph: '', proximo_control: ''
 }
 
 function Seccion({ titulo, children }) {
@@ -96,7 +96,7 @@ export default function FichaIngreso1({ paciente, onVolver }) {
   }
 
   const editar = f => {
-    setForm({ ...campoVacio, ...f, fecha: f.fecha?.slice(0,10) || new Date().toISOString().slice(0,10) })
+    setForm({ ...campoVacio, ...f, fecha: f.fecha?.slice(0,10) || new Date().toISOString().slice(0,10), proximo_control: f.proximo_control?.slice(0,10) || '' })
     setEditando(f.id)
     window.scrollTo(0, 0)
   }
@@ -125,6 +125,7 @@ export default function FichaIngreso1({ paciente, onVolver }) {
       </style></head><body>
       <h1>Ficha de Ingreso — ${paciente.nombre} ${paciente.apellido}</h1>
       <p>RUT: ${paciente.rut || 'No registrado'} | Fecha: ${formatFecha(f.fecha)} | Profesional: ${f.profesional_nombre} ${f.profesional_apellido}</p>
+      ${f.proximo_control ? `<p><strong>Próximo control:</strong> ${formatFecha(f.proximo_control)}</p>` : ''}
       <h2>Motivo de Consulta</h2>
       <div class="campo full"><div class="valor">${f.motivo_consulta || ''}</div></div>
       <h2>Datos Personales</h2>
@@ -180,7 +181,7 @@ export default function FichaIngreso1({ paciente, onVolver }) {
     ventana.document.close()
   }
 
- return (
+  return (
     <div>
       {modalProcedimientos && (
         <ModalProcedimientos paciente={paciente} onCerrar={() => setModalProcedimientos(false)} />
@@ -192,60 +193,55 @@ export default function FichaIngreso1({ paciente, onVolver }) {
       </div>
 
       <div className="bg-green-50 rounded-xl p-4 mb-6 border border-green-100">
-  <div className="flex justify-between items-center mb-2">
-    <p className="text-xs font-bold text-green-800 uppercase">Datos del paciente</p>
-    <button onClick={() => setEditandoDatos(!editandoDatos)} className="text-xs text-green-700 hover:underline font-medium">
-      {editandoDatos ? 'Cancelar' : '✏️ Editar datos'}
-    </button>
-  </div>
-  {editandoDatos ? (
-    <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="flex flex-col">
-          <label className="text-xs text-gray-500 mb-1">Nombre</label>
-          <input className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formDatos.nombre || paciente.nombre} onChange={e => setFormDatos(f => ({ ...f, nombre: e.target.value }))} placeholder="Nombre" />
+        <div className="flex justify-between items-center mb-2">
+          <p className="text-xs font-bold text-green-800 uppercase">Datos del paciente</p>
+          <button onClick={() => setEditandoDatos(!editandoDatos)} className="text-xs text-green-700 hover:underline font-medium">
+            {editandoDatos ? 'Cancelar' : '✏️ Editar datos'}
+          </button>
         </div>
-        <div className="flex flex-col">
-          <label className="text-xs text-gray-500 mb-1">Apellido</label>
-          <input className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formDatos.apellido || paciente.apellido} onChange={e => setFormDatos(f => ({ ...f, apellido: e.target.value }))} placeholder="Apellido" />
-        </div>
-        <div className="flex flex-col">
-          <label className="text-xs text-gray-500 mb-1">RUT</label>
-          <input className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formDatos.rut} onChange={e => setFormDatos(f => ({ ...f, rut: e.target.value }))} placeholder="12.345.678-9" />
-        </div>
-        <div className="flex flex-col">
-          <label className="text-xs text-gray-500 mb-1">Teléfono</label>
-          <input className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formDatos.telefono} onChange={e => setFormDatos(f => ({ ...f, telefono: e.target.value }))} placeholder="+56 9 1234 5678" />
-        </div>
-        <div className="flex flex-col">
-          <label className="text-xs text-gray-500 mb-1">Fecha de nacimiento</label>
-          <input type="date" className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formDatos.fecha_nacimiento} onChange={e => setFormDatos(f => ({ ...f, fecha_nacimiento: e.target.value }))} />
-        </div>
-        <div className="flex flex-col">
-          <label className="text-xs text-gray-500 mb-1">Email</label>
-          <input type="email" className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formDatos.email} onChange={e => setFormDatos(f => ({ ...f, email: e.target.value }))} placeholder="correo@ejemplo.cl" />
-        </div>
+        {editandoDatos ? (
+          <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="flex flex-col">
+                <label className="text-xs text-gray-500 mb-1">Nombre</label>
+                <input className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formDatos.nombre || paciente.nombre} onChange={e => setFormDatos(f => ({ ...f, nombre: e.target.value }))} placeholder="Nombre" />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs text-gray-500 mb-1">Apellido</label>
+                <input className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formDatos.apellido || paciente.apellido} onChange={e => setFormDatos(f => ({ ...f, apellido: e.target.value }))} placeholder="Apellido" />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs text-gray-500 mb-1">RUT</label>
+                <input className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formDatos.rut} onChange={e => setFormDatos(f => ({ ...f, rut: e.target.value }))} placeholder="12.345.678-9" />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs text-gray-500 mb-1">Teléfono</label>
+                <input className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formDatos.telefono} onChange={e => setFormDatos(f => ({ ...f, telefono: e.target.value }))} placeholder="+56 9 1234 5678" />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs text-gray-500 mb-1">Fecha de nacimiento</label>
+                <input type="date" className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formDatos.fecha_nacimiento} onChange={e => setFormDatos(f => ({ ...f, fecha_nacimiento: e.target.value }))} />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-xs text-gray-500 mb-1">Email</label>
+                <input type="email" className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formDatos.email} onChange={e => setFormDatos(f => ({ ...f, email: e.target.value }))} placeholder="correo@ejemplo.cl" />
+              </div>
+            </div>
+            <button onClick={async () => {
+              await axios.put(`https://centro-medico-saberes-production.up.railway.app/pacientes/${paciente.id}`, { ...paciente, ...formDatos, nombre: formDatos.nombre || paciente.nombre, apellido: formDatos.apellido || paciente.apellido })
+              setEditandoDatos(false)
+              Object.assign(paciente, formDatos)
+            }} className="bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-800 self-start">Guardar</button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+            <div><span className="text-gray-500 text-xs">Nombre</span><p className="font-medium text-gray-800">{paciente.nombre} {paciente.apellido}</p></div>
+            <div><span className="text-gray-500 text-xs">RUT</span><p className="font-medium text-gray-800">{paciente.rut || '—'}</p></div>
+            <div><span className="text-gray-500 text-xs">Fecha de nacimiento</span><p className="font-medium text-gray-800">{paciente.fecha_nacimiento ? `${new Date(paciente.fecha_nacimiento.slice(0,10) + 'T12:00:00').toLocaleDateString('es-CL')} (${calcularEdad(paciente.fecha_nacimiento)} años)` : '—'}</p></div>
+            {paciente.email && <div><span className="text-gray-500 text-xs">Email</span><p className="font-medium text-gray-800">{paciente.email}</p></div>}
+          </div>
+        )}
       </div>
-      <button onClick={async () => {
-        await axios.put(`https://centro-medico-saberes-production.up.railway.app/pacientes/${paciente.id}`, { 
-          ...paciente, 
-          ...formDatos,
-          nombre: formDatos.nombre || paciente.nombre,
-          apellido: formDatos.apellido || paciente.apellido
-        })
-        setEditandoDatos(false)
-        Object.assign(paciente, formDatos)
-      }} className="bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-800 self-start">Guardar</button>
-    </div>
-  ) : (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-      <div><span className="text-gray-500 text-xs">Nombre</span><p className="font-medium text-gray-800">{paciente.nombre} {paciente.apellido}</p></div>
-      <div><span className="text-gray-500 text-xs">RUT</span><p className="font-medium text-gray-800">{paciente.rut || '—'}</p></div>
-      <div><span className="text-gray-500 text-xs">Fecha de nacimiento</span><p className="font-medium text-gray-800">{paciente.fecha_nacimiento ? `${new Date(paciente.fecha_nacimiento.slice(0,10) + 'T12:00:00').toLocaleDateString('es-CL')} (${calcularEdad(paciente.fecha_nacimiento)} años)` : '—'}</p></div>
-      {paciente.email && <div><span className="text-gray-500 text-xs">Email</span><p className="font-medium text-gray-800">{paciente.email}</p></div>}
-    </div>
-  )}
-</div>
 
       <div className="bg-white rounded-xl shadow p-6 mb-6">
         <h3 className="text-lg font-bold text-gray-800 mb-6">{editando ? 'Editar ficha' : 'Nueva ficha de ingreso'}</h3>
@@ -313,6 +309,16 @@ export default function FichaIngreso1({ paciente, onVolver }) {
         <Seccion titulo="Indicaciones y Observaciones">
           <Campo label="Indicaciones" name="indicaciones" form={form} onChange={handleChange} type="textarea" fullWidth />
           <Campo label="Observaciones" name="observaciones" form={form} onChange={handleChange} type="textarea" fullWidth />
+          <div className="flex flex-col sm:col-span-2 md:col-span-3">
+            <label className="text-xs text-gray-500 mb-1">Próximo control</label>
+            <input
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+              name="proximo_control"
+              type="date"
+              value={form.proximo_control || ''}
+              onChange={handleChange}
+            />
+          </div>
         </Seccion>
 
         <div className="flex gap-3 mt-4">
@@ -337,6 +343,9 @@ export default function FichaIngreso1({ paciente, onVolver }) {
                     <p className="text-xs text-gray-400">{formatFecha(f.fecha)}</p>
                     <p className="text-sm text-gray-600 mt-0.5">Atendido por: <span className="font-medium">{f.profesional_nombre} {f.profesional_apellido}</span></p>
                     {f.motivo_consulta && <p className="text-sm text-gray-700 mt-1"><span className="font-semibold">Motivo:</span> {f.motivo_consulta}</p>}
+                    {f.proximo_control && (
+                      <p className="text-sm text-teal-700 mt-1 font-medium">📅 Próximo control: {formatFecha(f.proximo_control)}</p>
+                    )}
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => imprimirPDF(f)} className="text-blue-600 hover:underline text-sm font-medium">PDF</button>

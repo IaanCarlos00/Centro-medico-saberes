@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { frases } from '../data/frases'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
+import ListaConVerMas from '../components/ListaConVerMas'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/dashboard'
 
@@ -64,7 +65,6 @@ export default function Inicio() {
         </div>
       ) : (
         <>
-          {/* Tarjetas principales */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-green-600">
               <div className="flex items-center justify-between mb-2">
@@ -74,7 +74,6 @@ export default function Inicio() {
               <p className="text-4xl font-bold text-gray-800">{datos.totalPacientes}</p>
               <p className="text-gray-500 text-sm mt-1">Pacientes</p>
             </div>
-
             <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-blue-500">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-2xl">📅</span>
@@ -83,7 +82,6 @@ export default function Inicio() {
               <p className="text-4xl font-bold text-gray-800">{datos.citasHoy}</p>
               <p className="text-gray-500 text-sm mt-1">Citas programadas</p>
             </div>
-
             <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-teal-500">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-2xl">🏥</span>
@@ -93,7 +91,6 @@ export default function Inicio() {
               <p className="text-gray-500 text-sm mt-1">Atenciones del mes</p>
               <p className="text-xs text-gray-400 mt-1">Total histórico: {datos.atencionesTotal}</p>
             </div>
-
             <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-red-400">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-2xl">💰</span>
@@ -104,7 +101,6 @@ export default function Inicio() {
             </div>
           </div>
 
-          {/* Ingresos y atenciones por profesional */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div className="bg-white rounded-2xl shadow-sm p-5">
               <h3 className="text-lg font-bold text-gray-800 mb-4">💵 Ingresos</h3>
@@ -125,7 +121,6 @@ export default function Inicio() {
                 </div>
               </div>
             </div>
-
             <div className="bg-white rounded-2xl shadow-sm p-5">
               <h3 className="text-lg font-bold text-gray-800 mb-4">🩺 Atenciones por profesional</h3>
               <div className="flex flex-col gap-2">
@@ -149,7 +144,6 @@ export default function Inicio() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            {/* Citas de hoy */}
             <div className="md:col-span-2 bg-white rounded-2xl shadow-sm p-5">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-800">Citas de hoy</h3>
@@ -161,8 +155,10 @@ export default function Inicio() {
                   <p className="text-gray-400 text-sm">No hay citas programadas para hoy</p>
                 </div>
               ) : (
-                <div className="flex flex-col gap-3">
-                  {datos.proximasCitas.map((c, i) => (
+                <ListaConVerMas
+                  items={datos.proximasCitas}
+                  limite={5}
+                  renderItem={(c, i) => (
                     <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
                       <div className="bg-green-700 text-white rounded-xl px-3 py-2 text-center min-w-[56px]">
                         <p className="text-lg font-bold leading-none">{c.fecha_hora?.slice(11,16)}</p>
@@ -175,12 +171,10 @@ export default function Inicio() {
                         {estadoIcono[c.estado]} {c.estado}
                       </span>
                     </div>
-                  ))}
-                </div>
+                  )}
+                />
               )}
             </div>
-
-            {/* Estado de citas */}
             <div className="bg-white rounded-2xl shadow-sm p-5">
               <h3 className="text-lg font-bold text-gray-800 mb-4">Estado general</h3>
               <div className="flex flex-col gap-3">
@@ -193,11 +187,7 @@ export default function Inicio() {
                     <div className="flex items-center gap-2">
                       <div className="w-24 bg-gray-100 rounded-full h-2">
                         <div
-                          className={`h-2 rounded-full ${
-                            estado === 'pendiente' ? 'bg-yellow-400' :
-                            estado === 'confirmada' ? 'bg-blue-400' :
-                            estado === 'realizada' ? 'bg-green-500' : 'bg-red-400'
-                          }`}
+                          className={`h-2 rounded-full ${estado === 'pendiente' ? 'bg-yellow-400' : estado === 'confirmada' ? 'bg-blue-400' : estado === 'realizada' ? 'bg-green-500' : 'bg-red-400'}`}
                           style={{ width: `${Math.min(100, (count / Math.max(1, Object.values(datos.estados).reduce((a,b) => a+b, 0))) * 100)}%` }}
                         />
                       </div>
@@ -209,16 +199,17 @@ export default function Inicio() {
             </div>
           </div>
 
-          {/* Pacientes con deuda */}
           {datos.pacientesDeuda.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-5 mb-6 border-l-4 border-red-400">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-800">⚠️ Pacientes con pago pendiente</h3>
                 <Link to="/pagos" className="text-red-500 text-sm hover:underline font-medium">Ver pagos →</Link>
               </div>
-              <div className="flex flex-col gap-2">
-                {datos.pacientesDeuda.map(p => (
-                  <div key={p.id} className="flex items-center justify-between p-3 rounded-xl bg-red-50 hover:bg-red-100 transition-colors">
+              <ListaConVerMas
+                items={datos.pacientesDeuda}
+                limite={5}
+                renderItem={(p, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-red-50 hover:bg-red-100 transition-colors">
                     <div>
                       <p className="font-semibold text-gray-800">{p.nombre} {p.apellido}</p>
                       <p className="text-xs text-gray-500">{p.rut || 'Sin RUT'} {p.telefono ? `· ${p.telefono}` : ''}</p>
@@ -228,30 +219,30 @@ export default function Inicio() {
                       <p className="text-xs text-gray-400">{p.cantidad_pendiente} pago{p.cantidad_pendiente > 1 ? 's' : ''}</p>
                     </div>
                   </div>
-                ))}
-              </div>
+                )}
+              />
             </div>
           )}
 
-          {/* Próximos controles */}
           {datos.proximosControles && datos.proximosControles.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-5 mb-6 border-l-4 border-teal-500">
               <h3 className="text-lg font-bold text-gray-800 mb-4">📅 Próximos controles (30 días)</h3>
-              <div className="flex flex-col gap-2">
-                {datos.proximosControles.map((c, i) => (
+              <ListaConVerMas
+                items={datos.proximosControles}
+                limite={5}
+                renderItem={(c, i) => (
                   <div key={i} className="flex items-center justify-between p-3 bg-teal-50 rounded-lg">
                     <div>
                       <p className="font-semibold text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</p>
-                      <p className="text-xs text-gray-500">{c.telefono} · {c.profesional_nombre}</p>
+                      <p className="text-xs text-gray-500">{c.telefono} · {c.profesional_nombre} · <span className="capitalize">{c.tipo}</span></p>
                     </div>
                     <span className="text-sm font-bold text-teal-700">{new Date(c.proximo_control + 'T12:00:00').toLocaleDateString('es-CL')}</span>
                   </div>
-                ))}
-              </div>
+                )}
+              />
             </div>
           )}
 
-          {/* Gráfico atenciones */}
           {datos.atencionesPorMes && datos.atencionesPorMes.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
               <h3 className="text-lg font-bold text-gray-800 mb-4">📊 Atenciones realizadas (últimos 6 meses)</h3>
@@ -271,24 +262,24 @@ export default function Inicio() {
             </div>
           )}
 
-          {/* Actividad reciente */}
           {datos.logsRecientes && datos.logsRecientes.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
               <h3 className="text-lg font-bold text-gray-800 mb-4">📋 Actividad reciente</h3>
-              <div className="flex flex-col gap-2">
-                {datos.logsRecientes.map(l => (
-                  <div key={l.id} className="flex items-center gap-3 text-sm p-2 bg-gray-50 rounded-lg">
+              <ListaConVerMas
+                items={datos.logsRecientes}
+                limite={5}
+                renderItem={(l, i) => (
+                  <div key={i} className="flex items-center gap-3 text-sm p-2 bg-gray-50 rounded-lg">
                     <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${l.accion === 'crear' ? 'bg-green-100 text-green-700' : l.accion === 'editar' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'}`}>{l.accion}</span>
                     <span className="text-gray-600 capitalize">{l.entidad}</span>
                     <span className="text-gray-500">{l.detalle}</span>
                     <span className="text-gray-400 text-xs ml-auto">{l.usuario_nombre} · {new Date(l.created_at).toLocaleString('es-CL')}</span>
                   </div>
-                ))}
-              </div>
+                )}
+              />
             </div>
           )}
 
-          {/* Accesos rápidos */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link to="/pacientes" className="bg-green-700 text-white rounded-2xl p-5 hover:bg-green-800 transition-colors flex items-center gap-4 shadow-sm">
               <span className="text-4xl">👤</span>
