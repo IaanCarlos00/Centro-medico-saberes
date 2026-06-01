@@ -166,77 +166,93 @@ export default function Pap() {
         </select>
       </div>
 
-      <div className="flex flex-col gap-3">
-        {filtrados.map(p => (
-          <div key={p.id} className="bg-white rounded-xl shadow p-4">
-            {editandoId === p.id ? (
-              <div className="flex flex-col gap-3">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  <div className="flex flex-col">
-                    <label className="text-xs text-gray-500 mb-1">Paciente</label>
-                    <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.paciente_id} onChange={e => setFormEdit({ ...formEdit, paciente_id: e.target.value })}>
-                      {pacientes.map(pac => <option key={pac.id} value={pac.id}>{pac.nombre} {pac.apellido}</option>)}
-                    </select>
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="text-xs text-gray-500 mb-1">Profesional</label>
-                    <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.profesional_id} onChange={e => setFormEdit({ ...formEdit, profesional_id: e.target.value })}>
-                      <option value="">Sin profesional</option>
-                      {profesionales.map(pr => <option key={pr.id} value={pr.id}>{pr.nombre} {pr.apellido}</option>)}
-                    </select>
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="text-xs text-gray-500 mb-1">Nombre</label>
-                    <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.nombre} onChange={e => setFormEdit({ ...formEdit, nombre: e.target.value })} />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="text-xs text-gray-500 mb-1">Fecha toma</label>
-                    <input type="date" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.fecha_toma} onChange={e => setFormEdit({ ...formEdit, fecha_toma: e.target.value })} />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="text-xs text-gray-500 mb-1">Resultado</label>
-                    <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.resultado} onChange={e => setFormEdit({ ...formEdit, resultado: e.target.value })} />
-                  </div>
-                  <div className="flex flex-col">
-                    <label className="text-xs text-gray-500 mb-1">Estado envío</label>
-                    <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.estado_envio} onChange={e => setFormEdit({ ...formEdit, estado_envio: e.target.value })}>
-                      <option value="pendiente">Pendiente</option>
-                      <option value="enviado">Enviado</option>
-                    </select>
-                  </div>
-                  <div className="flex flex-col md:col-span-3">
-                    <label className="text-xs text-gray-500 mb-1">Notas</label>
-                    <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.notas} onChange={e => setFormEdit({ ...formEdit, notas: e.target.value })} />
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => guardarEdit(p.id)} className="flex-1 bg-green-700 text-white py-1.5 rounded-lg text-sm font-medium hover:bg-green-800">Guardar</button>
-                  <button onClick={() => setEditandoId(null)} className="flex-1 bg-gray-100 text-gray-700 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-200">Cancelar</button>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="font-semibold text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
-                  <p className="text-sm text-gray-500">{p.nombre || 'PAP'} · {formatFecha(p.fecha_toma)}</p>
-                  {p.profesional_nombre && <p className="text-xs text-gray-400">{p.profesional_nombre} {p.profesional_apellido}</p>}
-                  {p.resultado && <p className="text-xs text-green-700 font-medium mt-0.5">Resultado: {p.resultado}</p>}
-                  {p.notas && <p className="text-xs text-gray-400 mt-0.5">{p.notas}</p>}
-                </div>
-                <div className="flex flex-col items-end gap-2 ml-4">
-                  <button onClick={() => cambiarEstado(p.id, p.estado_envio === 'pendiente' ? 'enviado' : 'pendiente')} className={`px-2 py-1 rounded-full text-xs font-semibold cursor-pointer ${p.estado_envio === 'enviado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                    {p.estado_envio === 'enviado' ? '✓ Enviado' : '⏳ Pendiente'}
-                  </button>
-                  <div className="flex gap-2">
-                    <button onClick={() => iniciarEdit(p)} className="text-blue-600 hover:underline text-xs font-medium">Editar</button>
-                    <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-xs">Eliminar</button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-        {filtrados.length === 0 && <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">No hay PAP registrados</div>}
+      <div className="bg-white rounded-xl shadow overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-green-50 text-green-800 uppercase text-xs">
+            <tr>
+              <th className="px-4 py-3 text-left">Paciente</th>
+              <th className="px-4 py-3 text-left">Nombre</th>
+              <th className="px-4 py-3 text-left">Profesional</th>
+              <th className="px-4 py-3 text-left">Fecha toma</th>
+              <th className="px-4 py-3 text-left">Resultado</th>
+              <th className="px-4 py-3 text-left">Notas</th>
+              <th className="px-4 py-3 text-left">Estado envío</th>
+              <th className="px-4 py-3 text-left">Acciones</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {filtrados.map(p => (
+              <>
+                <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-4 py-3 font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</td>
+                  <td className="px-4 py-3 text-gray-600">{p.nombre || '—'}</td>
+                  <td className="px-4 py-3 text-gray-600">{p.profesional_nombre ? `${p.profesional_nombre} ${p.profesional_apellido}` : '—'}</td>
+                  <td className="px-4 py-3 text-gray-600">{formatFecha(p.fecha_toma)}</td>
+                  <td className="px-4 py-3 text-gray-600">{p.resultado || '—'}</td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{p.notas || '—'}</td>
+                  <td className="px-4 py-3">
+                    <button onClick={() => cambiarEstado(p.id, p.estado_envio === 'pendiente' ? 'enviado' : 'pendiente')} className={`px-2 py-1 rounded-full text-xs font-semibold cursor-pointer ${p.estado_envio === 'enviado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                      {p.estado_envio === 'enviado' ? '✓ Enviado' : '⏳ Pendiente'}
+                    </button>
+                  </td>
+                  <td className="px-4 py-3 flex gap-2">
+                    <button onClick={() => iniciarEdit(p)} className="text-blue-600 hover:underline text-sm font-medium">Editar</button>
+                    <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
+                  </td>
+                </tr>
+                {editandoId === p.id && (
+                  <tr key={`edit-${p.id}`} className="bg-green-50">
+                    <td colSpan="8" className="px-4 py-4">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                        <div className="flex flex-col">
+                          <label className="text-xs text-gray-500 mb-1">Paciente</label>
+                          <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.paciente_id} onChange={e => setFormEdit({ ...formEdit, paciente_id: e.target.value })}>
+                            {pacientes.map(pac => <option key={pac.id} value={pac.id}>{pac.nombre} {pac.apellido}</option>)}
+                          </select>
+                        </div>
+                        <div className="flex flex-col">
+                          <label className="text-xs text-gray-500 mb-1">Profesional</label>
+                          <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.profesional_id} onChange={e => setFormEdit({ ...formEdit, profesional_id: e.target.value })}>
+                            <option value="">Sin profesional</option>
+                            {profesionales.map(pr => <option key={pr.id} value={pr.id}>{pr.nombre} {pr.apellido}</option>)}
+                          </select>
+                        </div>
+                        <div className="flex flex-col">
+                          <label className="text-xs text-gray-500 mb-1">Nombre</label>
+                          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.nombre} onChange={e => setFormEdit({ ...formEdit, nombre: e.target.value })} />
+                        </div>
+                        <div className="flex flex-col">
+                          <label className="text-xs text-gray-500 mb-1">Fecha toma</label>
+                          <input type="date" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.fecha_toma} onChange={e => setFormEdit({ ...formEdit, fecha_toma: e.target.value })} />
+                        </div>
+                        <div className="flex flex-col">
+                          <label className="text-xs text-gray-500 mb-1">Resultado</label>
+                          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.resultado} onChange={e => setFormEdit({ ...formEdit, resultado: e.target.value })} />
+                        </div>
+                        <div className="flex flex-col">
+                          <label className="text-xs text-gray-500 mb-1">Estado envío</label>
+                          <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.estado_envio} onChange={e => setFormEdit({ ...formEdit, estado_envio: e.target.value })}>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="enviado">Enviado</option>
+                          </select>
+                        </div>
+                        <div className="flex flex-col md:col-span-2">
+                          <label className="text-xs text-gray-500 mb-1">Notas</label>
+                          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.notas} onChange={e => setFormEdit({ ...formEdit, notas: e.target.value })} />
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => guardarEdit(p.id)} className="bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-800">Guardar</button>
+                        <button onClick={() => setEditandoId(null)} className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-300">Cancelar</button>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </>
+            ))}
+            {filtrados.length === 0 && <tr><td colSpan="8" className="px-4 py-6 text-center text-gray-400">No hay PAP registrados</td></tr>}
+          </tbody>
+        </table>
       </div>
     </div>
   )
