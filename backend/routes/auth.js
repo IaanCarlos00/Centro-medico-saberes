@@ -72,11 +72,11 @@ router.put('/cambiar-password', async (req, res) => {
     const usuario = await pool.query('SELECT * FROM usuario WHERE email = $1', [email])
     if (usuario.rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' })
 
-    const valido = await bcrypt.compare(password_actual, usuario.rows[0].password)
+    const valido = await bcrypt.compare(password_actual, usuario.rows[0].password_hash)
     if (!valido) return res.status(401).json({ error: 'Contraseña actual incorrecta' })
 
     const hash = await bcrypt.hash(password_nuevo, 10)
-    await pool.query('UPDATE usuario SET password = $1 WHERE email = $2', [hash, email])
+    await pool.query('UPDATE usuario SET password_hash = $1 WHERE email = $2', [hash, email])
     res.json({ mensaje: 'Contraseña actualizada correctamente' })
   } catch (error) {
     res.status(500).json({ error: error.message })

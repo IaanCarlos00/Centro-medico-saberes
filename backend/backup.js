@@ -1,7 +1,7 @@
 const { exec } = require('child_process')
 const path = require('path')
 
-const DB_URL = 'postgresql://postgres:rarbAqBBQmGGHYcbpeJigNOaetZTGYLD@switchback.proxy.rlwy.net:55769/railway'
+const DB_URL = process.env.DATABASE_URL
 const fecha = new Date().toISOString().slice(0, 10)
 const archivo = path.join(__dirname, `backup_saberes_${fecha}.sql`)
 

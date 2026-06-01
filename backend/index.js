@@ -17,6 +17,7 @@ const flujosRouter = require('./routes/flujos');
 const encuestasRouter = require('./routes/encuestas');
 const archivosRouter = require('./routes/archivos');
 const logsRouter = require('./routes/logs');
+const auth = require('./middleware/auth');
 
 const app = express();
 const PORT = 3000;
@@ -27,25 +28,27 @@ app.use(cors({
     'https://saberes.cl',
     'https://www.saberes.cl'
   ]
-}))
+}));
 app.use(express.json());
 
-// Rutas
-app.use('/pacientes', pacientesRouter);
-app.use('/profesionales', profesionalesRouter);
-app.use('/citas', citasRouter);
-app.use('/fichas', fichasRouter);
+// Rutas públicas (sin token)
 app.use('/auth', authRouter);
-app.use('/dashboard', dashboardRouter);
-app.use('/fichas-ingreso', fichasIngresoRouter);
-app.use('/pagos', pagosRouter);
-app.use('/bloqueos', bloqueosRouter);
-app.use('/procedimientos', procedimientosRouter);
-app.use('/pap', papRouter);
-app.use('/flujos', flujosRouter);
 app.use('/encuestas', encuestasRouter);
-app.use('/archivos', archivosRouter);
-app.use('/logs', logsRouter);
+
+// Rutas protegidas (requieren token)
+app.use('/pacientes', auth, pacientesRouter);
+app.use('/profesionales', auth, profesionalesRouter);
+app.use('/citas', auth, citasRouter);
+app.use('/fichas', auth, fichasRouter);
+app.use('/dashboard', auth, dashboardRouter);
+app.use('/fichas-ingreso', auth, fichasIngresoRouter);
+app.use('/pagos', auth, pagosRouter);
+app.use('/bloqueos', auth, bloqueosRouter);
+app.use('/procedimientos', auth, procedimientosRouter);
+app.use('/pap', auth, papRouter);
+app.use('/flujos', auth, flujosRouter);
+app.use('/archivos', auth, archivosRouter);
+app.use('/logs', auth, logsRouter);
 
 // Ruta de prueba
 app.get('/', (req, res) => {
