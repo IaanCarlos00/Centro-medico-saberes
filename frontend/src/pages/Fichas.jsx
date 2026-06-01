@@ -25,7 +25,7 @@ export default function Fichas({ paciente, onVolver }) {
   const [fichasI1, setFichasI1] = useState([])
   const [fichasI2, setFichasI2] = useState([])
   const [profesionales, setProfesionales] = useState([])
-  const [form, setForm] = useState({ motivo_consulta: '', diagnostico: '', tratamiento: '', observaciones: '', profesional_id: '', fecha: hoyStr })
+  const [form, setForm] = useState({ motivo_consulta: '', diagnostico: '', tratamiento: '', observaciones: '', profesional_id: '', fecha: hoyStr, proximo_control: '' })
   const [editando, setEditando] = useState(null)
   const [errores, setErrores] = useState({})
   const [modalSelector, setModalSelector] = useState(false)
@@ -81,7 +81,7 @@ export default function Fichas({ paciente, onVolver }) {
     } else {
       await axios.post(API, { ...form, paciente_id: paciente.id })
     }
-    setForm({ motivo_consulta: '', diagnostico: '', tratamiento: '', observaciones: '', profesional_id: '', fecha: hoyStr })
+    setForm({ motivo_consulta: '', diagnostico: '', tratamiento: '', observaciones: '', profesional_id: '', fecha: hoyStr, proximo_control: '' })
     setErrores({})
     cargar()
     setVista(null)
@@ -94,7 +94,8 @@ export default function Fichas({ paciente, onVolver }) {
       tratamiento: f.tratamiento || '',
       observaciones: f.observaciones || '',
       profesional_id: f.profesional_id,
-      fecha: f.fecha?.slice(0, 10) || hoyStr
+      fecha: f.fecha?.slice(0, 10) || hoyStr,
+      proximo_control: f.proximo_control?.slice(0, 10) || ''
     })
     setEditando(f.id)
     setVista('control')
@@ -284,6 +285,10 @@ export default function Fichas({ paciente, onVolver }) {
         <textarea className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="diagnostico" placeholder="Diagnóstico" rows={2} value={form.diagnostico} onChange={handleChange} />
         <textarea className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="tratamiento" placeholder="Tratamiento" rows={2} value={form.tratamiento} onChange={handleChange} />
         <textarea className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="observaciones" placeholder="Observaciones" rows={2} value={form.observaciones} onChange={handleChange} />
+        <div className="flex flex-col">
+          <label className="text-sm text-gray-600 mb-1">Próximo control (opcional)</label>
+          <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="proximo_control" type="date" value={form.proximo_control || ''} onChange={handleChange} />
+        </div>
       </div>
       <div className="flex gap-3 mt-4">
         <button onClick={guardar} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">{editando ? 'Actualizar' : 'Guardar ficha'}</button>
