@@ -208,6 +208,23 @@ export default function Inicio() {
             </div>
           )}
 
+          {datos.proximosControles && datos.proximosControles.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-sm p-5 mb-6 border-l-4 border-teal-500">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">📅 Próximos controles (30 días)</h3>
+              <div className="flex flex-col gap-2">
+                {datos.proximosControles.map((c, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-teal-50 rounded-lg">
+                    <div>
+                      <p className="font-semibold text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</p>
+                      <p className="text-xs text-gray-500">{c.telefono} · {c.profesional_nombre}</p>
+                    </div>
+                    <span className="text-sm font-bold text-teal-700">{new Date(c.proximo_control + 'T12:00:00').toLocaleDateString('es-CL')}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Accesos rápidos */}
           {datos.atencionesPorMes && datos.atencionesPorMes.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
