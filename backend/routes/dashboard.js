@@ -17,7 +17,11 @@ router.get('/', async (req, res) => {
       proximasCitas,
       pacientesDeuda,
       atencionesPorMes,
-      logsRecientes
+      logsRecientes,
+      atencionesMes,
+      atencionesTotal,
+      controlsMes,
+      controlsTotal
     ] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM paciente'),
       pool.query('SELECT COUNT(*) FROM profesional'),
@@ -57,8 +61,11 @@ router.get('/', async (req, res) => {
         GROUP BY TO_CHAR(fecha_hora, 'YYYY-MM'), TO_CHAR(fecha_hora, 'Mon')
         ORDER BY mes ASC
       `),
-      pool.query(`SELECT * FROM log_actividad ORDER BY created_at DESC LIMIT 10`)
-      
+      pool.query(`SELECT * FROM log_actividad ORDER BY created_at DESC LIMIT 10`),
+      pool.query(`SELECT COUNT(*) FROM cita WHERE estado = 'realizada' AND DATE_TRUNC('month', fecha_hora) = DATE_TRUNC('month', NOW())`),
+      pool.query(`SELECT COUNT(*) FROM cita WHERE estado = 'realizada'`),
+      pool.query(`SELECT COUNT(*) FROM ficha_clinica WHERE DATE_TRUNC('month', fecha) = DATE_TRUNC('month', NOW())`),
+      pool.query(`SELECT COUNT(*) FROM ficha_clinica`)
     ])
 
     res.json({
@@ -74,7 +81,11 @@ router.get('/', async (req, res) => {
       proximasCitas: proximasCitas.rows,
       pacientesDeuda: pacientesDeuda.rows,
       atencionesPorMes: atencionesPorMes.rows,
-      logsRecientes: logsRecientes.rows
+      logsRecientes: logsRecientes.rows,
+      atencionesMes: parseInt(atencionesMes.rows[0].count),
+      atencionesTotal: parseInt(atencionesTotal.rows[0].count),
+      controlsMes: parseInt(controlsMes.rows[0].count),
+      controlsTotal: parseInt(controlsTotal.rows[0].count)
     })
   } catch (error) {
     res.status(500).json({ error: error.message })

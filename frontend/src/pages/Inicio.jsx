@@ -65,7 +65,7 @@ export default function Inicio() {
       ) : (
         <>
           {/* Tarjetas principales */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
             <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-green-600 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-2xl">👤</span>
@@ -100,6 +100,26 @@ export default function Inicio() {
               </div>
               <p className="text-4xl font-bold text-gray-800">{datos.pacientesDeuda.length}</p>
               <p className="text-gray-500 text-sm mt-1">Con pago pendiente</p>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-teal-500 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-2xl">🏥</span>
+                <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full font-medium">Este mes</span>
+              </div>
+              <p className="text-4xl font-bold text-gray-800">{datos.atencionesMes}</p>
+              <p className="text-gray-500 text-sm mt-1">Atenciones del mes</p>
+              <p className="text-xs text-gray-400 mt-1">Total: {datos.atencionesTotal}</p>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-indigo-500 hover:shadow-md transition-shadow">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-2xl">📋</span>
+                <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full font-medium">Este mes</span>
+              </div>
+              <p className="text-4xl font-bold text-gray-800">{datos.controlsMes}</p>
+              <p className="text-gray-500 text-sm mt-1">Controles del mes</p>
+              <p className="text-xs text-gray-400 mt-1">Total: {datos.controlsTotal}</p>
             </div>
           </div>
 
