@@ -65,9 +65,9 @@ export default function Inicio() {
       ) : (
         <>
           {/* Tarjetas principales */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-green-600 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-green-600">
+              <div className="flex items-center justify-between mb-2">
                 <span className="text-2xl">👤</span>
                 <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">Total</span>
               </div>
@@ -75,17 +75,8 @@ export default function Inicio() {
               <p className="text-gray-500 text-sm mt-1">Pacientes</p>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-orange-500 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-2xl">🩺</span>
-                <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium">Total</span>
-              </div>
-              <p className="text-4xl font-bold text-gray-800">{datos.totalProfesionales}</p>
-              <p className="text-gray-500 text-sm mt-1">Profesionales</p>
-            </div>
-
-            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-blue-500 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-3">
+            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-blue-500">
+              <div className="flex items-center justify-between mb-2">
                 <span className="text-2xl">📅</span>
                 <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">Hoy</span>
               </div>
@@ -93,33 +84,67 @@ export default function Inicio() {
               <p className="text-gray-500 text-sm mt-1">Citas programadas</p>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-red-400 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-3">
+            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-teal-500">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-2xl">🏥</span>
+                <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full font-medium">Este mes</span>
+              </div>
+              <p className="text-4xl font-bold text-gray-800">{datos.atencionesMes}</p>
+              <p className="text-gray-500 text-sm mt-1">Atenciones del mes</p>
+              <p className="text-xs text-gray-400 mt-1">Total histórico: {datos.atencionesTotal}</p>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-red-400">
+              <div className="flex items-center justify-between mb-2">
                 <span className="text-2xl">💰</span>
                 <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-medium">Deuda</span>
               </div>
               <p className="text-4xl font-bold text-gray-800">{datos.pacientesDeuda.length}</p>
               <p className="text-gray-500 text-sm mt-1">Con pago pendiente</p>
             </div>
+          </div>
 
-            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-teal-500 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-2xl">🏥</span>
-                <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full font-medium">Este mes</span>
+          {/* Ingresos y atenciones por profesional */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="bg-white rounded-2xl shadow-sm p-5">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">💵 Ingresos</h3>
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl">
+                  <div>
+                    <p className="text-sm text-gray-500">Este mes</p>
+                    <p className="text-2xl font-bold text-green-800">{formatCLP(datos.ingresosMes)}</p>
+                  </div>
+                  <span className="text-3xl">📈</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                  <div>
+                    <p className="text-sm text-gray-500">Total histórico</p>
+                    <p className="text-2xl font-bold text-gray-800">{formatCLP(datos.ingresosTotal)}</p>
+                  </div>
+                  <span className="text-3xl">🏦</span>
+                </div>
               </div>
-              <p className="text-4xl font-bold text-gray-800">{datos.atencionesMes}</p>
-              <p className="text-gray-500 text-sm mt-1">Atenciones del mes</p>
-              <p className="text-xs text-gray-400 mt-1">Total: {datos.atencionesTotal}</p>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-indigo-500 hover:shadow-md transition-shadow">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-2xl">📋</span>
-                <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full font-medium">Este mes</span>
+            <div className="bg-white rounded-2xl shadow-sm p-5">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">🩺 Atenciones por profesional</h3>
+              <div className="flex flex-col gap-2">
+                {datos.atencionesPorProfesional?.map((p, i) => (
+                  <div key={i} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                    <p className="font-medium text-gray-800">{p.nombre} {p.apellido}</p>
+                    <div className="flex gap-6 text-sm">
+                      <div className="text-center">
+                        <p className="font-bold text-teal-700">{p.mes}</p>
+                        <p className="text-xs text-gray-400">este mes</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-bold text-gray-700">{p.total}</p>
+                        <p className="text-xs text-gray-400">total</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <p className="text-4xl font-bold text-gray-800">{datos.controlsMes}</p>
-              <p className="text-gray-500 text-sm mt-1">Controles del mes</p>
-              <p className="text-xs text-gray-400 mt-1">Total: {datos.controlsTotal}</p>
             </div>
           </div>
 
@@ -208,6 +233,7 @@ export default function Inicio() {
             </div>
           )}
 
+          {/* Próximos controles */}
           {datos.proximosControles && datos.proximosControles.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-5 mb-6 border-l-4 border-teal-500">
               <h3 className="text-lg font-bold text-gray-800 mb-4">📅 Próximos controles (30 días)</h3>
@@ -225,7 +251,7 @@ export default function Inicio() {
             </div>
           )}
 
-          {/* Accesos rápidos */}
+          {/* Gráfico atenciones */}
           {datos.atencionesPorMes && datos.atencionesPorMes.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
               <h3 className="text-lg font-bold text-gray-800 mb-4">📊 Atenciones realizadas (últimos 6 meses)</h3>
@@ -246,21 +272,23 @@ export default function Inicio() {
           )}
 
           {/* Actividad reciente */}
-            {datos.logsRecientes && datos.logsRecientes.length > 0 && (
-              <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
-                <h3 className="text-lg font-bold text-gray-800 mb-4">📋 Actividad reciente</h3>
-                <div className="flex flex-col gap-2">
-                  {datos.logsRecientes.map(l => (
-                    <div key={l.id} className="flex items-center gap-3 text-sm p-2 bg-gray-50 rounded-lg">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${l.accion === 'crear' ? 'bg-green-100 text-green-700' : l.accion === 'editar' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'}`}>{l.accion}</span>
-                      <span className="text-gray-600 capitalize">{l.entidad}</span>
-                      <span className="text-gray-500">{l.detalle}</span>
-                      <span className="text-gray-400 text-xs ml-auto">{l.usuario_nombre} · {new Date(l.created_at).toLocaleString('es-CL')}</span>
-                    </div>
-                  ))}
-                </div>
+          {datos.logsRecientes && datos.logsRecientes.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
+              <h3 className="text-lg font-bold text-gray-800 mb-4">📋 Actividad reciente</h3>
+              <div className="flex flex-col gap-2">
+                {datos.logsRecientes.map(l => (
+                  <div key={l.id} className="flex items-center gap-3 text-sm p-2 bg-gray-50 rounded-lg">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${l.accion === 'crear' ? 'bg-green-100 text-green-700' : l.accion === 'editar' ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'}`}>{l.accion}</span>
+                    <span className="text-gray-600 capitalize">{l.entidad}</span>
+                    <span className="text-gray-500">{l.detalle}</span>
+                    <span className="text-gray-400 text-xs ml-auto">{l.usuario_nombre} · {new Date(l.created_at).toLocaleString('es-CL')}</span>
+                  </div>
+                ))}
               </div>
-            )}
+            </div>
+          )}
+
+          {/* Accesos rápidos */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Link to="/pacientes" className="bg-green-700 text-white rounded-2xl p-5 hover:bg-green-800 transition-colors flex items-center gap-4 shadow-sm">
               <span className="text-4xl">👤</span>
@@ -269,18 +297,18 @@ export default function Inicio() {
                 <p className="text-green-200 text-sm">Registrar o buscar</p>
               </div>
             </Link>
-            <Link to="/profesionales" className="bg-orange-500 text-white rounded-2xl p-5 hover:bg-orange-600 transition-colors flex items-center gap-4 shadow-sm">
-              <span className="text-4xl">🩺</span>
+            <Link to="/citas" className="bg-blue-600 text-white rounded-2xl p-5 hover:bg-blue-700 transition-colors flex items-center gap-4 shadow-sm">
+              <span className="text-4xl">📅</span>
               <div>
-                <p className="font-bold text-lg">Profesionales</p>
-                <p className="text-orange-100 text-sm">Gestionar equipo</p>
+                <p className="font-bold text-lg">Agenda</p>
+                <p className="text-blue-100 text-sm">Ver o agendar citas</p>
               </div>
             </Link>
-            <Link to="/pagos" className="bg-blue-600 text-white rounded-2xl p-5 hover:bg-blue-700 transition-colors flex items-center gap-4 shadow-sm">
+            <Link to="/pagos" className="bg-teal-600 text-white rounded-2xl p-5 hover:bg-teal-700 transition-colors flex items-center gap-4 shadow-sm">
               <span className="text-4xl">💰</span>
               <div>
                 <p className="font-bold text-lg">Pagos</p>
-                <p className="text-blue-100 text-sm">Registrar o revisar</p>
+                <p className="text-teal-100 text-sm">Registrar o revisar</p>
               </div>
             </Link>
           </div>

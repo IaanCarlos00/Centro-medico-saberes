@@ -128,6 +128,83 @@ export default function Pagos() {
     setMostrarForm(false)
   }
 
+  const imprimirBoleta = (pago) => {
+    const ventana = window.open('', '_blank')
+    ventana.document.write(`
+      <html>
+      <head>
+        <title>Boleta — ${pago.paciente_nombre} ${pago.paciente_apellido}</title>
+        <style>
+          body { font-family: Arial, sans-serif; max-width: 400px; margin: 40px auto; color: #333; }
+          h1 { color: #166534; font-size: 22px; margin: 0; text-align: center; }
+          .subtitulo { color: #6b7280; font-size: 13px; text-align: center; margin-bottom: 20px; }
+          .linea { border-top: 2px solid #166534; margin: 16px 0; }
+          .linea-delgada { border-top: 1px dashed #d1d5db; margin: 10px 0; }
+          .fila { display: flex; justify-content: space-between; margin: 8px 0; font-size: 14px; }
+          .label { color: #6b7280; }
+          .valor { font-weight: bold; }
+          .total-label { font-size: 16px; font-weight: bold; }
+          .total-valor { font-size: 22px; color: #166534; font-weight: bold; }
+          .estado { 
+            display: inline-block; padding: 4px 12px; border-radius: 20px; 
+            font-size: 12px; font-weight: bold;
+            background: ${pago.estado === 'pagado' ? '#dcfce7' : '#fef9c3'};
+            color: ${pago.estado === 'pagado' ? '#166534' : '#854d0e'};
+          }
+          .pie { text-align: center; margin-top: 30px; color: #9ca3af; font-size: 12px; }
+          @media print { button { display: none; } }
+        </style>
+      </head>
+      <body>
+        <h1>Saberes</h1>
+        <p class="subtitulo">Espacio de Salud Integral</p>
+        <div class="linea"></div>
+        <div class="fila">
+          <span class="label">Fecha:</span>
+          <span class="valor">${new Date(pago.fecha).toLocaleDateString('es-CL')}</span>
+        </div>
+        <div class="fila">
+          <span class="label">N° boleta:</span>
+          <span class="valor">#${pago.id}</span>
+        </div>
+        <div class="linea-delgada"></div>
+        <div class="fila">
+          <span class="label">Paciente:</span>
+          <span class="valor">${pago.paciente_nombre} ${pago.paciente_apellido}</span>
+        </div>
+        ${pago.paciente_rut ? `
+        <div class="fila">
+          <span class="label">RUT:</span>
+          <span class="valor">${pago.paciente_rut}</span>
+        </div>` : ''}
+        <div class="linea-delgada"></div>
+        <div class="fila">
+          <span class="label">Concepto:</span>
+          <span class="valor">${pago.notas || 'Atención médica'}</span>
+        </div>
+        <div class="fila">
+          <span class="label">Método de pago:</span>
+          <span class="valor" style="text-transform:capitalize">${pago.metodo}</span>
+        </div>
+        <div class="linea"></div>
+        <div class="fila">
+          <span class="total-label">Total:</span>
+          <span class="total-valor">${formatCLP(pago.monto)}</span>
+        </div>
+        <div style="text-align:right; margin-top: 8px;">
+          <span class="estado">${pago.estado === 'pagado' ? '✓ Pagado' : '⏳ Pendiente'}</span>
+        </div>
+        <div class="pie">
+          <p>Saberes — saberes.cl</p>
+          <p>Gracias por su confianza</p>
+        </div>
+        <script>window.onload = () => window.print()</script>
+      </body>
+      </html>
+    `)
+    ventana.document.close()
+  }
+
   const filtrados = pagos.filter(p => {
     const q = busqueda.toLowerCase()
     const coincideBusqueda = !busqueda ||
@@ -143,7 +220,6 @@ export default function Pagos() {
     <div>
       <h2 className="text-2xl font-bold text-green-800 mb-6">Pagos</h2>
 
-      {/* Resumen */}
       {resumen && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-green-600">
@@ -175,91 +251,67 @@ export default function Pagos() {
       )}
 
       {/* Bonos pendientes */}
-        {pagos.filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono).length > 0 && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
-            <h3 className="text-sm font-bold text-yellow-800 mb-3">⏳ Bonos Fonasa pendientes de verificar ({pagos.filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono).length})</h3>
-            <div className="flex flex-col gap-2">
-              {pagos.filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono).map(p => (
-                <div key={p.id} className="flex items-center justify-between bg-white rounded-lg p-3">
-                  <div>
-                    <p className="text-sm font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
-                    <p className="text-xs text-gray-500">🏥 Bono: {p.numero_bono} · {new Date(p.fecha).toLocaleDateString('es-CL')}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={async () => {
-                      await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'verificado' })
-                      cargar()
-                    }} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium">✅ Verificado</button>
-                    <button onClick={async () => {
-                      await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'rechazado' })
-                      cargar()
-                    }} className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-lg hover:bg-red-200 font-medium">❌ Rechazado</button>
-                  </div>
+      {pagos.filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono).length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+          <h3 className="text-sm font-bold text-yellow-800 mb-3">⏳ Bonos Fonasa pendientes de verificar ({pagos.filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono).length})</h3>
+          <div className="flex flex-col gap-2">
+            {pagos.filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono).map(p => (
+              <div key={p.id} className="flex items-center justify-between bg-white rounded-lg p-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
+                  <p className="text-xs text-gray-500">🏥 Bono: {p.numero_bono} · {new Date(p.fecha).toLocaleDateString('es-CL')}</p>
                 </div>
-              ))}
-            </div>
+                <div className="flex gap-2">
+                  <button onClick={async () => { await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'verificado' }); cargar() }} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium">✅ Verificado</button>
+                  <button onClick={async () => { await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'rechazado' }); cargar() }} className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-lg hover:bg-red-200 font-medium">❌ Rechazado</button>
+                </div>
+              </div>
+            ))}
           </div>
-        )}
+        </div>
+      )}
 
-      {/* Botón nuevo pago */}
       <div className="flex justify-end mb-4">
-        <button
-          onClick={() => { setMostrarForm(!mostrarForm); if (mostrarForm) cancelar() }}
-          className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium transition-colors"
-        >
+        <button onClick={() => { setMostrarForm(!mostrarForm); if (mostrarForm) cancelar() }} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium transition-colors">
           {mostrarForm ? 'Cancelar' : '+ Registrar pago'}
         </button>
       </div>
 
-      {/* Formulario */}
       {mostrarForm && (
         <div className="bg-white rounded-xl shadow p-5 mb-6">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">{editando ? 'Editar pago' : 'Registrar nuevo pago'}</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-
-            {/* Buscador paciente */}
             <div className="flex flex-col relative" ref={dropdownRef}>
               <label className="text-sm text-gray-600 mb-1">Paciente</label>
               <input
                 className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.paciente_id ? 'border-red-400' : 'border-gray-300'}`}
                 placeholder="Buscar por nombre, apellido o RUT..."
                 value={busquedaPaciente}
-                onChange={e => {
-                  setBusquedaPaciente(e.target.value)
-                  setMostrarDropdown(true)
-                  setForm(f => ({ ...f, paciente_id: '' }))
-                  setErrores(er => ({ ...er, paciente_id: '' }))
-                }}
+                onChange={e => { setBusquedaPaciente(e.target.value); setMostrarDropdown(true); setForm(f => ({ ...f, paciente_id: '' })); setErrores(er => ({ ...er, paciente_id: '' })) }}
                 onFocus={() => setMostrarDropdown(true)}
               />
               {errores.paciente_id && <span className="text-red-500 text-xs mt-1">{errores.paciente_id}</span>}
               {mostrarDropdown && busquedaPaciente.length > 0 && (
                 <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto mt-1">
-                  {pacientesFiltrados.length === 0 ? (
-                    <p className="px-3 py-2 text-sm text-gray-400">No se encontraron pacientes</p>
-                  ) : (
-                    pacientesFiltrados.map(p => (
+                  {pacientesFiltrados.length === 0
+                    ? <p className="px-3 py-2 text-sm text-gray-400">No se encontraron pacientes</p>
+                    : pacientesFiltrados.map(p => (
                       <button key={p.id} className="w-full text-left px-3 py-2 hover:bg-green-50 text-sm border-b border-gray-100 last:border-0" onClick={() => seleccionarPaciente(p)}>
                         <span className="font-medium text-gray-800">{p.nombre} {p.apellido}</span>
                         {p.rut && <span className="text-gray-400 ml-2 text-xs">{p.rut}</span>}
                       </button>
                     ))
-                  )}
+                  }
                 </div>
               )}
             </div>
 
-            {/* Monto */}
             <div className="flex flex-col">
               <label className="text-sm text-gray-600 mb-1">Monto ($)</label>
-              <input
-                className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.monto ? 'border-red-400' : 'border-gray-300'}`}
-                name="monto" type="number" placeholder="25000" value={form.monto} onChange={handleChange}
-              />
+              <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.monto ? 'border-red-400' : 'border-gray-300'}`} name="monto" type="number" placeholder="25000" value={form.monto} onChange={handleChange} />
               {errores.monto && <span className="text-red-500 text-xs mt-1">{errores.monto}</span>}
             </div>
 
-            {/* Método */}
             <div className="flex flex-col">
               <label className="text-sm text-gray-600 mb-1">Método de pago</label>
               <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="metodo" value={form.metodo} onChange={handleChange}>
@@ -271,7 +323,6 @@ export default function Pagos() {
               </select>
             </div>
 
-            {/* Estado */}
             <div className="flex flex-col">
               <label className="text-sm text-gray-600 mb-1">Estado</label>
               <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="estado" value={form.estado} onChange={handleChange}>
@@ -297,29 +348,22 @@ export default function Pagos() {
                 </div>
               </>
             )}
+
             <div className="flex flex-col sm:col-span-2">
               <label className="text-sm text-gray-600 mb-1">Notas (opcional)</label>
               <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="notas" placeholder="Ej: Control mensual, primera consulta..." value={form.notas} onChange={handleChange} />
             </div>
-
           </div>
           <div className="flex gap-3 mt-4">
-            <button onClick={guardar} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">
-              {editando ? 'Actualizar' : 'Registrar pago'}
-            </button>
+            <button onClick={guardar} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">{editando ? 'Actualizar' : 'Registrar pago'}</button>
             <button onClick={cancelar} className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 font-medium">Cancelar</button>
           </div>
         </div>
       )}
 
-      {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="relative flex-1">
-          <input
-            className="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-green-400"
-            placeholder="Buscar por paciente, RUT o notas..."
-            value={busqueda} onChange={e => setBusqueda(e.target.value)}
-          />
+          <input className="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="Buscar por paciente, RUT o notas..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
           <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
           {busqueda && <button onClick={() => setBusqueda('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">✕</button>}
         </div>
@@ -339,7 +383,7 @@ export default function Pagos() {
         </select>
       </div>
 
-      {/* Tabla escritorio */}
+      {/* Tabla desktop */}
       <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-green-50 text-green-800 uppercase text-xs">
@@ -372,9 +416,14 @@ export default function Pagos() {
                   {p.notas}
                   {p.numero_bono && <p className="text-blue-600">🏥 Bono: {p.numero_bono} <span className={`px-1 rounded text-xs ${p.estado_bono === 'verificado' ? 'bg-green-100 text-green-700' : p.estado_bono === 'rechazado' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_bono}</span></p>}
                 </td>
-                <td className="px-4 py-3 flex gap-2">
-                  <button onClick={() => editar(p)} className="text-green-700 hover:underline text-sm font-medium">Editar</button>
-                  <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
+                <td className="px-4 py-3">
+                  <div className="flex gap-2 flex-wrap">
+                    {(p.metodo === 'efectivo' || p.metodo === 'transferencia') && (
+                      <button onClick={() => imprimirBoleta(p)} className="text-green-700 hover:underline text-sm font-medium">🧾 Boleta</button>
+                    )}
+                    <button onClick={() => editar(p)} className="text-blue-600 hover:underline text-sm font-medium">Editar</button>
+                    <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -401,8 +450,11 @@ export default function Pagos() {
               <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
             </div>
             {p.notas && <p className="text-xs text-gray-400 mb-2">{p.notas}</p>}
-            <div className="flex gap-3">
-              <button onClick={() => editar(p)} className="text-green-700 text-sm font-medium">Editar</button>
+            <div className="flex gap-3 flex-wrap">
+              {(p.metodo === 'efectivo' || p.metodo === 'transferencia') && (
+                <button onClick={() => imprimirBoleta(p)} className="text-green-700 text-sm font-medium">🧾 Boleta</button>
+              )}
+              <button onClick={() => editar(p)} className="text-blue-600 text-sm font-medium">Editar</button>
               <button onClick={() => eliminar(p.id)} className="text-red-500 text-sm font-medium">Eliminar</button>
             </div>
           </div>

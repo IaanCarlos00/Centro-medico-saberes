@@ -22,7 +22,10 @@ router.get('/', async (req, res) => {
       atencionesTotal,
       controlsMes,
       controlsTotal,
-      proximosControles
+      proximosControles,
+      atencionesPorProfesional,
+      ingresosMes,
+      ingresosTotal
     ] = await Promise.all([
       pool.query('SELECT COUNT(*) FROM paciente'),
       pool.query('SELECT COUNT(*) FROM profesional'),
@@ -79,6 +82,28 @@ router.get('/', async (req, res) => {
           AND f.proximo_control <= CURRENT_DATE + INTERVAL '30 days'
         ORDER BY f.proximo_control ASC
         LIMIT 10
+      `),
+      pool.query(`
+        SELECT 
+          pr.nombre, pr.apellido,
+          COUNT(*) FILTER (WHERE DATE_TRUNC('month', c.fecha_hora) = DATE_TRUNC('month', NOW())) AS mes,
+          COUNT(*) AS total
+        FROM cita c
+        JOIN profesional pr ON c.profesional_id = pr.id
+        WHERE c.estado = 'realizada'
+        GROUP BY pr.id, pr.nombre, pr.apellido
+        ORDER BY total DESC
+      `),
+      pool.query(`
+        SELECT COALESCE(SUM(monto), 0) AS total
+        FROM pago 
+        WHERE estado = 'pagado' 
+        AND DATE_TRUNC('month', fecha) = DATE_TRUNC('month', NOW())
+      `),
+      pool.query(`
+        SELECT COALESCE(SUM(monto), 0) AS total
+        FROM pago 
+        WHERE estado = 'pagado'
       `)
     ])
 
@@ -99,8 +124,11 @@ router.get('/', async (req, res) => {
       atencionesMes: parseInt(atencionesMes.rows[0].count),
       atencionesTotal: parseInt(atencionesTotal.rows[0].count),
       controlsMes: parseInt(controlsMes.rows[0].count),
-      ccontrolsTotal: parseInt(controlsTotal.rows[0].count),
-      proximosControles: proximosControles.rows
+      controlsTotal: parseInt(controlsTotal.rows[0].count),
+      proximosControles: proximosControles.rows,
+      atencionesPorProfesional: atencionesPorProfesional.rows,
+      ingresosMes: parseFloat(ingresosMes.rows[0].total),
+      ingresosTotal: parseFloat(ingresosTotal.rows[0].total)
     })
   } catch (error) {
     res.status(500).json({ error: error.message })
