@@ -31,6 +31,11 @@ function formatCLP(n) {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(n)
 }
 
+const formInicial = {
+  paciente_id: '', monto: '', metodo: 'debito', estado: 'pagado',
+  notas: '', numero_bono: '', estado_bono: 'pendiente', estado_boleta: 'pendiente'
+}
+
 export default function Pagos() {
   const [pagos, setPagos] = useState([])
   const [pacientes, setPacientes] = useState([])
@@ -40,7 +45,7 @@ export default function Pagos() {
   const [filtroMetodo, setFiltroMetodo] = useState('')
   const [mostrarForm, setMostrarForm] = useState(false)
   const [editando, setEditando] = useState(null)
-  const [form, setForm] = useState({ paciente_id: '', monto: '', metodo: 'debito', estado: 'pagado', notas: '', numero_bono: '', estado_bono: 'pendiente' })
+  const [form, setForm] = useState(formInicial)
   const [errores, setErrores] = useState({})
   const [busquedaPaciente, setBusquedaPaciente] = useState('')
   const [mostrarDropdown, setMostrarDropdown] = useState(false)
@@ -98,7 +103,7 @@ export default function Pagos() {
       await axios.post(API, form)
       await registrarLog('crear', 'pago', null, `Pago de ${busquedaPaciente}`)
     }
-    setForm({ paciente_id: '', monto: '', metodo: 'debito', estado: 'pagado', notas: '' })
+    setForm(formInicial)
     setBusquedaPaciente('')
     setErrores({})
     setMostrarForm(false)
@@ -106,7 +111,16 @@ export default function Pagos() {
   }
 
   const editar = p => {
-    setForm({ paciente_id: p.paciente_id, monto: p.monto, metodo: p.metodo, estado: p.estado, notas: p.notas || '', numero_bono: p.numero_bono || '', estado_bono: p.estado_bono || 'pendiente' })
+    setForm({
+      paciente_id: p.paciente_id,
+      monto: p.monto,
+      metodo: p.metodo,
+      estado: p.estado,
+      notas: p.notas || '',
+      numero_bono: p.numero_bono || '',
+      estado_bono: p.estado_bono || 'pendiente',
+      estado_boleta: p.estado_boleta || 'pendiente'
+    })
     setBusquedaPaciente(`${p.paciente_nombre} ${p.paciente_apellido}`)
     setEditando(p.id)
     setMostrarForm(true)
@@ -115,94 +129,23 @@ export default function Pagos() {
   const eliminar = async id => {
     if (confirm('¿Eliminar pago?')) {
       await axios.delete(`${API}/${id}`)
-      await registrarLog('eliminar', 'pago', id, `Pago eliminado`)
+      await registrarLog('eliminar', 'pago', id, 'Pago eliminado')
       cargar()
     }
   }
 
   const cancelar = () => {
     setEditando(null)
-    setForm({ paciente_id: '', monto: '', metodo: 'debito', estado: 'pagado', notas: '', numero_bono: '', estado_bono: 'pendiente' })
+    setForm(formInicial)
     setBusquedaPaciente('')
     setErrores({})
     setMostrarForm(false)
   }
 
-  const imprimirBoleta = (pago) => {
-    const ventana = window.open('', '_blank')
-    ventana.document.write(`
-      <html>
-      <head>
-        <title>Boleta — ${pago.paciente_nombre} ${pago.paciente_apellido}</title>
-        <style>
-          body { font-family: Arial, sans-serif; max-width: 400px; margin: 40px auto; color: #333; }
-          h1 { color: #166534; font-size: 22px; margin: 0; text-align: center; }
-          .subtitulo { color: #6b7280; font-size: 13px; text-align: center; margin-bottom: 20px; }
-          .linea { border-top: 2px solid #166534; margin: 16px 0; }
-          .linea-delgada { border-top: 1px dashed #d1d5db; margin: 10px 0; }
-          .fila { display: flex; justify-content: space-between; margin: 8px 0; font-size: 14px; }
-          .label { color: #6b7280; }
-          .valor { font-weight: bold; }
-          .total-label { font-size: 16px; font-weight: bold; }
-          .total-valor { font-size: 22px; color: #166534; font-weight: bold; }
-          .estado { 
-            display: inline-block; padding: 4px 12px; border-radius: 20px; 
-            font-size: 12px; font-weight: bold;
-            background: ${pago.estado === 'pagado' ? '#dcfce7' : '#fef9c3'};
-            color: ${pago.estado === 'pagado' ? '#166534' : '#854d0e'};
-          }
-          .pie { text-align: center; margin-top: 30px; color: #9ca3af; font-size: 12px; }
-          @media print { button { display: none; } }
-        </style>
-      </head>
-      <body>
-        <h1>Saberes</h1>
-        <p class="subtitulo">Espacio de Salud Integral</p>
-        <div class="linea"></div>
-        <div class="fila">
-          <span class="label">Fecha:</span>
-          <span class="valor">${new Date(pago.fecha).toLocaleDateString('es-CL')}</span>
-        </div>
-        <div class="fila">
-          <span class="label">N° boleta:</span>
-          <span class="valor">#${pago.id}</span>
-        </div>
-        <div class="linea-delgada"></div>
-        <div class="fila">
-          <span class="label">Paciente:</span>
-          <span class="valor">${pago.paciente_nombre} ${pago.paciente_apellido}</span>
-        </div>
-        ${pago.paciente_rut ? `
-        <div class="fila">
-          <span class="label">RUT:</span>
-          <span class="valor">${pago.paciente_rut}</span>
-        </div>` : ''}
-        <div class="linea-delgada"></div>
-        <div class="fila">
-          <span class="label">Concepto:</span>
-          <span class="valor">${pago.notas || 'Atención médica'}</span>
-        </div>
-        <div class="fila">
-          <span class="label">Método de pago:</span>
-          <span class="valor" style="text-transform:capitalize">${pago.metodo}</span>
-        </div>
-        <div class="linea"></div>
-        <div class="fila">
-          <span class="total-label">Total:</span>
-          <span class="total-valor">${formatCLP(pago.monto)}</span>
-        </div>
-        <div style="text-align:right; margin-top: 8px;">
-          <span class="estado">${pago.estado === 'pagado' ? '✓ Pagado' : '⏳ Pendiente'}</span>
-        </div>
-        <div class="pie">
-          <p>Saberes — saberes.cl</p>
-          <p>Gracias por su confianza</p>
-        </div>
-        <script>window.onload = () => window.print()</script>
-      </body>
-      </html>
-    `)
-    ventana.document.close()
+  const toggleBoleta = async p => {
+    const nuevo = p.estado_boleta === 'pendiente' ? 'emitida' : 'pendiente'
+    await axios.put(`${API}/${p.id}`, { ...p, estado_boleta: nuevo })
+    cargar()
   }
 
   const filtrados = pagos.filter(p => {
@@ -250,7 +193,7 @@ export default function Pagos() {
         </div>
       )}
 
-      {/* Bonos pendientes */}
+      {/* Bonos Fonasa pendientes */}
       {pagos.filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono).length > 0 && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
           <h3 className="text-sm font-bold text-yellow-800 mb-3">⏳ Bonos Fonasa pendientes de verificar ({pagos.filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono).length})</h3>
@@ -265,6 +208,24 @@ export default function Pagos() {
                   <button onClick={async () => { await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'verificado' }); cargar() }} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium">✅ Verificado</button>
                   <button onClick={async () => { await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'rechazado' }); cargar() }} className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-lg hover:bg-red-200 font-medium">❌ Rechazado</button>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Boletas pendientes */}
+      {pagos.filter(p => (p.metodo === 'efectivo' || p.metodo === 'transferencia') && p.estado_boleta === 'pendiente').length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+          <h3 className="text-sm font-bold text-blue-800 mb-3">🧾 Boletas pendientes de emitir ({pagos.filter(p => (p.metodo === 'efectivo' || p.metodo === 'transferencia') && p.estado_boleta === 'pendiente').length})</h3>
+          <div className="flex flex-col gap-2">
+            {pagos.filter(p => (p.metodo === 'efectivo' || p.metodo === 'transferencia') && p.estado_boleta === 'pendiente').map(p => (
+              <div key={p.id} className="flex items-center justify-between bg-white rounded-lg p-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
+                  <p className="text-xs text-gray-500">{metodoIcono[p.metodo]} {p.metodo} · {formatCLP(p.monto)} · {new Date(p.fecha).toLocaleDateString('es-CL')}</p>
+                </div>
+                <button onClick={() => toggleBoleta(p)} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium">✅ Marcar emitida</button>
               </div>
             ))}
           </div>
@@ -349,6 +310,16 @@ export default function Pagos() {
               </>
             )}
 
+            {(form.metodo === 'efectivo' || form.metodo === 'transferencia') && (
+              <div className="flex flex-col">
+                <label className="text-sm text-gray-600 mb-1">Estado boleta</label>
+                <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="estado_boleta" value={form.estado_boleta || 'pendiente'} onChange={handleChange}>
+                  <option value="pendiente">⏳ Pendiente emisión</option>
+                  <option value="emitida">✅ Emitida</option>
+                </select>
+              </div>
+            )}
+
             <div className="flex flex-col sm:col-span-2">
               <label className="text-sm text-gray-600 mb-1">Notas (opcional)</label>
               <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="notas" placeholder="Ej: Control mensual, primera consulta..." value={form.notas} onChange={handleChange} />
@@ -393,7 +364,7 @@ export default function Pagos() {
               <th className="px-4 py-3 text-left">Monto</th>
               <th className="px-4 py-3 text-left">Método</th>
               <th className="px-4 py-3 text-left">Estado</th>
-              <th className="px-4 py-3 text-left">Notas</th>
+              <th className="px-4 py-3 text-left">Notas / Bono / Boleta</th>
               <th className="px-4 py-3 text-left">Acciones</th>
             </tr>
           </thead>
@@ -413,14 +384,24 @@ export default function Pagos() {
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
                 </td>
                 <td className="px-4 py-3 text-gray-500 text-xs">
-                  {p.notas}
-                  {p.numero_bono && <p className="text-blue-600">🏥 Bono: {p.numero_bono} <span className={`px-1 rounded text-xs ${p.estado_bono === 'verificado' ? 'bg-green-100 text-green-700' : p.estado_bono === 'rechazado' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_bono}</span></p>}
+                  {p.notas && <p className="mb-1">{p.notas}</p>}
+                  {p.numero_bono && (
+                    <p className="text-blue-600">
+                      🏥 Bono: {p.numero_bono}{' '}
+                      <span className={`px-1 rounded text-xs ${p.estado_bono === 'verificado' ? 'bg-green-100 text-green-700' : p.estado_bono === 'rechazado' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_bono}</span>
+                    </p>
+                  )}
+                  {(p.metodo === 'efectivo' || p.metodo === 'transferencia') && (
+                    <p className="mt-1">
+                      🧾 Boleta:{' '}
+                      <button onClick={() => toggleBoleta(p)} className={`px-2 py-0.5 rounded-full text-xs font-semibold cursor-pointer ${p.estado_boleta === 'emitida' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                        {p.estado_boleta === 'emitida' ? '✅ Emitida' : '⏳ Pendiente'}
+                      </button>
+                    </p>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2 flex-wrap">
-                    {(p.metodo === 'efectivo' || p.metodo === 'transferencia') && (
-                      <button onClick={() => imprimirBoleta(p)} className="text-green-700 hover:underline text-sm font-medium">🧾 Boleta</button>
-                    )}
                     <button onClick={() => editar(p)} className="text-blue-600 hover:underline text-sm font-medium">Editar</button>
                     <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
                   </div>
@@ -445,15 +426,23 @@ export default function Pagos() {
               </div>
               <p className="font-bold text-green-800 text-lg">{formatCLP(p.monto)}</p>
             </div>
-            <div className="flex gap-2 mb-2">
+            <div className="flex gap-2 mb-2 flex-wrap">
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
               <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
             </div>
-            {p.notas && <p className="text-xs text-gray-400 mb-2">{p.notas}</p>}
-            <div className="flex gap-3 flex-wrap">
-              {(p.metodo === 'efectivo' || p.metodo === 'transferencia') && (
-                <button onClick={() => imprimirBoleta(p)} className="text-green-700 text-sm font-medium">🧾 Boleta</button>
-              )}
+            {p.notas && <p className="text-xs text-gray-400 mb-1">{p.notas}</p>}
+            {p.numero_bono && (
+              <p className="text-xs text-blue-600 mb-1">🏥 Bono: {p.numero_bono} <span className={`px-1 rounded ${p.estado_bono === 'verificado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_bono}</span></p>
+            )}
+            {(p.metodo === 'efectivo' || p.metodo === 'transferencia') && (
+              <p className="text-xs mb-2">
+                🧾 Boleta:{' '}
+                <button onClick={() => toggleBoleta(p)} className={`px-2 py-0.5 rounded-full text-xs font-semibold cursor-pointer ${p.estado_boleta === 'emitida' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                  {p.estado_boleta === 'emitida' ? '✅ Emitida' : '⏳ Pendiente'}
+                </button>
+              </p>
+            )}
+            <div className="flex gap-3">
               <button onClick={() => editar(p)} className="text-blue-600 text-sm font-medium">Editar</button>
               <button onClick={() => eliminar(p.id)} className="text-red-500 text-sm font-medium">Eliminar</button>
             </div>
