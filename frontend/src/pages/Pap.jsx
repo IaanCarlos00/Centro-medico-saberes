@@ -12,6 +12,38 @@ const formatFecha = fecha => {
   return new Date(fecha.slice(0, 10) + 'T12:00:00').toLocaleDateString('es-CL')
 }
 
+const colorResultado = resultado => {
+  if (!resultado) return { bg: 'bg-gray-100 text-gray-600' }
+  const r = resultado.toUpperCase()
+  if (r.includes('NORMAL') || r.includes('NEGATIVO'))
+    return { bg: 'bg-green-100 text-green-700' }
+  if (r.includes('INADECUADO') || r.includes('INSATISFACTORIO'))
+    return { bg: 'bg-gray-100 text-gray-600' }
+  if (r.includes('ASC-H') || r.includes('NIE') || r.includes('NIC') ||
+      r.includes('CRÍTICO') || r.includes('CRITICO') || r.includes('MALIGNO'))
+    return { bg: 'bg-red-100 text-red-700' }
+  if (r.includes('ASC-US') || r.includes('ALTERADO') || r.includes('ATIPICO') || r.includes('ATÍPICO'))
+    return { bg: 'bg-orange-100 text-orange-700' }
+  return { bg: 'bg-yellow-100 text-yellow-700' }
+}
+
+const esCritico = resultado => {
+  if (!resultado) return false
+  const r = resultado.toUpperCase()
+  return r.includes('ASC-H') || r.includes('NIE') || r.includes('NIC') ||
+    r.includes('CRÍTICO') || r.includes('CRITICO') || r.includes('MALIGNO')
+}
+
+const alertaProximoControl = fecha => {
+  if (!fecha) return null
+  const hoy = new Date()
+  const control = new Date(fecha)
+  const dias = Math.ceil((control - hoy) / (1000 * 60 * 60 * 24))
+  if (dias < 0) return 'vencido'
+  if (dias <= 30) return 'proximo'
+  return 'ok'
+}
+
 export default function Pap() {
   const [paps, setPaps] = useState([])
   const [pacientes, setPacientes] = useState([])
@@ -135,7 +167,13 @@ export default function Pap() {
             </div>
             <div className="flex flex-col">
               <label className="text-sm text-gray-600 mb-1">Resultado</label>
-              <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="resultado" placeholder="Ej: Normal, Anormal..." value={form.resultado} onChange={handleChange} />
+              <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="resultado" value={form.resultado} onChange={handleChange}>
+                <option value="">Sin resultado aún</option>
+                <option value="Normal">Normal</option>
+                <option value="Alterado">Alterado</option>
+                <option value="Inadecuado">Inadecuado</option>
+                <option value="Crítico">Crítico</option>
+              </select>
             </div>
             <div className="flex flex-col">
               <label className="text-sm text-gray-600 mb-1">Estado envío</label>
@@ -166,6 +204,15 @@ export default function Pap() {
         </select>
       </div>
 
+      {/* Leyenda */}
+      <div className="flex flex-wrap gap-2 mb-3">
+        <span className="text-xs text-gray-500 font-medium self-center">Resultados:</span>
+        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Normal — control en 3 años</span>
+        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">Alterado — control en 6 meses</span>
+        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">Inadecuado — repetir en 3 meses</span>
+        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">Crítico — derivar colposcopía</span>
+      </div>
+
       <div className="bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-green-50 text-green-800 uppercase text-xs">
@@ -175,82 +222,113 @@ export default function Pap() {
               <th className="px-4 py-3 text-left">Profesional</th>
               <th className="px-4 py-3 text-left">Fecha toma</th>
               <th className="px-4 py-3 text-left">Resultado</th>
+              <th className="px-4 py-3 text-left">Próximo control</th>
               <th className="px-4 py-3 text-left">Notas</th>
               <th className="px-4 py-3 text-left">Estado envío</th>
               <th className="px-4 py-3 text-left">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {filtrados.map(p => (
-              <>
-                <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</td>
-                  <td className="px-4 py-3 text-gray-600">{p.nombre || '—'}</td>
-                  <td className="px-4 py-3 text-gray-600">{p.profesional_nombre ? `${p.profesional_nombre} ${p.profesional_apellido}` : '—'}</td>
-                  <td className="px-4 py-3 text-gray-600">{formatFecha(p.fecha_toma)}</td>
-                  <td className="px-4 py-3 text-gray-600">{p.resultado || '—'}</td>
-                  <td className="px-4 py-3 text-gray-500 text-xs">{p.notas || '—'}</td>
-                  <td className="px-4 py-3">
-                    <button onClick={() => cambiarEstado(p.id, p.estado_envio === 'pendiente' ? 'enviado' : 'pendiente')} className={`px-2 py-1 rounded-full text-xs font-semibold cursor-pointer ${p.estado_envio === 'enviado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                      {p.estado_envio === 'enviado' ? '✓ Enviado' : '⏳ Pendiente'}
-                    </button>
-                  </td>
-                  <td className="px-4 py-3 flex gap-2">
-                    <button onClick={() => iniciarEdit(p)} className="text-blue-600 hover:underline text-sm font-medium">Editar</button>
-                    <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
-                  </td>
-                </tr>
-                {editandoId === p.id && (
-                  <tr key={`edit-${p.id}`} className="bg-green-50">
-                    <td colSpan="8" className="px-4 py-4">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-                        <div className="flex flex-col">
-                          <label className="text-xs text-gray-500 mb-1">Paciente</label>
-                          <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.paciente_id} onChange={e => setFormEdit({ ...formEdit, paciente_id: e.target.value })}>
-                            {pacientes.map(pac => <option key={pac.id} value={pac.id}>{pac.nombre} {pac.apellido}</option>)}
-                          </select>
-                        </div>
-                        <div className="flex flex-col">
-                          <label className="text-xs text-gray-500 mb-1">Profesional</label>
-                          <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.profesional_id} onChange={e => setFormEdit({ ...formEdit, profesional_id: e.target.value })}>
-                            <option value="">Sin profesional</option>
-                            {profesionales.map(pr => <option key={pr.id} value={pr.id}>{pr.nombre} {pr.apellido}</option>)}
-                          </select>
-                        </div>
-                        <div className="flex flex-col">
-                          <label className="text-xs text-gray-500 mb-1">Nombre</label>
-                          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.nombre} onChange={e => setFormEdit({ ...formEdit, nombre: e.target.value })} />
-                        </div>
-                        <div className="flex flex-col">
-                          <label className="text-xs text-gray-500 mb-1">Fecha toma</label>
-                          <input type="date" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.fecha_toma} onChange={e => setFormEdit({ ...formEdit, fecha_toma: e.target.value })} />
-                        </div>
-                        <div className="flex flex-col">
-                          <label className="text-xs text-gray-500 mb-1">Resultado</label>
-                          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.resultado} onChange={e => setFormEdit({ ...formEdit, resultado: e.target.value })} />
-                        </div>
-                        <div className="flex flex-col">
-                          <label className="text-xs text-gray-500 mb-1">Estado envío</label>
-                          <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.estado_envio} onChange={e => setFormEdit({ ...formEdit, estado_envio: e.target.value })}>
-                            <option value="pendiente">Pendiente</option>
-                            <option value="enviado">Enviado</option>
-                          </select>
-                        </div>
-                        <div className="flex flex-col md:col-span-2">
-                          <label className="text-xs text-gray-500 mb-1">Notas</label>
-                          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.notas} onChange={e => setFormEdit({ ...formEdit, notas: e.target.value })} />
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => guardarEdit(p.id)} className="bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-800">Guardar</button>
-                        <button onClick={() => setEditandoId(null)} className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-300">Cancelar</button>
-                      </div>
+            {filtrados.map(p => {
+              const color = colorResultado(p.resultado)
+              const alerta = alertaProximoControl(p.proximo_control)
+              return (
+                <>
+                  <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-4 py-3 font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</td>
+                    <td className="px-4 py-3 text-gray-600">{p.nombre || '—'}</td>
+                    <td className="px-4 py-3 text-gray-600">{p.profesional_nombre ? `${p.profesional_nombre} ${p.profesional_apellido}` : '—'}</td>
+                    <td className="px-4 py-3 text-gray-600">{formatFecha(p.fecha_toma)}</td>
+                    <td className="px-4 py-3">
+                      {p.resultado
+                        ? <span className={`px-2 py-1 rounded-full text-xs font-semibold ${color.bg}`}>{p.resultado}</span>
+                        : <span className="text-gray-400">—</span>
+                      }
+                    </td>
+                    <td className="px-4 py-3">
+                      {esCritico(p.resultado)
+                        ? <span className="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">⚠️ Derivar colposcopía</span>
+                        : p.proximo_control
+                          ? <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                              alerta === 'vencido' ? 'bg-red-100 text-red-700' :
+                              alerta === 'proximo' ? 'bg-orange-100 text-orange-700' :
+                              'bg-gray-100 text-gray-600'
+                            }`}>
+                              {alerta === 'vencido' ? '⚠️ ' : alerta === 'proximo' ? '🔔 ' : ''}
+                              {formatFecha(p.proximo_control)}
+                            </span>
+                          : <span className="text-gray-400">—</span>
+                      }
+                    </td>
+                    <td className="px-4 py-3 text-gray-500 text-xs">{p.notas || '—'}</td>
+                    <td className="px-4 py-3">
+                      <button onClick={() => cambiarEstado(p.id, p.estado_envio === 'pendiente' ? 'enviado' : 'pendiente')} className={`px-2 py-1 rounded-full text-xs font-semibold cursor-pointer ${p.estado_envio === 'enviado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                        {p.estado_envio === 'enviado' ? '✓ Enviado' : '⏳ Pendiente'}
+                      </button>
+                    </td>
+                    <td className="px-4 py-3 flex gap-2">
+                      <button onClick={() => iniciarEdit(p)} className="text-blue-600 hover:underline text-sm font-medium">Editar</button>
+                      <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
                     </td>
                   </tr>
-                )}
-              </>
-            ))}
-            {filtrados.length === 0 && <tr><td colSpan="8" className="px-4 py-6 text-center text-gray-400">No hay PAP registrados</td></tr>}
+                  {editandoId === p.id && (
+                    <tr key={`edit-${p.id}`} className="bg-green-50">
+                      <td colSpan="9" className="px-4 py-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+                          <div className="flex flex-col">
+                            <label className="text-xs text-gray-500 mb-1">Paciente</label>
+                            <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.paciente_id} onChange={e => setFormEdit({ ...formEdit, paciente_id: e.target.value })}>
+                              {pacientes.map(pac => <option key={pac.id} value={pac.id}>{pac.nombre} {pac.apellido}</option>)}
+                            </select>
+                          </div>
+                          <div className="flex flex-col">
+                            <label className="text-xs text-gray-500 mb-1">Profesional</label>
+                            <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.profesional_id} onChange={e => setFormEdit({ ...formEdit, profesional_id: e.target.value })}>
+                              <option value="">Sin profesional</option>
+                              {profesionales.map(pr => <option key={pr.id} value={pr.id}>{pr.nombre} {pr.apellido}</option>)}
+                            </select>
+                          </div>
+                          <div className="flex flex-col">
+                            <label className="text-xs text-gray-500 mb-1">Nombre</label>
+                            <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.nombre} onChange={e => setFormEdit({ ...formEdit, nombre: e.target.value })} />
+                          </div>
+                          <div className="flex flex-col">
+                            <label className="text-xs text-gray-500 mb-1">Fecha toma</label>
+                            <input type="date" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.fecha_toma} onChange={e => setFormEdit({ ...formEdit, fecha_toma: e.target.value })} />
+                          </div>
+                          <div className="flex flex-col">
+                            <label className="text-xs text-gray-500 mb-1">Resultado</label>
+                            <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.resultado} onChange={e => setFormEdit({ ...formEdit, resultado: e.target.value })}>
+                              <option value="">Sin resultado aún</option>
+                              <option value="Normal">Normal</option>
+                              <option value="Alterado">Alterado</option>
+                              <option value="Inadecuado">Inadecuado</option>
+                              <option value="Crítico">Crítico</option>
+                            </select>
+                          </div>
+                          <div className="flex flex-col">
+                            <label className="text-xs text-gray-500 mb-1">Estado envío</label>
+                            <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.estado_envio} onChange={e => setFormEdit({ ...formEdit, estado_envio: e.target.value })}>
+                              <option value="pendiente">Pendiente</option>
+                              <option value="enviado">Enviado</option>
+                            </select>
+                          </div>
+                          <div className="flex flex-col md:col-span-2">
+                            <label className="text-xs text-gray-500 mb-1">Notas</label>
+                            <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.notas} onChange={e => setFormEdit({ ...formEdit, notas: e.target.value })} />
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={() => guardarEdit(p.id)} className="bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-800">Guardar</button>
+                          <button onClick={() => setEditandoId(null)} className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-300">Cancelar</button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </>
+              )
+            })}
+            {filtrados.length === 0 && <tr><td colSpan="9" className="px-4 py-6 text-center text-gray-400">No hay PAP registrados</td></tr>}
           </tbody>
         </table>
       </div>
