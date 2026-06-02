@@ -58,6 +58,7 @@ router.post('/', async (req, res) => {
       }
     }
     if (!fechaFinal) fechaFinal = fecha_atencion || new Date().toISOString()
+      console.log('DEBUG fecha:', { cita_id, fecha_atencion, fechaFinal })
 
     const proc = await pool.query(
       'INSERT INTO procedimiento (paciente_id, catalogo_procedimiento_id, nombre, monto, metodo, estado, notas, fecha) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
