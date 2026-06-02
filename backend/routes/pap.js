@@ -44,7 +44,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   const { paciente_id, profesional_id, nombre, fecha_toma, resultado, estado_envio, notas } = req.body
   try {
-    const proximo_control = calcularProximoControl(resultado, fecha_toma)
+    const proximo_control = req.body.proximo_control || calcularProximoControl(resultado)
     const result = await pool.query(
       'INSERT INTO pap (paciente_id, profesional_id, nombre, fecha_toma, resultado, estado_envio, notas, proximo_control) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
       [paciente_id, profesional_id || null, nombre, fecha_toma, resultado, estado_envio || 'pendiente', notas || null, proximo_control]
@@ -57,7 +57,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', async (req, res) => {
   const { profesional_id, nombre, fecha_toma, resultado, estado_envio, notas } = req.body
   try {
-    const proximo_control = calcularProximoControl(resultado, fecha_toma)
+    const proximo_control = req.body.proximo_control || calcularProximoControl(resultado)
     const result = await pool.query(
       'UPDATE pap SET profesional_id=$1, nombre=$2, fecha_toma=$3, resultado=$4, estado_envio=$5, notas=$6, proximo_control=$7 WHERE id=$8 RETURNING *',
       [profesional_id || null, nombre, fecha_toma, resultado, estado_envio, notas || null, proximo_control, req.params.id]
