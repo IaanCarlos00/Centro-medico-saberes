@@ -240,16 +240,8 @@ export default function Pap() {
         </select>
       </div>
 
-      {/* Leyenda */}
-      <div className="flex flex-wrap gap-2 mb-3">
-        <span className="text-xs text-gray-500 font-medium self-center">Resultados:</span>
-        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Normal — control en 1 año</span>
-        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">Alterado — control en 6 meses</span>
-        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">Inadecuado — repetir en 3 meses</span>
-        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">Crítico — derivar colposcopía</span>
-      </div>
-
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      {/* Tabla desktop */}
+      <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-green-50 text-green-800 uppercase text-xs">
             <tr>
@@ -276,22 +268,14 @@ export default function Pap() {
                     <td className="px-4 py-3 text-gray-600">{p.profesional_nombre ? `${p.profesional_nombre} ${p.profesional_apellido}` : '—'}</td>
                     <td className="px-4 py-3 text-gray-600">{formatFecha(p.fecha_toma)}</td>
                     <td className="px-4 py-3">
-                      {p.resultado
-                        ? <span className={`px-2 py-1 rounded-full text-xs font-semibold ${color.bg}`}>{p.resultado}</span>
-                        : <span className="text-gray-400">—</span>
-                      }
+                      {p.resultado ? <span className={`px-2 py-1 rounded-full text-xs font-semibold ${color.bg}`}>{p.resultado}</span> : <span className="text-gray-400">—</span>}
                     </td>
                     <td className="px-4 py-3">
                       {esCritico(p.resultado)
                         ? <span className="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">⚠️ Derivar colposcopía</span>
                         : p.proximo_control
-                          ? <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                              alerta === 'vencido' ? 'bg-red-100 text-red-700' :
-                              alerta === 'proximo' ? 'bg-orange-100 text-orange-700' :
-                              'bg-gray-100 text-gray-600'
-                            }`}>
-                              {alerta === 'vencido' ? '⚠️ ' : alerta === 'proximo' ? '🔔 ' : ''}
-                              {formatFecha(p.proximo_control)}
+                          ? <span className={`px-2 py-1 rounded-full text-xs font-semibold ${alerta === 'vencido' ? 'bg-red-100 text-red-700' : alerta === 'proximo' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'}`}>
+                              {alerta === 'vencido' ? '⚠️ ' : alerta === 'proximo' ? '🔔 ' : ''}{formatFecha(p.proximo_control)}
                             </span>
                           : <span className="text-gray-400">—</span>
                       }
@@ -345,16 +329,9 @@ export default function Pap() {
                           <div className="flex flex-col">
                             <label className="text-xs text-gray-500 mb-1">
                               Próximo control
-                              {formEdit.resultado && formEdit.resultado !== 'Crítico' && (
-                                <span className="ml-1 text-teal-600">✨ sugerido</span>
-                              )}
+                              {formEdit.resultado && formEdit.resultado !== 'Crítico' && <span className="ml-1 text-teal-600">✨ sugerido</span>}
                             </label>
-                            <input
-                              type="date"
-                              className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
-                              value={formEdit.proximo_control}
-                              onChange={e => setFormEdit(f => ({ ...f, proximo_control: e.target.value }))}
-                            />
+                            <input type="date" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.proximo_control} onChange={e => setFormEdit(f => ({ ...f, proximo_control: e.target.value }))} />
                           </div>
                           <div className="flex flex-col">
                             <label className="text-xs text-gray-500 mb-1">Estado envío</label>
@@ -363,7 +340,7 @@ export default function Pap() {
                               <option value="enviado">Enviado</option>
                             </select>
                           </div>
-                          <div className="flex flex-col md:col-span-1">
+                          <div className="flex flex-col">
                             <label className="text-xs text-gray-500 mb-1">Notas</label>
                             <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.notas} onChange={e => setFormEdit(f => ({ ...f, notas: e.target.value }))} />
                           </div>
@@ -382,6 +359,109 @@ export default function Pap() {
           </tbody>
         </table>
       </div>
-    </div>
+
+      {/* Tarjetas móvil */}
+      <div className="md:hidden flex flex-col gap-3">
+        {filtrados.map(p => {
+          const color = colorResultado(p.resultado)
+          const alerta = alertaProximoControl(p.proximo_control)
+          return (
+            <div key={p.id} className="bg-white rounded-xl shadow p-4">
+              <div className="flex justify-between items-start mb-2">
+                <p className="font-semibold text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
+                <button onClick={() => cambiarEstado(p.id, p.estado_envio === 'pendiente' ? 'enviado' : 'pendiente')} className={`px-2 py-1 rounded-full text-xs font-semibold cursor-pointer ${p.estado_envio === 'enviado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                  {p.estado_envio === 'enviado' ? '✓ Enviado' : '⏳ Pendiente'}
+                </button>
+              </div>
+              <div className="text-sm text-gray-600 space-y-1 mb-2">
+                {p.nombre && <p>📋 {p.nombre}</p>}
+                {p.profesional_nombre && <p>👩‍⚕️ {p.profesional_nombre} {p.profesional_apellido}</p>}
+                <p>📅 Toma: {formatFecha(p.fecha_toma)}</p>
+                {p.resultado && (
+                  <p>
+                    Resultado: <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${color.bg}`}>{p.resultado}</span>
+                  </p>
+                )}
+                {esCritico(p.resultado)
+                  ? <p><span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-red-100 text-red-700">⚠️ Derivar colposcopía</span></p>
+                  : p.proximo_control && (
+                    <p>
+                      Control: <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${alerta === 'vencido' ? 'bg-red-100 text-red-700' : alerta === 'proximo' ? 'bg-orange-100 text-orange-700' : 'bg-gray-100 text-gray-600'}`}>
+                        {alerta === 'vencido' ? '⚠️ ' : alerta === 'proximo' ? '🔔 ' : ''}{formatFecha(p.proximo_control)}
+                      </span>
+                    </p>
+                  )
+                }
+                {p.notas && <p>💬 {p.notas}</p>}
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => iniciarEdit(p)} className="text-blue-600 text-sm font-medium">Editar</button>
+                <button onClick={() => eliminar(p.id)} className="text-red-500 text-sm font-medium">Eliminar</button>
+              </div>
+              {editandoId === p.id && (
+                <div className="bg-green-50 rounded-xl p-4 mt-3">
+                  <div className="grid grid-cols-2 gap-3 mb-3">
+                    <div className="flex flex-col">
+                      <label className="text-xs text-gray-500 mb-1">Paciente</label>
+                      <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.paciente_id} onChange={e => setFormEdit(f => ({ ...f, paciente_id: e.target.value }))}>
+                        {pacientes.map(pac => <option key={pac.id} value={pac.id}>{pac.nombre} {pac.apellido}</option>)}
+                      </select>
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-xs text-gray-500 mb-1">Profesional</label>
+                      <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.profesional_id} onChange={e => setFormEdit(f => ({ ...f, profesional_id: e.target.value }))}>
+                        <option value="">Sin profesional</option>
+                        {profesionales.map(pr => <option key={pr.id} value={pr.id}>{pr.nombre} {pr.apellido}</option>)}
+                      </select>
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-xs text-gray-500 mb-1">Nombre</label>
+                      <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.nombre} onChange={e => setFormEdit(f => ({ ...f, nombre: e.target.value }))} />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-xs text-gray-500 mb-1">Fecha toma</label>
+                      <input type="date" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.fecha_toma} onChange={e => setFormEdit(f => ({ ...f, fecha_toma: e.target.value }))} />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-xs text-gray-500 mb-1">Resultado</label>
+                      <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.resultado} onChange={e => handleEditResultado(e.target.value)}>
+                        <option value="">Sin resultado aún</option>
+                        <option value="Normal">Normal</option>
+                        <option value="Alterado">Alterado</option>
+                        <option value="Inadecuado">Inadecuado</option>
+                        <option value="Crítico">Crítico</option>
+                      </select>
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-xs text-gray-500 mb-1">
+                        Próximo control
+                        {formEdit.resultado && formEdit.resultado !== 'Crítico' && <span className="ml-1 text-teal-600 text-xs">✨</span>}
+                      </label>
+                      <input type="date" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.proximo_control} onChange={e => setFormEdit(f => ({ ...f, proximo_control: e.target.value }))} />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-xs text-gray-500 mb-1">Estado envío</label>
+                      <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.estado_envio} onChange={e => setFormEdit(f => ({ ...f, estado_envio: e.target.value }))}>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="enviado">Enviado</option>
+                      </select>
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-xs text-gray-500 mb-1">Notas</label>
+                      <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.notas} onChange={e => setFormEdit(f => ({ ...f, notas: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => guardarEdit(p.id)} className="bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-800">Guardar</button>
+                    <button onClick={() => setEditandoId(null)} className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-300">Cancelar</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )
+        })}
+        {filtrados.length === 0 && <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">No hay PAP registrados</div>}
+      </div>
+      </div>
   )
 }

@@ -37,8 +37,11 @@ export default function Logs() {
           onChange={e => setBusqueda(e.target.value)}
         />
         <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
+        {busqueda && <button onClick={() => setBusqueda('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">✕</button>}
       </div>
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+
+      {/* Tabla desktop */}
+      <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-green-50 text-green-800 uppercase text-xs">
             <tr>
@@ -62,6 +65,22 @@ export default function Logs() {
             {filtrados.length === 0 && <tr><td colSpan="5" className="px-4 py-6 text-center text-gray-400">No hay registros</td></tr>}
           </tbody>
         </table>
+      </div>
+
+      {/* Tarjetas móvil */}
+      <div className="md:hidden flex flex-col gap-3">
+        {filtrados.map(l => (
+          <div key={l.id} className="bg-white rounded-xl shadow p-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${accionColor[l.accion] || 'bg-gray-100 text-gray-600'}`}>{l.accion}</span>
+              <span className="text-xs text-gray-400">{new Date(l.created_at).toLocaleString('es-CL')}</span>
+            </div>
+            <p className="font-medium text-gray-800 text-sm">{l.usuario_nombre}</p>
+            {l.entidad && <p className="text-xs text-gray-500 mt-1 capitalize">📋 {l.entidad}{l.entidad_id ? ` #${l.entidad_id}` : ''}</p>}
+            {l.detalle && <p className="text-xs text-gray-500 mt-1">💬 {l.detalle}</p>}
+          </div>
+        ))}
+        {filtrados.length === 0 && <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">No hay registros</div>}
       </div>
     </div>
   )

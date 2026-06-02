@@ -12,11 +12,13 @@ const formatFecha = fecha => {
   return new Date(fecha.slice(0, 10) + 'T12:00:00').toLocaleDateString('es-CL')
 }
 
+const formInicial = { paciente_id: '', profesional_id: '', tipo_examen: '', nombre: '', fecha_toma: hoyStr, entregado: false, codigo: '' }
+
 export default function Flujos() {
   const [flujos, setFlujos] = useState([])
   const [pacientes, setPacientes] = useState([])
   const [profesionales, setProfesionales] = useState([])
-  const [form, setForm] = useState({ paciente_id: '', profesional_id: '', tipo_examen: '', nombre: '', fecha_toma: hoyStr, entregado: false, codigo: '' })
+  const [form, setForm] = useState(formInicial)
   const [errores, setErrores] = useState({})
   const [mostrarForm, setMostrarForm] = useState(false)
   const [busqueda, setBusqueda] = useState('')
@@ -50,7 +52,7 @@ export default function Flujos() {
     const e = validar()
     if (Object.keys(e).length > 0) { setErrores(e); return }
     await axios.post(API, form)
-    setForm({ paciente_id: '', profesional_id: '', tipo_examen: '', nombre: '', fecha_toma: hoyStr, entregado: false, codigo: '' })
+    setForm(formInicial)
     setErrores({})
     setMostrarForm(false)
     cargar()
@@ -99,11 +101,55 @@ export default function Flujos() {
     return coincideBusqueda && coincideEntregado
   })
 
+  const FormEdit = ({ f }) => (
+    <div className="bg-green-50 rounded-xl p-4 mt-1">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-500 mb-1">Paciente</label>
+          <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.paciente_id} onChange={e => setFormEdit(fe => ({ ...fe, paciente_id: e.target.value }))}>
+            {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
+          </select>
+        </div>
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-500 mb-1">Profesional</label>
+          <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.profesional_id} onChange={e => setFormEdit(fe => ({ ...fe, profesional_id: e.target.value }))}>
+            <option value="">Sin profesional</option>
+            {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
+          </select>
+        </div>
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-500 mb-1">Tipo examen</label>
+          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.tipo_examen} onChange={e => setFormEdit(fe => ({ ...fe, tipo_examen: e.target.value }))} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-500 mb-1">Nombre</label>
+          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.nombre} onChange={e => setFormEdit(fe => ({ ...fe, nombre: e.target.value }))} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-500 mb-1">Fecha toma</label>
+          <input type="date" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.fecha_toma} onChange={e => setFormEdit(fe => ({ ...fe, fecha_toma: e.target.value }))} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-500 mb-1">Código</label>
+          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.codigo} onChange={e => setFormEdit(fe => ({ ...fe, codigo: e.target.value }))} />
+        </div>
+        <div className="flex items-center gap-2 mt-3">
+          <input type="checkbox" checked={formEdit.entregado} onChange={e => setFormEdit(fe => ({ ...fe, entregado: e.target.checked }))} className="w-4 h-4 accent-green-700" />
+          <label className="text-sm text-gray-600">Entregado</label>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <button onClick={() => guardarEdit(f.id)} className="bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-800">Guardar</button>
+        <button onClick={() => setEditandoId(null)} className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-300">Cancelar</button>
+      </div>
+    </div>
+  )
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-green-800">Flujos</h2>
-        <button onClick={() => { setMostrarForm(!mostrarForm); if (mostrarForm) setForm({ paciente_id: '', profesional_id: '', tipo_examen: '', nombre: '', fecha_toma: hoyStr, entregado: false, codigo: '' }) }} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">
+        <button onClick={() => { setMostrarForm(!mostrarForm); if (mostrarForm) setForm(formInicial) }} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">
           {mostrarForm ? 'Cancelar' : '+ Nuevo flujo'}
         </button>
       </div>
@@ -166,7 +212,8 @@ export default function Flujos() {
         </select>
       </div>
 
-      <div className="bg-white rounded-xl shadow overflow-hidden">
+      {/* Tabla desktop */}
+      <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-green-50 text-green-800 uppercase text-xs">
             <tr>
@@ -203,45 +250,7 @@ export default function Flujos() {
                 {editandoId === f.id && (
                   <tr key={`edit-${f.id}`} className="bg-green-50">
                     <td colSpan="8" className="px-4 py-4">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-                        <div className="flex flex-col">
-                          <label className="text-xs text-gray-500 mb-1">Paciente</label>
-                          <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.paciente_id} onChange={e => setFormEdit({ ...formEdit, paciente_id: e.target.value })}>
-                            {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
-                          </select>
-                        </div>
-                        <div className="flex flex-col">
-                          <label className="text-xs text-gray-500 mb-1">Profesional</label>
-                          <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.profesional_id} onChange={e => setFormEdit({ ...formEdit, profesional_id: e.target.value })}>
-                            <option value="">Sin profesional</option>
-                            {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
-                          </select>
-                        </div>
-                        <div className="flex flex-col">
-                          <label className="text-xs text-gray-500 mb-1">Tipo examen</label>
-                          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.tipo_examen} onChange={e => setFormEdit({ ...formEdit, tipo_examen: e.target.value })} />
-                        </div>
-                        <div className="flex flex-col">
-                          <label className="text-xs text-gray-500 mb-1">Nombre</label>
-                          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.nombre} onChange={e => setFormEdit({ ...formEdit, nombre: e.target.value })} />
-                        </div>
-                        <div className="flex flex-col">
-                          <label className="text-xs text-gray-500 mb-1">Fecha toma</label>
-                          <input type="date" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.fecha_toma} onChange={e => setFormEdit({ ...formEdit, fecha_toma: e.target.value })} />
-                        </div>
-                        <div className="flex flex-col">
-                          <label className="text-xs text-gray-500 mb-1">Código</label>
-                          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.codigo} onChange={e => setFormEdit({ ...formEdit, codigo: e.target.value })} />
-                        </div>
-                        <div className="flex items-center gap-2 mt-3">
-                          <input type="checkbox" checked={formEdit.entregado} onChange={e => setFormEdit({ ...formEdit, entregado: e.target.checked })} className="w-4 h-4 accent-green-700" />
-                          <label className="text-sm text-gray-600">Entregado</label>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <button onClick={() => guardarEdit(f.id)} className="bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-800">Guardar</button>
-                        <button onClick={() => setEditandoId(null)} className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-300">Cancelar</button>
-                      </div>
+                      <FormEdit f={f} />
                     </td>
                   </tr>
                 )}
@@ -250,6 +259,33 @@ export default function Flujos() {
             {filtrados.length === 0 && <tr><td colSpan="8" className="px-4 py-6 text-center text-gray-400">No hay flujos registrados</td></tr>}
           </tbody>
         </table>
+      </div>
+
+      {/* Tarjetas móvil */}
+      <div className="md:hidden flex flex-col gap-3">
+        {filtrados.map(f => (
+          <div key={f.id} className="bg-white rounded-xl shadow p-4">
+            <div className="flex justify-between items-start mb-2">
+              <p className="font-semibold text-gray-800">{f.paciente_nombre} {f.paciente_apellido}</p>
+              <button onClick={() => cambiarEntregado(f.id, !f.entregado)} className={`px-2 py-1 rounded-full text-xs font-semibold cursor-pointer ${f.entregado ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                {f.entregado ? '✓ Entregado' : '⏳ Pendiente'}
+              </button>
+            </div>
+            <div className="text-sm text-gray-600 space-y-0.5">
+              {f.tipo_examen && <p>🔬 {f.tipo_examen}</p>}
+              {f.nombre && <p>📋 {f.nombre}</p>}
+              {f.profesional_nombre && <p>👩‍⚕️ {f.profesional_nombre} {f.profesional_apellido}</p>}
+              <p>📅 {formatFecha(f.fecha_toma)}</p>
+              {f.codigo && <p>🔢 {f.codigo}</p>}
+            </div>
+            <div className="flex gap-3 mt-3">
+              <button onClick={() => iniciarEdit(f)} className="text-blue-600 text-sm font-medium">Editar</button>
+              <button onClick={() => eliminar(f.id)} className="text-red-500 text-sm font-medium">Eliminar</button>
+            </div>
+            {editandoId === f.id && <FormEdit f={f} />}
+          </div>
+        ))}
+        {filtrados.length === 0 && <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">No hay flujos registrados</div>}
       </div>
     </div>
   )
