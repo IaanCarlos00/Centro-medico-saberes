@@ -71,17 +71,45 @@ router.get('/', async (req, res) => {
       pool.query(`SELECT COUNT(*) FROM ficha_clinica WHERE DATE_TRUNC('month', fecha) = DATE_TRUNC('month', NOW())`),
       pool.query(`SELECT COUNT(*) FROM ficha_clinica`),
       pool.query(`
-        SELECT f.proximo_control, f.paciente_id,
+        SELECT proximo_control, paciente_id,
           p.nombre AS paciente_nombre, p.apellido AS paciente_apellido, p.telefono,
-          pr.nombre AS profesional_nombre
+          pr.nombre AS profesional_nombre,
+          'Control' AS tipo
         FROM ficha_clinica f
         JOIN paciente p ON f.paciente_id = p.id
         JOIN profesional pr ON f.profesional_id = pr.id
         WHERE f.proximo_control IS NOT NULL
           AND f.proximo_control >= CURRENT_DATE
-          AND f.proximo_control <= CURRENT_DATE + INTERVAL '30 days'
-        ORDER BY f.proximo_control ASC
-        LIMIT 10
+          AND f.proximo_control <= CURRENT_DATE + INTERVAL '60 days'
+
+        UNION ALL
+
+        SELECT proximo_control, paciente_id,
+          p.nombre AS paciente_nombre, p.apellido AS paciente_apellido, p.telefono,
+          pr.nombre AS profesional_nombre,
+          'Ingreso V' AS tipo
+        FROM ficha_ingreso_1 fi1
+        JOIN paciente p ON fi1.paciente_id = p.id
+        JOIN profesional pr ON fi1.profesional_id = pr.id
+        WHERE fi1.proximo_control IS NOT NULL
+          AND fi1.proximo_control >= CURRENT_DATE
+          AND fi1.proximo_control <= CURRENT_DATE + INTERVAL '60 days'
+
+        UNION ALL
+
+        SELECT proximo_control, paciente_id,
+          p.nombre AS paciente_nombre, p.apellido AS paciente_apellido, p.telefono,
+          pr.nombre AS profesional_nombre,
+          'Ingreso J' AS tipo
+        FROM ficha_ingreso_2 fi2
+        JOIN paciente p ON fi2.paciente_id = p.id
+        JOIN profesional pr ON fi2.profesional_id = pr.id
+        WHERE fi2.proximo_control IS NOT NULL
+          AND fi2.proximo_control >= CURRENT_DATE
+          AND fi2.proximo_control <= CURRENT_DATE + INTERVAL '60 days'
+
+        ORDER BY proximo_control ASC
+        LIMIT 20
       `),
       pool.query(`
         SELECT 

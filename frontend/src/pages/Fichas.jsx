@@ -319,6 +319,13 @@ export default function Fichas({ paciente, onVolver }) {
                 {f.diagnostico && <div><span className="font-semibold text-gray-600">Diagnóstico:</span> {f.diagnostico}</div>}
                 {f.tratamiento && <div><span className="font-semibold text-gray-600">Tratamiento:</span> {f.tratamiento}</div>}
                 {f.observaciones && <div><span className="font-semibold text-gray-600">Observaciones:</span> {f.observaciones}</div>}
+                {f.proximo_control && (
+                  <div className="md:col-span-2">
+                    <span className="inline-flex items-center gap-1 bg-teal-50 text-teal-700 px-3 py-1 rounded-full text-xs font-semibold">
+                      📅 Próximo control: {formatFecha(f.proximo_control)}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           ))}
