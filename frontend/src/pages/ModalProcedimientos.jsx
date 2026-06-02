@@ -39,7 +39,7 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
     const { name, value } = e.target
     if (name === 'catalogo_procedimiento_id') {
       const sel = catalogo.find(c => c.id === parseInt(value))
-      setForm({ ...form, catalogo_procedimiento_id: value, nombre: sel?.nombre || '', monto: sel?.monto || '' })
+      setForm({ ...form, catalogo_procedimiento_id: value, nombre: sel?.nombre || '', monto: sel?.monto || '', fecha_atencion: form.fecha_atencion })
     } else {
       setForm({ ...form, [name]: value })
     }
