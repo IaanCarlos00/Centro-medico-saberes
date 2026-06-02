@@ -68,7 +68,7 @@ router.post('/', async (req, res) => {
         cita_id || null,
         monto,
         metodo,
-        estado || 'pagado',
+        estado || 'pendiente',
         notas || null,
         numero_bono || null,
         metodo === 'fonasa' ? (estado_bono || 'pendiente') : null,
@@ -87,7 +87,7 @@ router.put('/:id', async (req, res) => {
       [
         monto,
         metodo,
-        estado,
+        estado || 'pendiente',
         notas || null,
         numero_bono || null,
         metodo === 'fonasa' ? (estado_bono || 'pendiente') : null,

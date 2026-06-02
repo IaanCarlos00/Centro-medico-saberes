@@ -15,7 +15,7 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
   const [catalogo, setCatalogo] = useState([])
   const [procedimientos, setProcedimientos] = useState([])
   const [pagos, setPagos] = useState([])
-  const [form, setForm] = useState({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'debito', estado: 'pagado', notas: '' })
+  const [form, setForm] = useState({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'debito', estado: 'pendiente', notas: '' })
   const [errores, setErrores] = useState({})
   const [editandoProc, setEditandoProc] = useState(null)
   const [editandoPago, setEditandoPago] = useState(null)
@@ -63,7 +63,7 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
         const citaActual = await axios.get(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`)
         await axios.put(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`, { ...citaActual.data, estado: 'confirmada' })
       }
-      setForm({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'debito', estado: 'pagado', notas: '' })
+      setForm({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'debito', estado: 'pendiente', notas: '' })
       cargar()
     } finally {
       setGuardando(false)
