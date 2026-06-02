@@ -12,26 +12,31 @@ const formatFecha = fecha => {
   return new Date(fecha.slice(0, 10) + 'T12:00:00').toLocaleDateString('es-CL')
 }
 
+function calcularProximoControl(resultado) {
+  const hoy = new Date()
+  let meses = null
+  if (resultado === 'Normal') meses = 12
+  else if (resultado === 'Alterado') meses = 6
+  else if (resultado === 'Inadecuado') meses = 3
+  else return ''
+  hoy.setMonth(hoy.getMonth() + meses)
+  return hoy.toISOString().split('T')[0]
+}
+
 const colorResultado = resultado => {
   if (!resultado) return { bg: 'bg-gray-100 text-gray-600' }
   const r = resultado.toUpperCase()
-  if (r.includes('NORMAL') || r.includes('NEGATIVO'))
-    return { bg: 'bg-green-100 text-green-700' }
-  if (r.includes('INADECUADO') || r.includes('INSATISFACTORIO'))
-    return { bg: 'bg-gray-100 text-gray-600' }
-  if (r.includes('ASC-H') || r.includes('NIE') || r.includes('NIC') ||
-      r.includes('CRÍTICO') || r.includes('CRITICO') || r.includes('MALIGNO'))
-    return { bg: 'bg-red-100 text-red-700' }
-  if (r.includes('ASC-US') || r.includes('ALTERADO') || r.includes('ATIPICO') || r.includes('ATÍPICO'))
-    return { bg: 'bg-orange-100 text-orange-700' }
+  if (r.includes('NORMAL') || r.includes('NEGATIVO')) return { bg: 'bg-green-100 text-green-700' }
+  if (r.includes('INADECUADO') || r.includes('INSATISFACTORIO')) return { bg: 'bg-gray-100 text-gray-600' }
+  if (r.includes('ASC-H') || r.includes('NIE') || r.includes('NIC') || r.includes('CRÍTICO') || r.includes('CRITICO') || r.includes('MALIGNO')) return { bg: 'bg-red-100 text-red-700' }
+  if (r.includes('ASC-US') || r.includes('ALTERADO') || r.includes('ATIPICO') || r.includes('ATÍPICO')) return { bg: 'bg-orange-100 text-orange-700' }
   return { bg: 'bg-yellow-100 text-yellow-700' }
 }
 
 const esCritico = resultado => {
   if (!resultado) return false
   const r = resultado.toUpperCase()
-  return r.includes('ASC-H') || r.includes('NIE') || r.includes('NIC') ||
-    r.includes('CRÍTICO') || r.includes('CRITICO') || r.includes('MALIGNO')
+  return r.includes('ASC-H') || r.includes('NIE') || r.includes('NIC') || r.includes('CRÍTICO') || r.includes('CRITICO') || r.includes('MALIGNO')
 }
 
 const alertaProximoControl = fecha => {
@@ -44,11 +49,13 @@ const alertaProximoControl = fecha => {
   return 'ok'
 }
 
+const formInicial = { paciente_id: '', profesional_id: '', nombre: '', fecha_toma: hoyStr, resultado: '', proximo_control: '', estado_envio: 'pendiente', notas: '' }
+
 export default function Pap() {
   const [paps, setPaps] = useState([])
   const [pacientes, setPacientes] = useState([])
   const [profesionales, setProfesionales] = useState([])
-  const [form, setForm] = useState({ paciente_id: '', profesional_id: '', nombre: '', fecha_toma: hoyStr, resultado: '', estado_envio: 'pendiente', notas: '' })
+  const [form, setForm] = useState(formInicial)
   const [errores, setErrores] = useState({})
   const [mostrarForm, setMostrarForm] = useState(false)
   const [busqueda, setBusqueda] = useState('')
@@ -66,8 +73,13 @@ export default function Pap() {
   useEffect(() => { cargar() }, [])
 
   const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-    setErrores({ ...errores, [e.target.name]: '' })
+    const { name, value } = e.target
+    if (name === 'resultado') {
+      setForm(f => ({ ...f, resultado: value, proximo_control: calcularProximoControl(value) }))
+    } else {
+      setForm(f => ({ ...f, [name]: value }))
+    }
+    setErrores(er => ({ ...er, [name]: '' }))
   }
 
   const validar = () => {
@@ -81,7 +93,7 @@ export default function Pap() {
     const e = validar()
     if (Object.keys(e).length > 0) { setErrores(e); return }
     await axios.post(API, form)
-    setForm({ paciente_id: '', profesional_id: '', nombre: '', fecha_toma: hoyStr, resultado: '', estado_envio: 'pendiente', notas: '' })
+    setForm(formInicial)
     setErrores({})
     setMostrarForm(false)
     cargar()
@@ -95,9 +107,18 @@ export default function Pap() {
       nombre: p.nombre || '',
       fecha_toma: p.fecha_toma?.slice(0, 10) || hoyStr,
       resultado: p.resultado || '',
+      proximo_control: p.proximo_control?.slice(0, 10) || '',
       estado_envio: p.estado_envio,
       notas: p.notas || ''
     })
+  }
+
+  const handleEditResultado = valor => {
+    setFormEdit(f => ({
+      ...f,
+      resultado: valor,
+      proximo_control: calcularProximoControl(valor)
+    }))
   }
 
   const guardarEdit = async id => {
@@ -132,7 +153,7 @@ export default function Pap() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-green-800">PAP</h2>
-        <button onClick={() => { setMostrarForm(!mostrarForm); if (mostrarForm) setForm({ paciente_id: '', profesional_id: '', nombre: '', fecha_toma: hoyStr, resultado: '', estado_envio: 'pendiente', notas: '' }) }} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">
+        <button onClick={() => { setMostrarForm(!mostrarForm); if (mostrarForm) setForm(formInicial) }} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">
           {mostrarForm ? 'Cancelar' : '+ Nuevo PAP'}
         </button>
       </div>
@@ -176,13 +197,28 @@ export default function Pap() {
               </select>
             </div>
             <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-1">
+                Próximo control
+                {form.resultado && form.resultado !== 'Crítico' && (
+                  <span className="ml-2 text-xs text-teal-600 font-normal">✨ Sugerido por resultado</span>
+                )}
+              </label>
+              <input
+                type="date"
+                className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
+                name="proximo_control"
+                value={form.proximo_control}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="flex flex-col">
               <label className="text-sm text-gray-600 mb-1">Estado envío</label>
               <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="estado_envio" value={form.estado_envio} onChange={handleChange}>
                 <option value="pendiente">Pendiente</option>
                 <option value="enviado">Enviado</option>
               </select>
             </div>
-            <div className="flex flex-col sm:col-span-2 md:col-span-3">
+            <div className="flex flex-col sm:col-span-2">
               <label className="text-sm text-gray-600 mb-1">Notas</label>
               <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="notas" value={form.notas} onChange={handleChange} />
             </div>
@@ -207,7 +243,7 @@ export default function Pap() {
       {/* Leyenda */}
       <div className="flex flex-wrap gap-2 mb-3">
         <span className="text-xs text-gray-500 font-medium self-center">Resultados:</span>
-        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Normal — control en 3 años</span>
+        <span className="px-2 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Normal — control en 1 año</span>
         <span className="px-2 py-1 rounded-full text-xs font-semibold bg-orange-100 text-orange-700">Alterado — control en 6 meses</span>
         <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">Inadecuado — repetir en 3 meses</span>
         <span className="px-2 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">Crítico — derivar colposcopía</span>
@@ -277,28 +313,28 @@ export default function Pap() {
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
                           <div className="flex flex-col">
                             <label className="text-xs text-gray-500 mb-1">Paciente</label>
-                            <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.paciente_id} onChange={e => setFormEdit({ ...formEdit, paciente_id: e.target.value })}>
+                            <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.paciente_id} onChange={e => setFormEdit(f => ({ ...f, paciente_id: e.target.value }))}>
                               {pacientes.map(pac => <option key={pac.id} value={pac.id}>{pac.nombre} {pac.apellido}</option>)}
                             </select>
                           </div>
                           <div className="flex flex-col">
                             <label className="text-xs text-gray-500 mb-1">Profesional</label>
-                            <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.profesional_id} onChange={e => setFormEdit({ ...formEdit, profesional_id: e.target.value })}>
+                            <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.profesional_id} onChange={e => setFormEdit(f => ({ ...f, profesional_id: e.target.value }))}>
                               <option value="">Sin profesional</option>
                               {profesionales.map(pr => <option key={pr.id} value={pr.id}>{pr.nombre} {pr.apellido}</option>)}
                             </select>
                           </div>
                           <div className="flex flex-col">
                             <label className="text-xs text-gray-500 mb-1">Nombre</label>
-                            <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.nombre} onChange={e => setFormEdit({ ...formEdit, nombre: e.target.value })} />
+                            <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.nombre} onChange={e => setFormEdit(f => ({ ...f, nombre: e.target.value }))} />
                           </div>
                           <div className="flex flex-col">
                             <label className="text-xs text-gray-500 mb-1">Fecha toma</label>
-                            <input type="date" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.fecha_toma} onChange={e => setFormEdit({ ...formEdit, fecha_toma: e.target.value })} />
+                            <input type="date" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.fecha_toma} onChange={e => setFormEdit(f => ({ ...f, fecha_toma: e.target.value }))} />
                           </div>
                           <div className="flex flex-col">
                             <label className="text-xs text-gray-500 mb-1">Resultado</label>
-                            <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.resultado} onChange={e => setFormEdit({ ...formEdit, resultado: e.target.value })}>
+                            <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.resultado} onChange={e => handleEditResultado(e.target.value)}>
                               <option value="">Sin resultado aún</option>
                               <option value="Normal">Normal</option>
                               <option value="Alterado">Alterado</option>
@@ -307,15 +343,29 @@ export default function Pap() {
                             </select>
                           </div>
                           <div className="flex flex-col">
+                            <label className="text-xs text-gray-500 mb-1">
+                              Próximo control
+                              {formEdit.resultado && formEdit.resultado !== 'Crítico' && (
+                                <span className="ml-1 text-teal-600">✨ sugerido</span>
+                              )}
+                            </label>
+                            <input
+                              type="date"
+                              className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
+                              value={formEdit.proximo_control}
+                              onChange={e => setFormEdit(f => ({ ...f, proximo_control: e.target.value }))}
+                            />
+                          </div>
+                          <div className="flex flex-col">
                             <label className="text-xs text-gray-500 mb-1">Estado envío</label>
-                            <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.estado_envio} onChange={e => setFormEdit({ ...formEdit, estado_envio: e.target.value })}>
+                            <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.estado_envio} onChange={e => setFormEdit(f => ({ ...f, estado_envio: e.target.value }))}>
                               <option value="pendiente">Pendiente</option>
                               <option value="enviado">Enviado</option>
                             </select>
                           </div>
-                          <div className="flex flex-col md:col-span-2">
+                          <div className="flex flex-col md:col-span-1">
                             <label className="text-xs text-gray-500 mb-1">Notas</label>
-                            <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.notas} onChange={e => setFormEdit({ ...formEdit, notas: e.target.value })} />
+                            <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.notas} onChange={e => setFormEdit(f => ({ ...f, notas: e.target.value }))} />
                           </div>
                         </div>
                         <div className="flex gap-2">

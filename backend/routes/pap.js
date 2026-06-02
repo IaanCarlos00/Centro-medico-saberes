@@ -2,25 +2,15 @@ const express = require('express')
 const router = express.Router()
 const pool = require('../db')
 
-function calcularProximoControl(resultado, fecha_toma) {
-  if (!resultado || !fecha_toma) return null
-  const r = resultado.toUpperCase()
-  const fecha = new Date(fecha_toma)
-
-  if (r.includes('NORMAL') || r.includes('NEGATIVO')) {
-    fecha.setFullYear(fecha.getFullYear() + 3)
-  } else if (r.includes('INADECUADO') || r.includes('INSATISFACTORIO')) {
-    fecha.setMonth(fecha.getMonth() + 3)
-  } else if (r.includes('ASC-H') || r.includes('NIE') || r.includes('NIC') || 
-             r.includes('CRÍTICO') || r.includes('CRITICO') || r.includes('MALIGNO')) {
-    return null // derivar inmediato, sin fecha programada
-  } else if (r.includes('ASC-US') || r.includes('ALTERADO') || r.includes('ATIPICO') || r.includes('ATÍPICO')) {
-    fecha.setMonth(fecha.getMonth() + 6)
-  } else {
-    fecha.setMonth(fecha.getMonth() + 6) // por defecto 6 meses si no se reconoce
-  }
-
-  return fecha.toISOString().slice(0, 10)
+function calcularProximoControl(resultado) {
+  const hoy = new Date()
+  let meses = null
+  if (resultado === 'Normal') meses = 12
+  else if (resultado === 'Alterado') meses = 6
+  else if (resultado === 'Inadecuado') meses = 3
+  else return null
+  hoy.setMonth(hoy.getMonth() + meses)
+  return hoy.toISOString().split('T')[0]
 }
 
 router.get('/paciente/:paciente_id', async (req, res) => {
