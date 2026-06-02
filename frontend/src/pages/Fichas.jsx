@@ -179,8 +179,8 @@ export default function Fichas({ paciente, onVolver }) {
     ventana.document.close()
   }
 
-  if (vista === 'ingreso1') return <FichaIngreso1 paciente={paciente} onVolver={() => { setVista(null); cargar() }} />
-  if (vista === 'ingreso2') return <FichaIngreso2 paciente={paciente} onVolver={() => { setVista(null); cargar() }} />
+  if (vista === 'ingresoV') return <FichaIngreso1 paciente={paciente} onVolver={() => { setVista(null); cargar() }} />
+  if (vista === 'ingresoJ') return <FichaIngreso2 paciente={paciente} onVolver={() => { setVista(null); cargar() }} />
 
   if (vista === 'control') return (
     <div>
@@ -349,7 +349,7 @@ export default function Fichas({ paciente, onVolver }) {
                   <p className="text-xs text-gray-500">{fichasI1.length} ficha{fichasI1.length !== 1 ? 's' : ''} registrada{fichasI1.length !== 1 ? 's' : ''}</p>
                 </div>
               </button>
-              <button onClick={() => { setModalSelector(false); setVista('ingreso2') }} className="flex items-center gap-3 p-4 rounded-xl border-2 border-blue-500 hover:bg-blue-50 transition-colors text-left">
+              <button onClick={() => { setModalSelector(false); setVista('ingresoJ') }} className="flex items-center gap-3 p-4 rounded-xl border-2 border-blue-500 hover:bg-blue-50 transition-colors text-left">
                 <span className="text-2xl">🗂️</span>
                 <div>
                   <p className="font-bold text-green-800">Ficha Ingreso — Matrona J</p>
@@ -381,7 +381,7 @@ export default function Fichas({ paciente, onVolver }) {
           <p className="text-xs text-teal-700 font-medium">📅 Próx. control: {formatFecha(fichas[0].proximo_control)}</p>
         )}
       </button>
-      <button onClick={() => setVista('ingreso1')} className="bg-white rounded-xl shadow p-4 border-t-4 border-orange-500 text-left hover:shadow-md transition-shadow">
+      <button onClick={() => setVista('ingresoV')} className="bg-white rounded-xl shadow p-4 border-t-4 border-orange-500 text-left hover:shadow-md transition-shadow">
         <div className="flex items-center gap-2 mb-1"><span className="text-xl">📝</span><p className="font-bold text-green-800">Ingreso Matrona V</p></div>
         <p className="text-2xl font-bold text-gray-800">{fichasI1.length}</p>
         <p className="text-xs text-gray-500 mb-2">ficha{fichasI1.length !== 1 ? 's' : ''} registrada{fichasI1.length !== 1 ? 's' : ''}</p>
@@ -389,7 +389,7 @@ export default function Fichas({ paciente, onVolver }) {
           <p className="text-xs text-teal-700 font-medium">📅 Próx. control: {formatFecha(fichasI1[0].proximo_control)}</p>
         )}
       </button>
-      <button onClick={() => setVista('ingreso2')} className="bg-white rounded-xl shadow p-4 border-t-4 border-blue-500 text-left hover:shadow-md transition-shadow">
+      <button onClick={() => setVista('ingresoJ')} className="bg-white rounded-xl shadow p-4 border-t-4 border-blue-500 text-left hover:shadow-md transition-shadow">
         <div className="flex items-center gap-2 mb-1"><span className="text-xl">🗂️</span><p className="font-bold text-green-800">Ingreso Matrona J</p></div>
         <p className="text-2xl font-bold text-gray-800">{fichasI2.length}</p>
         <p className="text-xs text-gray-500 mb-2">ficha{fichasI2.length !== 1 ? 's' : ''} registrada{fichasI2.length !== 1 ? 's' : ''}</p>
@@ -430,10 +430,10 @@ export default function Fichas({ paciente, onVolver }) {
                   <p className="font-medium text-gray-800">{f.motivo_consulta}</p>
                   <p className="text-xs text-gray-400">{formatFecha(f.fecha)} · {f.profesional_nombre} {f.profesional_apellido}</p>
                 </div>
-                <button onClick={() => setVista('ingreso1')} className="text-orange-600 text-xs hover:underline">Ver</button>
+                <button onClick={() => setVista('ingresoV')} className="text-orange-600 text-xs hover:underline">Ver</button>
               </div>
             ))}
-            {fichasI1.length > 3 && <button onClick={() => setVista('ingreso1')} className="text-orange-600 text-xs hover:underline text-left">Ver todas ({fichasI1.length})</button>}
+            {fichasI1.length > 3 && <button onClick={() => setVista('ingresoV')} className="text-orange-600 text-xs hover:underline text-left">Ver todas ({fichasI1.length})</button>}
           </div>
         </div>
       )}
@@ -448,10 +448,10 @@ export default function Fichas({ paciente, onVolver }) {
                   <p className="font-medium text-gray-800">{f.motivo_consulta}</p>
                   <p className="text-xs text-gray-400">{formatFecha(f.fecha)} · {f.profesional_nombre} {f.profesional_apellido}</p>
                 </div>
-                <button onClick={() => setVista('ingreso2')} className="text-blue-600 text-xs hover:underline">Ver</button>
+                <button onClick={() => setVista('ingresoJ')} className="text-blue-600 text-xs hover:underline">Ver</button>
               </div>
             ))}
-            {fichasI2.length > 3 && <button onClick={() => setVista('ingreso2')} className="text-blue-600 text-xs hover:underline text-left">Ver todas ({fichasI2.length})</button>}
+            {fichasI2.length > 3 && <button onClick={() => setVista('ingresoJ')} className="text-blue-600 text-xs hover:underline text-left">Ver todas ({fichasI2.length})</button>}
           </div>
         </div>
       )}
