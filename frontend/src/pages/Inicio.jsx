@@ -236,7 +236,9 @@ export default function Inicio() {
                       <p className="font-semibold text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</p>
                       <p className="text-xs text-gray-500">{c.telefono} · {c.profesional_nombre} · <span className="capitalize">{c.tipo}</span></p>
                     </div>
-                    <span className="text-sm font-bold text-teal-700">{new Date(c.proximo_control + 'T12:00:00').toLocaleDateString('es-CL')}</span>
+                    <span className="text-sm font-bold text-teal-700">
+                      {new Date(String(c.proximo_control).slice(0,10) + 'T12:00:00').toLocaleDateString('es-CL')}
+                    </span>
                   </div>
                 )}
               />
