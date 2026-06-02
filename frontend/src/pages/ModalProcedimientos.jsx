@@ -15,7 +15,7 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
   const [catalogo, setCatalogo] = useState([])
   const [procedimientos, setProcedimientos] = useState([])
   const [pagos, setPagos] = useState([])
-  const [form, setForm] = useState({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'debito', estado: 'pendiente', notas: '' })
+  const [form, setForm] = useState({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'debito', estado: 'pendiente', notas: '', fecha_atencion: new Date().toISOString().slice(0, 10) })
   const [errores, setErrores] = useState({})
   const [editandoProc, setEditandoProc] = useState(null)
   const [editandoPago, setEditandoPago] = useState(null)
@@ -57,13 +57,14 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
       await axios.post(API_PROC, {
         ...form,
         paciente_id: paciente.id,
-        profesional_id: localStorage.getItem('profesional_id') || null
+        profesional_id: localStorage.getItem('profesional_id') || null,
+        cita_id: citaId || null
       })
       if (citaId) {
         const citaActual = await axios.get(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`)
         await axios.put(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`, { ...citaActual.data, estado: 'confirmada' })
       }
-      setForm({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'debito', estado: 'pendiente', notas: '' })
+      setForm({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'debito', estado: 'pendiente', notas: '', fecha_atencion: new Date().toISOString().slice(0, 10) })
       cargar()
     } finally {
       setGuardando(false)
@@ -147,6 +148,16 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
                 <option value="pagado">Pagado</option>
                 <option value="pendiente">Pendiente</option>
               </select>
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs text-gray-500 mb-1">Fecha de atención</label>
+              <input
+                type="date"
+                className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                name="fecha_atencion"
+                value={form.fecha_atencion}
+                onChange={handleChange}
+              />
             </div>
             <input className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" name="notas" placeholder="Notas (opcional)" value={form.notas} onChange={handleChange} />
             <button
@@ -252,7 +263,7 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium text-gray-800 text-sm">{p.notas || 'Pago'}</p>
-                        <p className="text-xs text-gray-400">{new Date(p.fecha).toLocaleDateString('es-CL')} · {p.metodo} · <span className={p.estado === 'pagado' ? 'text-green-600' : 'text-yellow-600'}>{p.estado}</span></p>
+                        <p className="text-xs text-gray-400">{formatFecha(p.fecha)} · {p.metodo} · <span className={p.estado === 'pagado' ? 'text-green-600' : 'text-yellow-600'}>{p.estado}</span></p>
                         {p.numero_bono && <p className="text-xs text-blue-600">🏥 Bono: {p.numero_bono}</p>}
                       </div>
                       <div className="flex items-center gap-3 ml-3">

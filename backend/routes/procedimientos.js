@@ -47,31 +47,39 @@ router.get('/paciente/:paciente_id', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-  const { paciente_id, catalogo_procedimiento_id, nombre, monto, metodo, estado, notas, profesional_id, numero_bono } = req.body
+  const { paciente_id, catalogo_procedimiento_id, nombre, monto, metodo, estado, notas, profesional_id, numero_bono, cita_id, fecha_atencion } = req.body
   try {
+    // Si viene cita_id, buscar la fecha de esa cita. Si viene fecha_atencion manual, usarla. Si no, hoy.
+    let fechaFinal = null
+    if (cita_id) {
+      const cita = await pool.query('SELECT fecha_hora FROM cita WHERE id = $1', [cita_id])
+      if (cita.rows.length > 0) {
+        fechaFinal = cita.rows[0].fecha_hora
+      }
+    }
+    if (!fechaFinal) fechaFinal = fecha_atencion || new Date().toISOString()
+
     const proc = await pool.query(
-      'INSERT INTO procedimiento (paciente_id, catalogo_procedimiento_id, nombre, monto, metodo, estado, notas) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *',
-      [paciente_id, catalogo_procedimiento_id || null, nombre, monto, metodo, estado || 'pendiente', notas || null]
+      'INSERT INTO procedimiento (paciente_id, catalogo_procedimiento_id, nombre, monto, metodo, estado, notas, fecha) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
+      [paciente_id, catalogo_procedimiento_id || null, nombre, monto, metodo, estado || 'pendiente', notas || null, fechaFinal]
     )
     await pool.query(
-      'INSERT INTO pago (paciente_id, monto, metodo, estado, notas, numero_bono, estado_bono) VALUES ($1,$2,$3,$4,$5,$6,$7)',
-      [paciente_id, monto, metodo, estado || 'pendiente', `Procedimiento: ${nombre}`, numero_bono || null, metodo === 'fonasa' ? 'pendiente' : null]
+      'INSERT INTO pago (paciente_id, monto, metodo, estado, notas, numero_bono, estado_bono, fecha) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
+      [paciente_id, monto, metodo, estado || 'pendiente', `Procedimiento: ${nombre}`, numero_bono || null, metodo === 'fonasa' ? 'pendiente' : null, fechaFinal]
     )
 
-    // Si el procedimiento es PAP, crear registro automático en tabla pap
     if (nombre && nombre.toUpperCase().includes('PAP')) {
       await pool.query(
-      'INSERT INTO pap (paciente_id, nombre, fecha_toma, estado_envio, profesional_id) VALUES ($1,$2,CURRENT_DATE,$3,$4)',
-      [paciente_id, nombre, 'pendiente', profesional_id || null]
-    )
+        'INSERT INTO pap (paciente_id, nombre, fecha_toma, estado_envio, profesional_id) VALUES ($1,$2,$3,$4,$5)',
+        [paciente_id, nombre, fechaFinal, 'pendiente', profesional_id || null]
+      )
     }
 
-    // Si el procedimiento es Flujo o Panel, crear registro automático en tabla flujo
     const nombreUpper = nombre ? nombre.toUpperCase() : ''
     if (nombreUpper.includes('FLUJO') || nombreUpper.includes('PANEL')) {
       await pool.query(
-        'INSERT INTO flujo (paciente_id, nombre, tipo_examen, fecha_toma, entregado, profesional_id) VALUES ($1,$2,$3,CURRENT_DATE,$4,$5)',
-        [paciente_id, nombre, nombreUpper.includes('FLUJO') ? 'Flujo particular' : 'Panel particular', false, profesional_id || null]
+        'INSERT INTO flujo (paciente_id, nombre, tipo_examen, fecha_toma, entregado, profesional_id) VALUES ($1,$2,$3,$4,$5,$6)',
+        [paciente_id, nombre, nombreUpper.includes('FLUJO') ? 'Flujo particular' : 'Panel particular', fechaFinal, false, profesional_id || null]
       )
     }
 
