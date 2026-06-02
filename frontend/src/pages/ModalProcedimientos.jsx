@@ -20,6 +20,7 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
   const [editandoProc, setEditandoProc] = useState(null)
   const [editandoPago, setEditandoPago] = useState(null)
   const [formEdit, setFormEdit] = useState({})
+  const [guardando, setGuardando] = useState(false)
 
   const cargar = async () => {
     const [cat, proc, pag] = await Promise.all([
@@ -50,17 +51,23 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
     if (!form.nombre.trim()) e.nombre = 'El nombre es obligatorio'
     if (!form.monto || isNaN(form.monto) || Number(form.monto) <= 0) e.monto = 'Ingresa un monto válido'
     if (Object.keys(e).length > 0) { setErrores(e); return }
-    await axios.post(API_PROC, {
-      ...form,
-      paciente_id: paciente.id,
-      profesional_id: localStorage.getItem('profesional_id') || null
-    })
-    if (citaId) {
-      const citaActual = await axios.get(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`)
-      await axios.put(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`, { ...citaActual.data, estado: 'confirmada' })
+    if (guardando) return
+    setGuardando(true)
+    try {
+      await axios.post(API_PROC, {
+        ...form,
+        paciente_id: paciente.id,
+        profesional_id: localStorage.getItem('profesional_id') || null
+      })
+      if (citaId) {
+        const citaActual = await axios.get(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`)
+        await axios.put(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`, { ...citaActual.data, estado: 'confirmada' })
+      }
+      setForm({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'debito', estado: 'pagado', notas: '' })
+      cargar()
+    } finally {
+      setGuardando(false)
     }
-    setForm({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'debito', estado: 'pagado', notas: '' })
-    cargar()
   }
 
   const iniciarEditProc = p => {
@@ -142,7 +149,13 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
               </select>
             </div>
             <input className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" name="notas" placeholder="Notas (opcional)" value={form.notas} onChange={handleChange} />
-            <button onClick={guardar} className="bg-green-700 text-white px-4 py-2 rounded-lg hover:bg-green-800 font-medium text-sm">+ Agregar</button>
+            <button
+              onClick={guardar}
+              disabled={guardando}
+              className={`px-4 py-2 rounded-lg font-medium text-sm text-white transition-colors ${guardando ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-700 hover:bg-green-800'}`}
+            >
+              {guardando ? 'Guardando...' : '+ Agregar'}
+            </button>
           </div>
         </div>
 
