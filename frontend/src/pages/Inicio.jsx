@@ -226,7 +226,7 @@ export default function Inicio() {
 
           {datos.proximosControles && datos.proximosControles.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-5 mb-6 border-l-4 border-teal-500">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">📅 Próximos controles (30 días)</h3>
+              <h3 className="text-lg font-bold text-gray-800 mb-4">📅 Próximos controles (60 días)</h3>
               <ListaConVerMas
                 items={datos.proximosControles}
                 limite={5}
