@@ -373,22 +373,31 @@ export default function Fichas({ paciente, onVolver }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <button onClick={() => setVista('control')} className="bg-white rounded-xl shadow p-4 border-t-4 border-green-600 text-left hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-2 mb-1"><span className="text-xl">📋</span><p className="font-bold text-green-800">Ficha Control</p></div>
-          <p className="text-2xl font-bold text-gray-800">{fichas.length}</p>
-          <p className="text-xs text-gray-500">ficha{fichas.length !== 1 ? 's' : ''} registrada{fichas.length !== 1 ? 's' : ''}</p>
-        </button>
-        <button onClick={() => setVista('ingreso1')} className="bg-white rounded-xl shadow p-4 border-t-4 border-orange-500 text-left hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-2 mb-1"><span className="text-xl">📝</span><p className="font-bold text-green-800">Ingreso Matrona V</p></div>
-          <p className="text-2xl font-bold text-gray-800">{fichasI1.length}</p>
-          <p className="text-xs text-gray-500">ficha{fichasI1.length !== 1 ? 's' : ''} registrada{fichasI1.length !== 1 ? 's' : ''}</p>
-        </button>
-        <button onClick={() => setVista('ingreso2')} className="bg-white rounded-xl shadow p-4 border-t-4 border-blue-500 text-left hover:shadow-md transition-shadow">
-          <div className="flex items-center gap-2 mb-1"><span className="text-xl">🗂️</span><p className="font-bold text-green-800">Ingreso Matrona J</p></div>
-          <p className="text-2xl font-bold text-gray-800">{fichasI2.length}</p>
-          <p className="text-xs text-gray-500">ficha{fichasI2.length !== 1 ? 's' : ''} registrada{fichasI2.length !== 1 ? 's' : ''}</p>
-        </button>
-      </div>
+      <button onClick={() => setVista('control')} className="bg-white rounded-xl shadow p-4 border-t-4 border-green-600 text-left hover:shadow-md transition-shadow">
+        <div className="flex items-center gap-2 mb-1"><span className="text-xl">📋</span><p className="font-bold text-green-800">Ficha Control</p></div>
+        <p className="text-2xl font-bold text-gray-800">{fichas.length}</p>
+        <p className="text-xs text-gray-500 mb-2">ficha{fichas.length !== 1 ? 's' : ''} registrada{fichas.length !== 1 ? 's' : ''}</p>
+        {fichas[0]?.proximo_control && (
+          <p className="text-xs text-teal-700 font-medium">📅 Próx. control: {formatFecha(fichas[0].proximo_control)}</p>
+        )}
+      </button>
+      <button onClick={() => setVista('ingreso1')} className="bg-white rounded-xl shadow p-4 border-t-4 border-orange-500 text-left hover:shadow-md transition-shadow">
+        <div className="flex items-center gap-2 mb-1"><span className="text-xl">📝</span><p className="font-bold text-green-800">Ingreso Matrona V</p></div>
+        <p className="text-2xl font-bold text-gray-800">{fichasI1.length}</p>
+        <p className="text-xs text-gray-500 mb-2">ficha{fichasI1.length !== 1 ? 's' : ''} registrada{fichasI1.length !== 1 ? 's' : ''}</p>
+        {fichasI1[0]?.proximo_control && (
+          <p className="text-xs text-teal-700 font-medium">📅 Próx. control: {formatFecha(fichasI1[0].proximo_control)}</p>
+        )}
+      </button>
+      <button onClick={() => setVista('ingreso2')} className="bg-white rounded-xl shadow p-4 border-t-4 border-blue-500 text-left hover:shadow-md transition-shadow">
+        <div className="flex items-center gap-2 mb-1"><span className="text-xl">🗂️</span><p className="font-bold text-green-800">Ingreso Matrona J</p></div>
+        <p className="text-2xl font-bold text-gray-800">{fichasI2.length}</p>
+        <p className="text-xs text-gray-500 mb-2">ficha{fichasI2.length !== 1 ? 's' : ''} registrada{fichasI2.length !== 1 ? 's' : ''}</p>
+        {fichasI2[0]?.proximo_control && (
+          <p className="text-xs text-teal-700 font-medium">📅 Próx. control: {formatFecha(fichasI2[0].proximo_control)}</p>
+        )}
+      </button>
+    </div>
 
       {fichas.length > 0 && (
         <div className="bg-white rounded-xl shadow p-5 mb-4">
