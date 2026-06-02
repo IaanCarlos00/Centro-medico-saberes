@@ -2,28 +2,30 @@ const express = require('express')
 const router = express.Router()
 const pool = require('../db')
 
-// Obtener todos los pagos
 router.get('/', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT p.*, 
              pa.nombre AS paciente_nombre, pa.apellido AS paciente_apellido,
-             pa.rut AS paciente_rut
+             pa.rut AS paciente_rut,
+             c.fecha_hora AS fecha_cita
       FROM pago p
       JOIN paciente pa ON p.paciente_id = pa.id
+      LEFT JOIN cita c ON p.cita_id = c.id
       ORDER BY p.fecha DESC
     `)
     res.json(result.rows)
   } catch (error) { res.status(500).json({ error: error.message }) }
 })
 
-// Obtener pagos de un paciente
 router.get('/paciente/:paciente_id', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT p.*, pa.nombre AS paciente_nombre, pa.apellido AS paciente_apellido
+      SELECT p.*, pa.nombre AS paciente_nombre, pa.apellido AS paciente_apellido,
+             c.fecha_hora AS fecha_cita
       FROM pago p
       JOIN paciente pa ON p.paciente_id = pa.id
+      LEFT JOIN cita c ON p.cita_id = c.id
       WHERE p.paciente_id = $1
       ORDER BY p.fecha DESC
     `, [req.params.paciente_id])
@@ -31,7 +33,6 @@ router.get('/paciente/:paciente_id', async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }) }
 })
 
-// Resumen mensual
 router.get('/resumen', async (req, res) => {
   try {
     const hoy = new Date()
@@ -57,7 +58,6 @@ router.get('/resumen', async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }) }
 })
 
-// Crear pago
 router.post('/', async (req, res) => {
   const { paciente_id, cita_id, monto, metodo, estado, notas, numero_bono, estado_bono, estado_boleta } = req.body
   try {
@@ -79,7 +79,6 @@ router.post('/', async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }) }
 })
 
-// Actualizar pago
 router.put('/:id', async (req, res) => {
   const { monto, metodo, estado, notas, numero_bono, estado_bono, estado_boleta } = req.body
   try {
@@ -101,7 +100,6 @@ router.put('/:id', async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }) }
 })
 
-// Eliminar pago
 router.delete('/:id', async (req, res) => {
   try {
     await pool.query('DELETE FROM pago WHERE id=$1', [req.params.id])

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import axios from 'axios'
 import { registrarLog } from '../utils/log'
+import ListaConVerMas from '../components/ListaConVerMas'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
@@ -148,6 +149,17 @@ export default function Pagos() {
     cargar()
   }
 
+  // Ordenar por fecha de cita si existe, si no por fecha de pago
+  const fechaOrden = p => p.fecha_cita || p.fecha
+
+  const bonosPendientes = pagos
+    .filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono)
+    .sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
+
+  const boletasPendientes = pagos
+    .filter(p => (p.metodo === 'efectivo' || p.metodo === 'transferencia') && p.estado_boleta === 'pendiente')
+    .sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
+
   const filtrados = pagos.filter(p => {
     const q = busqueda.toLowerCase()
     const coincideBusqueda = !busqueda ||
@@ -158,6 +170,11 @@ export default function Pagos() {
     const coincideMetodo = !filtroMetodo || p.metodo === filtroMetodo
     return coincideBusqueda && coincideEstado && coincideMetodo
   })
+
+  const formatFechaCita = p => {
+    const f = p.fecha_cita || p.fecha
+    return new Date(f).toLocaleDateString('es-CL')
+  }
 
   return (
     <div>
@@ -194,41 +211,51 @@ export default function Pagos() {
       )}
 
       {/* Bonos Fonasa pendientes */}
-      {pagos.filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono).length > 0 && (
+      {bonosPendientes.length > 0 && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
-          <h3 className="text-sm font-bold text-yellow-800 mb-3">⏳ Bonos Fonasa pendientes de verificar ({pagos.filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono).length})</h3>
-          <div className="flex flex-col gap-2">
-            {pagos.filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono).map(p => (
-              <div key={p.id} className="flex items-center justify-between bg-white rounded-lg p-3">
+          <h3 className="text-sm font-bold text-yellow-800 mb-3">⏳ Bonos Fonasa pendientes ({bonosPendientes.length})</h3>
+          <ListaConVerMas
+            items={bonosPendientes}
+            limite={5}
+            renderItem={(p, i) => (
+              <div key={i} className="flex items-center justify-between bg-white rounded-lg p-3">
                 <div>
                   <p className="text-sm font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
-                  <p className="text-xs text-gray-500">🏥 Bono: {p.numero_bono} · {new Date(p.fecha).toLocaleDateString('es-CL')}</p>
+                  <p className="text-xs text-gray-500">
+                    🏥 Bono: {p.numero_bono} · Atención: {formatFechaCita(p)}
+                    {p.fecha_cita && <span className="ml-1 text-teal-600">(fecha cita)</span>}
+                  </p>
                 </div>
                 <div className="flex gap-2">
                   <button onClick={async () => { await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'verificado' }); cargar() }} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium">✅ Verificado</button>
                   <button onClick={async () => { await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'rechazado' }); cargar() }} className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-lg hover:bg-red-200 font-medium">❌ Rechazado</button>
                 </div>
               </div>
-            ))}
-          </div>
+            )}
+          />
         </div>
       )}
 
       {/* Boletas pendientes */}
-      {pagos.filter(p => (p.metodo === 'efectivo' || p.metodo === 'transferencia') && p.estado_boleta === 'pendiente').length > 0 && (
+      {boletasPendientes.length > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-          <h3 className="text-sm font-bold text-blue-800 mb-3">🧾 Boletas pendientes de emitir ({pagos.filter(p => (p.metodo === 'efectivo' || p.metodo === 'transferencia') && p.estado_boleta === 'pendiente').length})</h3>
-          <div className="flex flex-col gap-2">
-            {pagos.filter(p => (p.metodo === 'efectivo' || p.metodo === 'transferencia') && p.estado_boleta === 'pendiente').map(p => (
-              <div key={p.id} className="flex items-center justify-between bg-white rounded-lg p-3">
+          <h3 className="text-sm font-bold text-blue-800 mb-3">🧾 Boletas pendientes de emitir ({boletasPendientes.length})</h3>
+          <ListaConVerMas
+            items={boletasPendientes}
+            limite={5}
+            renderItem={(p, i) => (
+              <div key={i} className="flex items-center justify-between bg-white rounded-lg p-3">
                 <div>
                   <p className="text-sm font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
-                  <p className="text-xs text-gray-500">{metodoIcono[p.metodo]} {p.metodo} · {formatCLP(p.monto)} · {new Date(p.fecha).toLocaleDateString('es-CL')}</p>
+                  <p className="text-xs text-gray-500">
+                    {metodoIcono[p.metodo]} {p.metodo} · {formatCLP(p.monto)} · Atención: {formatFechaCita(p)}
+                    {p.fecha_cita && <span className="ml-1 text-teal-600">(fecha cita)</span>}
+                  </p>
                 </div>
                 <button onClick={() => toggleBoleta(p)} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium">✅ Marcar emitida</button>
               </div>
-            ))}
-          </div>
+            )}
+          />
         </div>
       )}
 
@@ -360,7 +387,7 @@ export default function Pagos() {
           <thead className="bg-green-50 text-green-800 uppercase text-xs">
             <tr>
               <th className="px-4 py-3 text-left">Paciente</th>
-              <th className="px-4 py-3 text-left">Fecha</th>
+              <th className="px-4 py-3 text-left">Fecha atención</th>
               <th className="px-4 py-3 text-left">Monto</th>
               <th className="px-4 py-3 text-left">Método</th>
               <th className="px-4 py-3 text-left">Estado</th>
@@ -375,7 +402,12 @@ export default function Pagos() {
                   <p className="font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
                   {p.paciente_rut && <p className="text-xs text-gray-400">{p.paciente_rut}</p>}
                 </td>
-                <td className="px-4 py-3 text-gray-600">{new Date(p.fecha).toLocaleDateString('es-CL')}</td>
+                <td className="px-4 py-3 text-gray-600">
+                  {p.fecha_cita
+                    ? <span>{new Date(p.fecha_cita).toLocaleDateString('es-CL')} <span className="text-xs text-teal-600">(cita)</span></span>
+                    : new Date(p.fecha).toLocaleDateString('es-CL')
+                  }
+                </td>
                 <td className="px-4 py-3 font-semibold text-gray-800">{formatCLP(p.monto)}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
@@ -422,7 +454,12 @@ export default function Pagos() {
             <div className="flex justify-between items-start mb-2">
               <div>
                 <p className="font-semibold text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
-                <p className="text-xs text-gray-400">{new Date(p.fecha).toLocaleDateString('es-CL')}</p>
+                <p className="text-xs text-gray-400">
+                  {p.fecha_cita
+                    ? <span>{new Date(p.fecha_cita).toLocaleDateString('es-CL')} <span className="text-teal-600">(cita)</span></span>
+                    : new Date(p.fecha).toLocaleDateString('es-CL')
+                  }
+                </p>
               </div>
               <p className="font-bold text-green-800 text-lg">{formatCLP(p.monto)}</p>
             </div>
