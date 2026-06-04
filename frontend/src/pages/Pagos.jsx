@@ -32,8 +32,13 @@ function formatCLP(n) {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(n)
 }
 
+function formatFecha(f) {
+  if (!f) return '—'
+  return new Date(String(f).slice(0, 10) + 'T12:00:00').toLocaleDateString('es-CL')
+}
+
 const formInicial = {
-  paciente_id: '', monto: '', metodo: 'debito', estado: 'pagado',
+  paciente_id: '', monto: '', metodo: 'debito', estado: 'pendiente',
   notas: '', numero_bono: '', estado_bono: 'pendiente', estado_boleta: 'pendiente'
 }
 
@@ -125,6 +130,7 @@ export default function Pagos() {
     setBusquedaPaciente(`${p.paciente_nombre} ${p.paciente_apellido}`)
     setEditando(p.id)
     setMostrarForm(true)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const eliminar = async id => {
@@ -149,8 +155,16 @@ export default function Pagos() {
     cargar()
   }
 
-  // Ordenar por fecha de cita si existe, si no por fecha de pago
+  const marcarPagado = async p => {
+    await axios.put(`${API}/${p.id}`, { ...p, estado: 'pagado' })
+    cargar()
+  }
+
   const fechaOrden = p => p.fecha_cita || p.fecha
+
+  const pendientes = pagos
+    .filter(p => p.estado === 'pendiente')
+    .sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
 
   const bonosPendientes = pagos
     .filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono)
@@ -160,26 +174,24 @@ export default function Pagos() {
     .filter(p => (p.metodo === 'efectivo' || p.metodo === 'transferencia') && p.estado_boleta === 'pendiente')
     .sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
 
-  const filtrados = pagos.filter(p => {
-    const q = busqueda.toLowerCase()
-    const coincideBusqueda = !busqueda ||
-      `${p.paciente_nombre} ${p.paciente_apellido}`.toLowerCase().includes(q) ||
-      (p.paciente_rut && p.paciente_rut.toLowerCase().includes(q)) ||
-      (p.notas && p.notas.toLowerCase().includes(q))
-    const coincideEstado = !filtroEstado || p.estado === filtroEstado
-    const coincideMetodo = !filtroMetodo || p.metodo === filtroMetodo
-    return coincideBusqueda && coincideEstado && coincideMetodo
-  })
-
-  const formatFechaCita = p => {
-    const f = p.fecha_cita || p.fecha
-    return new Date(f).toLocaleDateString('es-CL')
-  }
+  const filtrados = pagos
+    .filter(p => {
+      const q = busqueda.toLowerCase()
+      const coincideBusqueda = !busqueda ||
+        `${p.paciente_nombre} ${p.paciente_apellido}`.toLowerCase().includes(q) ||
+        (p.paciente_rut && p.paciente_rut.toLowerCase().includes(q)) ||
+        (p.notas && p.notas.toLowerCase().includes(q))
+      const coincideEstado = !filtroEstado || p.estado === filtroEstado
+      const coincideMetodo = !filtroMetodo || p.metodo === filtroMetodo
+      return coincideBusqueda && coincideEstado && coincideMetodo
+    })
+    .sort((a, b) => new Date(fechaOrden(b)) - new Date(fechaOrden(a)))
 
   return (
     <div>
       <h2 className="text-2xl font-bold text-green-800 mb-6">Pagos</h2>
 
+      {/* Resumen */}
       {resumen && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-green-600">
@@ -210,10 +222,38 @@ export default function Pagos() {
         </div>
       )}
 
+      {/* Pagos pendientes de cobro */}
+      {pendientes.length > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
+          <h3 className="text-sm font-bold text-yellow-800 mb-3">⚠️ Pagos pendientes de cobro ({pendientes.length}) — {formatCLP(pendientes.reduce((s, p) => s + parseFloat(p.monto), 0))}</h3>
+          <ListaConVerMas
+            items={pendientes}
+            limite={5}
+            renderItem={(p, i) => (
+              <div key={i} className="flex items-center justify-between bg-white rounded-lg p-3">
+                <div>
+                  <p className="text-sm font-semibold text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
+                  <p className="text-xs text-gray-500">
+                    {metodoIcono[p.metodo]} {p.metodo} · {formatFecha(p.fecha_cita || p.fecha)}
+                    {p.fecha_cita && <span className="ml-1 text-teal-600">(fecha cita)</span>}
+                  </p>
+                  {p.notas && <p className="text-xs text-gray-400 mt-0.5">{p.notas}</p>}
+                </div>
+                <div className="flex items-center gap-2 ml-3">
+                  <span className="font-bold text-gray-800 text-sm">{formatCLP(p.monto)}</span>
+                  <button onClick={() => marcarPagado(p)} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium whitespace-nowrap">✅ Marcar pagado</button>
+                  <button onClick={() => editar(p)} className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-lg hover:bg-blue-100 font-medium">Editar</button>
+                </div>
+              </div>
+            )}
+          />
+        </div>
+      )}
+
       {/* Bonos Fonasa pendientes */}
       {bonosPendientes.length > 0 && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
-          <h3 className="text-sm font-bold text-yellow-800 mb-3">⏳ Bonos Fonasa pendientes ({bonosPendientes.length})</h3>
+        <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 mb-6">
+          <h3 className="text-sm font-bold text-teal-800 mb-3">🏥 Bonos Fonasa por verificar ({bonosPendientes.length})</h3>
           <ListaConVerMas
             items={bonosPendientes}
             limite={5}
@@ -222,8 +262,7 @@ export default function Pagos() {
                 <div>
                   <p className="text-sm font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
                   <p className="text-xs text-gray-500">
-                    🏥 Bono: {p.numero_bono} · Atención: {formatFechaCita(p)}
-                    {p.fecha_cita && <span className="ml-1 text-teal-600">(fecha cita)</span>}
+                    🏥 Bono: {p.numero_bono} · {formatFecha(p.fecha_cita || p.fecha)}
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -248,8 +287,7 @@ export default function Pagos() {
                 <div>
                   <p className="text-sm font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
                   <p className="text-xs text-gray-500">
-                    {metodoIcono[p.metodo]} {p.metodo} · {formatCLP(p.monto)} · Atención: {formatFechaCita(p)}
-                    {p.fecha_cita && <span className="ml-1 text-teal-600">(fecha cita)</span>}
+                    {metodoIcono[p.metodo]} {p.metodo} · {formatCLP(p.monto)} · {formatFecha(p.fecha_cita || p.fecha)}
                   </p>
                 </div>
                 <button onClick={() => toggleBoleta(p)} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium">✅ Marcar emitida</button>
@@ -259,12 +297,14 @@ export default function Pagos() {
         </div>
       )}
 
+      {/* Botón registrar */}
       <div className="flex justify-end mb-4">
         <button onClick={() => { setMostrarForm(!mostrarForm); if (mostrarForm) cancelar() }} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium transition-colors">
           {mostrarForm ? 'Cancelar' : '+ Registrar pago'}
         </button>
       </div>
 
+      {/* Formulario */}
       {mostrarForm && (
         <div className="bg-white rounded-xl shadow p-5 mb-6">
           <h3 className="text-lg font-semibold text-gray-700 mb-4">{editando ? 'Editar pago' : 'Registrar nuevo pago'}</h3>
@@ -293,13 +333,11 @@ export default function Pagos() {
                 </div>
               )}
             </div>
-
             <div className="flex flex-col">
               <label className="text-sm text-gray-600 mb-1">Monto ($)</label>
               <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.monto ? 'border-red-400' : 'border-gray-300'}`} name="monto" type="number" placeholder="25000" value={form.monto} onChange={handleChange} />
               {errores.monto && <span className="text-red-500 text-xs mt-1">{errores.monto}</span>}
             </div>
-
             <div className="flex flex-col">
               <label className="text-sm text-gray-600 mb-1">Método de pago</label>
               <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="metodo" value={form.metodo} onChange={handleChange}>
@@ -310,7 +348,6 @@ export default function Pagos() {
                 <option value="credito">💳 Crédito</option>
               </select>
             </div>
-
             <div className="flex flex-col">
               <label className="text-sm text-gray-600 mb-1">Estado</label>
               <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="estado" value={form.estado} onChange={handleChange}>
@@ -319,7 +356,6 @@ export default function Pagos() {
                 <option value="condonado">Condonado</option>
               </select>
             </div>
-
             {form.metodo === 'fonasa' && (
               <>
                 <div className="flex flex-col">
@@ -336,7 +372,6 @@ export default function Pagos() {
                 </div>
               </>
             )}
-
             {(form.metodo === 'efectivo' || form.metodo === 'transferencia') && (
               <div className="flex flex-col">
                 <label className="text-sm text-gray-600 mb-1">Estado boleta</label>
@@ -346,7 +381,6 @@ export default function Pagos() {
                 </select>
               </div>
             )}
-
             <div className="flex flex-col sm:col-span-2">
               <label className="text-sm text-gray-600 mb-1">Notas (opcional)</label>
               <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="notas" placeholder="Ej: Control mensual, primera consulta..." value={form.notas} onChange={handleChange} />
@@ -359,6 +393,7 @@ export default function Pagos() {
         </div>
       )}
 
+      {/* Historial completo */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="relative flex-1">
           <input className="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="Buscar por paciente, RUT o notas..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
@@ -388,26 +423,26 @@ export default function Pagos() {
             <tr>
               <th className="px-4 py-3 text-left">Paciente</th>
               <th className="px-4 py-3 text-left">Fecha atención</th>
+              <th className="px-4 py-3 text-left">Procedimiento</th>
               <th className="px-4 py-3 text-left">Monto</th>
               <th className="px-4 py-3 text-left">Método</th>
               <th className="px-4 py-3 text-left">Estado</th>
-              <th className="px-4 py-3 text-left">Notas / Bono / Boleta</th>
+              <th className="px-4 py-3 text-left">Extra</th>
               <th className="px-4 py-3 text-left">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {filtrados.map(p => (
-              <tr key={p.id} className="hover:bg-gray-50 transition-colors">
+              <tr key={p.id} className={`hover:bg-gray-50 transition-colors ${p.estado === 'pendiente' ? 'bg-yellow-50' : ''}`}>
                 <td className="px-4 py-3">
                   <p className="font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
                   {p.paciente_rut && <p className="text-xs text-gray-400">{p.paciente_rut}</p>}
                 </td>
-                <td className="px-4 py-3 text-gray-600">
-                  {p.fecha_cita
-                    ? <span>{new Date(p.fecha_cita).toLocaleDateString('es-CL')} <span className="text-xs text-teal-600">(cita)</span></span>
-                    : new Date(p.fecha).toLocaleDateString('es-CL')
-                  }
+                <td className="px-4 py-3 text-gray-600 text-xs">
+                  {formatFecha(p.fecha_cita || p.fecha)}
+                  {p.fecha_cita && <p className="text-teal-500">fecha cita</p>}
                 </td>
+                <td className="px-4 py-3 text-gray-500 text-xs">{p.notas || '—'}</td>
                 <td className="px-4 py-3 font-semibold text-gray-800">{formatCLP(p.monto)}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
@@ -415,33 +450,32 @@ export default function Pagos() {
                 <td className="px-4 py-3">
                   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
                 </td>
-                <td className="px-4 py-3 text-gray-500 text-xs">
-                  {p.notas && <p className="mb-1">{p.notas}</p>}
+                <td className="px-4 py-3 text-xs">
                   {p.numero_bono && (
-                    <p className="text-blue-600">
-                      🏥 Bono: {p.numero_bono}{' '}
-                      <span className={`px-1 rounded text-xs ${p.estado_bono === 'verificado' ? 'bg-green-100 text-green-700' : p.estado_bono === 'rechazado' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_bono}</span>
+                    <p className="text-blue-600 mb-1">
+                      🏥 {p.numero_bono}{' '}
+                      <span className={`px-1 rounded ${p.estado_bono === 'verificado' ? 'bg-green-100 text-green-700' : p.estado_bono === 'rechazado' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_bono}</span>
                     </p>
                   )}
                   {(p.metodo === 'efectivo' || p.metodo === 'transferencia') && (
-                    <p className="mt-1">
-                      🧾 Boleta:{' '}
-                      <button onClick={() => toggleBoleta(p)} className={`px-2 py-0.5 rounded-full text-xs font-semibold cursor-pointer ${p.estado_boleta === 'emitida' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                        {p.estado_boleta === 'emitida' ? '✅ Emitida' : '⏳ Pendiente'}
-                      </button>
-                    </p>
+                    <button onClick={() => toggleBoleta(p)} className={`px-2 py-0.5 rounded-full text-xs font-semibold cursor-pointer ${p.estado_boleta === 'emitida' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                      {p.estado_boleta === 'emitida' ? '✅ Boleta emitida' : '🧾 Boleta pendiente'}
+                    </button>
                   )}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2 flex-wrap">
-                    <button onClick={() => editar(p)} className="text-blue-600 hover:underline text-sm font-medium">Editar</button>
-                    <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
+                    {p.estado === 'pendiente' && (
+                      <button onClick={() => marcarPagado(p)} className="text-green-700 hover:underline text-xs font-medium">✅ Pagado</button>
+                    )}
+                    <button onClick={() => editar(p)} className="text-blue-600 hover:underline text-xs font-medium">Editar</button>
+                    <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-xs font-medium">Eliminar</button>
                   </div>
                 </td>
               </tr>
             ))}
             {filtrados.length === 0 && (
-              <tr><td colSpan="7" className="px-4 py-6 text-center text-gray-400">{busqueda || filtroEstado || filtroMetodo ? 'No se encontraron resultados' : 'No hay pagos registrados'}</td></tr>
+              <tr><td colSpan="8" className="px-4 py-6 text-center text-gray-400">{busqueda || filtroEstado || filtroMetodo ? 'No se encontraron resultados' : 'No hay pagos registrados'}</td></tr>
             )}
           </tbody>
         </table>
@@ -450,36 +484,31 @@ export default function Pagos() {
       {/* Tarjetas móvil */}
       <div className="md:hidden flex flex-col gap-3">
         {filtrados.map(p => (
-          <div key={p.id} className="bg-white rounded-xl shadow p-4">
+          <div key={p.id} className={`rounded-xl shadow p-4 ${p.estado === 'pendiente' ? 'bg-yellow-50 border border-yellow-200' : 'bg-white'}`}>
             <div className="flex justify-between items-start mb-2">
               <div>
                 <p className="font-semibold text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
-                <p className="text-xs text-gray-400">
-                  {p.fecha_cita
-                    ? <span>{new Date(p.fecha_cita).toLocaleDateString('es-CL')} <span className="text-teal-600">(cita)</span></span>
-                    : new Date(p.fecha).toLocaleDateString('es-CL')
-                  }
-                </p>
+                <p className="text-xs text-gray-400">{formatFecha(p.fecha_cita || p.fecha)}{p.fecha_cita && <span className="text-teal-500 ml-1">cita</span>}</p>
               </div>
               <p className="font-bold text-green-800 text-lg">{formatCLP(p.monto)}</p>
             </div>
+            {p.notas && <p className="text-xs text-gray-500 mb-1">{p.notas}</p>}
             <div className="flex gap-2 mb-2 flex-wrap">
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
               <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
             </div>
-            {p.notas && <p className="text-xs text-gray-400 mb-1">{p.notas}</p>}
             {p.numero_bono && (
               <p className="text-xs text-blue-600 mb-1">🏥 Bono: {p.numero_bono} <span className={`px-1 rounded ${p.estado_bono === 'verificado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_bono}</span></p>
             )}
             {(p.metodo === 'efectivo' || p.metodo === 'transferencia') && (
-              <p className="text-xs mb-2">
-                🧾 Boleta:{' '}
-                <button onClick={() => toggleBoleta(p)} className={`px-2 py-0.5 rounded-full text-xs font-semibold cursor-pointer ${p.estado_boleta === 'emitida' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                  {p.estado_boleta === 'emitida' ? '✅ Emitida' : '⏳ Pendiente'}
-                </button>
-              </p>
+              <button onClick={() => toggleBoleta(p)} className={`text-xs px-2 py-0.5 rounded-full font-semibold mb-2 ${p.estado_boleta === 'emitida' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                {p.estado_boleta === 'emitida' ? '✅ Boleta emitida' : '🧾 Boleta pendiente'}
+              </button>
             )}
             <div className="flex gap-3">
+              {p.estado === 'pendiente' && (
+                <button onClick={() => marcarPagado(p)} className="text-green-700 text-sm font-medium">✅ Pagado</button>
+              )}
               <button onClick={() => editar(p)} className="text-blue-600 text-sm font-medium">Editar</button>
               <button onClick={() => eliminar(p.id)} className="text-red-500 text-sm font-medium">Eliminar</button>
             </div>
