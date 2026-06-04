@@ -169,7 +169,7 @@ function Layout({ usuario, onLogout }) {
             </div>
           </Link>
 
-          <button className="md:hidden text-white focus:outline-none" onClick={() => setMenuAbierto(!menuAbierto)}>
+          <button className="hidden text-white focus:outline-none" onClick={() => setMenuAbierto(!menuAbierto)}>
             {menuAbierto ? (
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
             ) : (
@@ -188,7 +188,7 @@ function Layout({ usuario, onLogout }) {
         </div>
 
         {menuAbierto && (
-          <div className="md:hidden flex flex-col gap-1 mt-3 border-t border-green-700 pt-3">
+          <div className="hidden flex flex-col gap-1 mt-3 border-t border-green-700 pt-3">
             {links.map(l => <NavLink key={l.to} to={l.to} onClick={() => setMenuAbierto(false)}>{l.label}</NavLink>)}
             <div className="border-t border-green-700 pt-2 mt-1">
               <span className="text-green-200 text-sm block px-4 py-1">Hola, {usuario.nombre}</span>
