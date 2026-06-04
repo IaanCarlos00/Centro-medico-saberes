@@ -18,6 +18,7 @@ const encuestasRouter = require('./routes/encuestas');
 const archivosRouter = require('./routes/archivos');
 const logsRouter = require('./routes/logs');
 const auth = require('./middleware/auth');
+const reportesRouter = require('./routes/reportes');
 
 const app = express();
 const PORT = 3000;
@@ -49,6 +50,8 @@ app.use('/pap', auth, papRouter);
 app.use('/flujos', auth, flujosRouter);
 app.use('/archivos', auth, archivosRouter);
 app.use('/logs', auth, logsRouter);
+app.use('/reportes', auth, reportesRouter);
+
 
 // Ruta de prueba
 app.get('/', (req, res) => {
