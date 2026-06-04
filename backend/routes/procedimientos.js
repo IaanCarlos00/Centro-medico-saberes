@@ -64,10 +64,16 @@ router.post('/', async (req, res) => {
       'INSERT INTO procedimiento (paciente_id, catalogo_procedimiento_id, nombre, monto, metodo, estado, notas, fecha) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *',
       [paciente_id, catalogo_procedimiento_id || null, nombre, monto, metodo, estado || 'pendiente', notas || null, fechaFinal]
     )
-    await pool.query(
-      'INSERT INTO pago (paciente_id, monto, metodo, estado, notas, numero_bono, estado_bono, fecha) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
-      [paciente_id, monto, metodo, estado || 'pendiente', `Procedimiento: ${nombre}`, numero_bono || null, metodo === 'fonasa' ? 'pendiente' : null, fechaFinal]
+    const pagoExistente = await pool.query(
+      `SELECT id FROM pago WHERE paciente_id = $1 AND monto = $2 AND fecha > NOW() - INTERVAL '5 minutes'`,
+      [paciente_id, monto]
     )
+    if (pagoExistente.rows.length === 0) {
+      await pool.query(
+        'INSERT INTO pago (paciente_id, monto, metodo, estado, notas, numero_bono, estado_bono, fecha) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)',
+        [paciente_id, monto, metodo, estado || 'pendiente', `Procedimiento: ${nombre}`, numero_bono || null, metodo === 'fonasa' ? 'pendiente' : null, fechaFinal]
+      )
+    }
 
     if (nombre && nombre.toUpperCase().includes('PAP')) {
       await pool.query(

@@ -49,6 +49,7 @@ export default function Pagos() {
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('')
   const [filtroMetodo, setFiltroMetodo] = useState('')
+  const [filtroPeriodo, setFiltroPeriodo] = useState('mes')
   const [mostrarForm, setMostrarForm] = useState(false)
   const [editando, setEditando] = useState(null)
   const [form, setForm] = useState(formInicial)
@@ -183,7 +184,20 @@ export default function Pagos() {
         (p.notas && p.notas.toLowerCase().includes(q))
       const coincideEstado = !filtroEstado || p.estado === filtroEstado
       const coincideMetodo = !filtroMetodo || p.metodo === filtroMetodo
-      return coincideBusqueda && coincideEstado && coincideMetodo
+      const fecha = new Date(String(p.fecha_cita || p.fecha).slice(0, 10) + 'T12:00:00')
+      const hoy = new Date()
+      let coincidePeriodo = true
+      if (filtroPeriodo === 'hoy') {
+        coincidePeriodo = fecha.toDateString() === hoy.toDateString()
+      } else if (filtroPeriodo === 'semana') {
+        const lunes = new Date(hoy)
+        lunes.setDate(hoy.getDate() - hoy.getDay() + 1)
+        lunes.setHours(0, 0, 0, 0)
+        coincidePeriodo = fecha >= lunes
+      } else if (filtroPeriodo === 'mes') {
+        coincidePeriodo = fecha.getMonth() === hoy.getMonth() && fecha.getFullYear() === hoy.getFullYear()
+      }
+      return coincideBusqueda && coincideEstado && coincideMetodo && coincidePeriodo
     })
     .sort((a, b) => new Date(fechaOrden(b)) - new Date(fechaOrden(a)))
 
@@ -400,6 +414,12 @@ export default function Pagos() {
           <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
           {busqueda && <button onClick={() => setBusqueda('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">✕</button>}
         </div>
+        <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={filtroPeriodo} onChange={e => setFiltroPeriodo(e.target.value)}>
+          <option value="hoy">Hoy</option>
+          <option value="semana">Esta semana</option>
+          <option value="mes">Este mes</option>
+          <option value="todos">Todos</option>
+        </select>
         <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}>
           <option value="">Todos los estados</option>
           <option value="pagado">Pagado</option>
