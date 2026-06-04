@@ -1,1 +1,9 @@
 @import "tailwindcss";
+
+.rbc-time-content {
+  overflow-y: visible !important;
+}
+
+.rbc-time-view {
+  overflow: visible !important;
+}
