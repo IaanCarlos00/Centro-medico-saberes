@@ -886,7 +886,7 @@ export default function Agenda() {
           )}
 
           {/* Calendario */}
-          <div className="bg-white rounded-xl shadow p-4" style={{ height: window.innerWidth < 768 ? 500 : 640 }}>
+          <div className="bg-white rounded-xl shadow p-4" style={{ height: window.innerWidth < 768 ? 600 : 720 }}>
             {/* Resumen disponibilidad del día */}
               {(() => {
                 const hoyStr = new Date().toISOString().slice(0,10)
