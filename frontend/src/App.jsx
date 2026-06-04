@@ -199,7 +199,7 @@ function Layout({ usuario, onLogout }) {
         )}
       </nav>
 
-      <main className="max-w-6xl mx-auto p-4 md:p-6 pb-32 md:pb-6">
+      <main className="max-w-6xl mx-auto p-4 md:p-6 pb-40 md:pb-6">
         <Routes>
           {rol === 'admin' && <>
             <Route index element={<Inicio />} />
