@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import * as XLSX from 'xlsx'
-import { saveAs } from 'file-saver'
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/reportes'
 const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
@@ -17,6 +16,17 @@ const metodoIcono = {
 
 function formatCLP(n) {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(n || 0)
+}
+
+function descargarExcel(wb, nombre) {
+  const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' })
+  const blob = new Blob([buf], { type: 'application/octet-stream' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = nombre
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 function Variacion({ actual, anterior }) {
@@ -61,82 +71,68 @@ export default function Reportes() {
 
   const exportarPagos = () => {
     const filtrados = pagosRaw.filter(p => p.fecha?.slice(0, 7) === mes)
-    const datos = filtrados.map(p => ({
+    const wb = XLSX.utils.book_new()
+    const ws = XLSX.utils.json_to_sheet(filtrados.map(p => ({
       'Paciente': `${p.paciente_nombre} ${p.paciente_apellido}`,
       'RUT': p.paciente_rut || '',
       'Fecha': new Date(String(p.fecha).slice(0,10) + 'T12:00:00').toLocaleDateString('es-CL'),
-      'Monto': p.monto,
-      'Método': p.metodo,
-      'Estado': p.estado,
-      'Notas': p.notas || '',
-      'N° Bono': p.numero_bono || '',
-    }))
-    const ws = XLSX.utils.json_to_sheet(datos)
-    const wb = XLSX.utils.book_new()
+      'Monto': p.monto, 'Método': p.metodo, 'Estado': p.estado,
+      'Notas': p.notas || '', 'N° Bono': p.numero_bono || '',
+    })))
     XLSX.utils.book_append_sheet(wb, ws, 'Pagos')
-    saveAs(new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })]), `Pagos_${mes}.xlsx`)
+    descargarExcel(wb, `Pagos_${mes}.xlsx`)
   }
 
   const exportarCitas = () => {
     const filtradas = citasRaw.filter(c => c.fecha_hora?.slice(0, 7) === mes)
-    const datos = filtradas.map(c => ({
+    const wb = XLSX.utils.book_new()
+    const ws = XLSX.utils.json_to_sheet(filtradas.map(c => ({
       'Paciente': `${c.paciente_nombre} ${c.paciente_apellido}`,
       'Profesional': `${c.profesional_nombre} ${c.profesional_apellido}`,
       'Fecha y Hora': c.fecha_hora?.slice(0, 16).replace('T', ' '),
       'Procedimiento': c.procedimiento_nombre || '',
-      'Estado': c.estado,
-      'Observaciones': c.observaciones || '',
-    }))
-    const ws = XLSX.utils.json_to_sheet(datos)
-    const wb = XLSX.utils.book_new()
+      'Estado': c.estado, 'Observaciones': c.observaciones || '',
+    })))
     XLSX.utils.book_append_sheet(wb, ws, 'Citas')
-    saveAs(new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })]), `Citas_${mes}.xlsx`)
+    descargarExcel(wb, `Citas_${mes}.xlsx`)
   }
 
   const exportarPacientes = () => {
-    const datos = pacientesRaw.map(p => ({
-      'Nombre': p.nombre,
-      'Apellido': p.apellido,
-      'RUT': p.rut || '',
-      'Fecha Nacimiento': p.fecha_nacimiento?.slice(0, 10) || '',
-      'Teléfono': p.telefono || '',
-      'Email': p.email || '',
-    }))
-    const ws = XLSX.utils.json_to_sheet(datos)
     const wb = XLSX.utils.book_new()
+    const ws = XLSX.utils.json_to_sheet(pacientesRaw.map(p => ({
+      'Nombre': p.nombre, 'Apellido': p.apellido, 'RUT': p.rut || '',
+      'Fecha Nacimiento': p.fecha_nacimiento?.slice(0, 10) || '',
+      'Teléfono': p.telefono || '', 'Email': p.email || '',
+    })))
     XLSX.utils.book_append_sheet(wb, ws, 'Pacientes')
-    saveAs(new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })]), `Pacientes_${new Date().toISOString().slice(0,10)}.xlsx`)
+    descargarExcel(wb, `Pacientes_${new Date().toISOString().slice(0,10)}.xlsx`)
   }
 
   const exportarCompleto = () => {
+    const wb = XLSX.utils.book_new()
     const pagosFiltrados = pagosRaw.filter(p => p.fecha?.slice(0, 7) === mes)
     const citasFiltradas = citasRaw.filter(c => c.fecha_hora?.slice(0, 7) === mes)
-    const wb = XLSX.utils.book_new()
 
-    const wsPagos = XLSX.utils.json_to_sheet(pagosFiltrados.map(p => ({
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(pagosFiltrados.map(p => ({
       'Paciente': `${p.paciente_nombre} ${p.paciente_apellido}`,
       'RUT': p.paciente_rut || '',
       'Fecha': new Date(String(p.fecha).slice(0,10) + 'T12:00:00').toLocaleDateString('es-CL'),
       'Monto': p.monto, 'Método': p.metodo, 'Estado': p.estado, 'Notas': p.notas || '',
-    })))
-    XLSX.utils.book_append_sheet(wb, wsPagos, 'Pagos')
+    }))), 'Pagos')
 
-    const wsCitas = XLSX.utils.json_to_sheet(citasFiltradas.map(c => ({
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(citasFiltradas.map(c => ({
       'Paciente': `${c.paciente_nombre} ${c.paciente_apellido}`,
       'Profesional': `${c.profesional_nombre} ${c.profesional_apellido}`,
       'Fecha y Hora': c.fecha_hora?.slice(0, 16).replace('T', ' '),
-      'Procedimiento': c.procedimiento_nombre || '',
-      'Estado': c.estado,
-    })))
-    XLSX.utils.book_append_sheet(wb, wsCitas, 'Citas')
+      'Procedimiento': c.procedimiento_nombre || '', 'Estado': c.estado,
+    }))), 'Citas')
 
-    const wsPac = XLSX.utils.json_to_sheet(pacientesRaw.map(p => ({
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(pacientesRaw.map(p => ({
       'Nombre': p.nombre, 'Apellido': p.apellido, 'RUT': p.rut || '',
       'Teléfono': p.telefono || '', 'Email': p.email || '',
-    })))
-    XLSX.utils.book_append_sheet(wb, wsPac, 'Pacientes')
+    }))), 'Pacientes')
 
-    saveAs(new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })]), `Reporte_completo_${mes}.xlsx`)
+    descargarExcel(wb, `Reporte_completo_${mes}.xlsx`)
   }
 
   if (cargando) return (
@@ -145,6 +141,12 @@ export default function Reportes() {
         <div className="text-4xl mb-3">📊</div>
         <p className="text-gray-400">Generando reporte...</p>
       </div>
+    </div>
+  )
+
+  if (!datos) return (
+    <div className="flex items-center justify-center py-20">
+      <p className="text-gray-400">Error al cargar reportes</p>
     </div>
   )
 
@@ -158,7 +160,6 @@ export default function Reportes() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 className="text-2xl font-bold text-green-800">Reportes</h2>
         <div className="flex items-center gap-3">
@@ -174,7 +175,6 @@ export default function Reportes() {
         </div>
       </div>
 
-      {/* KPIs principales */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-green-600">
           <p className="text-xs text-gray-500 mb-1">Recaudado</p>
@@ -198,7 +198,6 @@ export default function Reportes() {
         </div>
       </div>
 
-      {/* Gráfico ingresos últimos 6 meses */}
       <div className="bg-white rounded-2xl shadow-sm p-5">
         <h3 className="text-lg font-bold text-gray-800 mb-4">📈 Ingresos últimos 6 meses</h3>
         <ResponsiveContainer width="100%" height={220}>
@@ -212,7 +211,6 @@ export default function Reportes() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Ingresos por método */}
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <h3 className="text-lg font-bold text-gray-800 mb-4">💳 Ingresos por método</h3>
           {pieData.length > 0 ? (
@@ -241,21 +239,20 @@ export default function Reportes() {
           ) : <p className="text-gray-400 text-sm text-center py-8">Sin pagos este mes</p>}
         </div>
 
-        {/* Citas por estado */}
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <h3 className="text-lg font-bold text-gray-800 mb-4">📅 Citas por estado</h3>
           <div className="flex flex-col gap-3">
             {['realizada', 'confirmada', 'pendiente', 'cancelada'].map(estado => {
               const item = datos.citasPorEstado.find(e => e.estado === estado)
               const total = parseInt(item?.total || 0)
-              const max = Math.max(...datos.citasPorEstado.map(e => parseInt(e.total)))
+              const max = Math.max(...datos.citasPorEstado.map(e => parseInt(e.total)), 1)
               const colores = { realizada: 'bg-green-500', confirmada: 'bg-blue-500', pendiente: 'bg-yellow-400', cancelada: 'bg-red-400' }
               const iconos = { realizada: '✅', confirmada: '📋', pendiente: '🕐', cancelada: '❌' }
               return (
                 <div key={estado} className="flex items-center gap-3">
                   <span className="text-sm w-24 capitalize text-gray-600">{iconos[estado]} {estado}</span>
                   <div className="flex-1 bg-gray-100 rounded-full h-3">
-                    <div className={`h-3 rounded-full ${colores[estado]}`} style={{ width: max > 0 ? `${(total/max)*100}%` : '0%' }} />
+                    <div className={`h-3 rounded-full ${colores[estado]}`} style={{ width: `${(total/max)*100}%` }} />
                   </div>
                   <span className="font-bold text-gray-800 w-8 text-right">{total}</span>
                 </div>
@@ -284,7 +281,6 @@ export default function Reportes() {
         </div>
       </div>
 
-      {/* Ingresos por profesional */}
       {datos.ingresosPorProfesional.length > 0 && (
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <h3 className="text-lg font-bold text-gray-800 mb-4">💰 Ingresos por profesional</h3>
@@ -298,7 +294,7 @@ export default function Reportes() {
                   <div className="flex-1 bg-gray-100 rounded-full h-3">
                     <div className="h-3 rounded-full bg-green-500" style={{ width: `${pct}%` }} />
                   </div>
-                  <span className="text-sm font-bold text-gray-800 text-right">{formatCLP(p.total)}</span>
+                  <span className="text-sm font-bold text-gray-800">{formatCLP(p.total)}</span>
                   <span className="text-xs text-gray-400 w-8">{pct}%</span>
                 </div>
               )
@@ -308,7 +304,6 @@ export default function Reportes() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Pacientes frecuentes */}
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <h3 className="text-lg font-bold text-gray-800 mb-4">⭐ Pacientes más frecuentes</h3>
           {datos.pacientesFrecuentes.length > 0 ? (
@@ -326,7 +321,6 @@ export default function Reportes() {
           ) : <p className="text-gray-400 text-sm text-center py-4">Sin atenciones este mes</p>}
         </div>
 
-        {/* Pacientes con deuda */}
         <div className="bg-white rounded-2xl shadow-sm p-5">
           <h3 className="text-lg font-bold text-gray-800 mb-4">⚠️ Pacientes con deuda</h3>
           {datos.pacientesDeuda.length > 0 ? (
@@ -348,7 +342,6 @@ export default function Reportes() {
         </div>
       </div>
 
-      {/* Exportar individual */}
       <div className="bg-white rounded-2xl shadow-sm p-5">
         <h3 className="text-lg font-bold text-gray-800 mb-4">📥 Exportar datos</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
