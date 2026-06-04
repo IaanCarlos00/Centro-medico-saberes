@@ -29,6 +29,92 @@ function NavLink({ to, children, onClick }) {
   )
 }
 
+function BottomNav({ links, onLogout, usuario }) {
+  const location = useLocation()
+  const [mostrarMas, setMostrarMas] = useState(false)
+
+  const principales = links.slice(0, 4)
+  const secundarios = links.slice(4)
+
+  const iconos = {
+    '/': '🏠',
+    '/pacientes': '👤',
+    '/citas': '📅',
+    '/pagos': '💰',
+    '/pap': '🧪',
+    '/flujos': '🔬',
+    '/encuestas': '📋',
+    '/procedimientos': '🩺',
+    '/reportes': '📊',
+    '/usuarios': '👥',
+    '/profesionales': '👩‍⚕️',
+    '/logs': '📝',
+  }
+
+  return (
+    <>
+      {/* Overlay secundarios */}
+      {mostrarMas && (
+        <div className="fixed inset-0 z-40" onClick={() => setMostrarMas(false)}>
+          <div className="fixed bottom-20 left-0 right-0 mx-4 bg-white rounded-2xl shadow-xl p-4 z-50" onClick={e => e.stopPropagation()}>
+            <p className="text-xs text-gray-400 uppercase font-semibold mb-3">Más opciones</p>
+            <div className="grid grid-cols-3 gap-3">
+              {secundarios.map(l => {
+                const active = location.pathname === l.to
+                return (
+                  <Link key={l.to} to={l.to} onClick={() => setMostrarMas(false)}
+                    className={`flex flex-col items-center gap-1 p-3 rounded-xl text-center transition-colors ${active ? 'bg-green-50 text-green-800' : 'text-gray-600 hover:bg-gray-50'}`}
+                  >
+                    <span className="text-2xl">{iconos[l.to] || '📌'}</span>
+                    <span className="text-xs font-medium">{l.label}</span>
+                  </Link>
+                )
+              })}
+              <Link to="/cambiar-password" onClick={() => setMostrarMas(false)}
+                className="flex flex-col items-center gap-1 p-3 rounded-xl text-center text-gray-600 hover:bg-gray-50"
+              >
+                <span className="text-2xl">🔑</span>
+                <span className="text-xs font-medium">Contraseña</span>
+              </Link>
+              <button onClick={() => { setMostrarMas(false); onLogout() }}
+                className="flex flex-col items-center gap-1 p-3 rounded-xl text-center text-red-500 hover:bg-red-50"
+              >
+                <span className="text-2xl">🚪</span>
+                <span className="text-xs font-medium">Salir</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Barra inferior */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 shadow-lg">
+        <div className="flex items-center justify-around px-2 py-2">
+          {principales.map(l => {
+            const active = location.pathname === l.to
+            return (
+              <Link key={l.to} to={l.to}
+                className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-colors min-w-0 ${active ? 'text-green-700' : 'text-gray-400'}`}
+              >
+                <span className="text-2xl">{iconos[l.to] || '📌'}</span>
+                <span className="text-xs font-medium truncate">{l.label}</span>
+              </Link>
+            )
+          })}
+          {secundarios.length > 0 && (
+            <button onClick={() => setMostrarMas(!mostrarMas)}
+              className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-colors ${mostrarMas ? 'text-green-700' : 'text-gray-400'}`}
+            >
+              <span className="text-2xl">⋯</span>
+              <span className="text-xs font-medium">Más</span>
+            </button>
+          )}
+        </div>
+      </nav>
+    </>
+  )
+}
+
 function Layout({ usuario, onLogout }) {
   const [menuAbierto, setMenuAbierto] = useState(false)
   const rol = usuario.rol
@@ -50,8 +136,8 @@ function Layout({ usuario, onLogout }) {
 
   const linksSecretaria = [
     { to: '/', label: 'Inicio' },
-    { to: '/pacientes', label: 'Pacientes' },
     { to: '/citas', label: 'Agenda' },
+    { to: '/pacientes', label: 'Pacientes' },
     { to: '/pagos', label: 'Pagos' },
     { to: '/procedimientos', label: 'Procedimientos' },
     { to: '/pap', label: 'PAP' },
@@ -113,7 +199,7 @@ function Layout({ usuario, onLogout }) {
         )}
       </nav>
 
-      <main className="max-w-6xl mx-auto p-4 md:p-6">
+      <main className="max-w-6xl mx-auto p-4 md:p-6 pb-24 md:pb-6">
         <Routes>
           {rol === 'admin' && <>
             <Route index element={<Inicio />} />
@@ -131,7 +217,6 @@ function Layout({ usuario, onLogout }) {
             <Route path="logs" element={<Logs />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}
-
           {rol === 'secretaria' && <>
             <Route index element={<Inicio />} />
             <Route path="pacientes" element={<Pacientes />} />
@@ -144,7 +229,6 @@ function Layout({ usuario, onLogout }) {
             <Route path="encuestas" element={<Encuestas />} />
             <Route path="*" element={<Navigate to="/pacientes" />} />
           </>}
-
           {rol === 'matrona' && <>
             <Route index element={<InicioMatrona usuario={usuario} />} />
             <Route path="pacientes" element={<Pacientes />} />
@@ -158,6 +242,8 @@ function Layout({ usuario, onLogout }) {
           </>}
         </Routes>
       </main>
+
+      <BottomNav links={links} onLogout={onLogout} usuario={usuario} />
     </div>
   )
 }
