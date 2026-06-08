@@ -84,7 +84,8 @@ function formatearRut(rut) {
 }
 
 function formatFecha(fecha) {
-  return new Date(fecha + 'T12:00:00').toLocaleDateString('es-CL')
+  if (!fecha) return '—'
+  return new Date(String(fecha).slice(0, 10) + 'T12:00:00').toLocaleDateString('es-CL')
 }
 
 export default function Pacientes() {
