@@ -196,9 +196,11 @@ export default function Pacientes() {
 
   const filtrados = pacientes.filter(p => {
     const q = busqueda.toLowerCase()
+    const nombreCompleto = `${p.nombre} ${p.apellido}`.toLowerCase()
+    const nombreInverso = `${p.apellido} ${p.nombre}`.toLowerCase()
     return (
-      p.nombre.toLowerCase().includes(q) ||
-      p.apellido.toLowerCase().includes(q) ||
+      nombreCompleto.includes(q) ||
+      nombreInverso.includes(q) ||
       (p.rut && p.rut.toLowerCase().includes(q)) ||
       (p.telefono && p.telefono.includes(q)) ||
       (p.email && p.email.toLowerCase().includes(q))
