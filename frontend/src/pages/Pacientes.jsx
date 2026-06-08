@@ -18,11 +18,8 @@ function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
 
   const handleChange = e => {
     const { name, value } = e.target
-    if (name === 'rut') {
-      setForm({ ...form, rut: formatearRut(value) })
-    } else {
-      setForm({ ...form, [name]: value })
-    }
+    if (name === 'rut') setForm({ ...form, rut: formatearRut(value) })
+    else setForm({ ...form, [name]: value })
     setErrores({ ...errores, [name]: '' })
   }
 
@@ -83,8 +80,7 @@ function formatearRut(rut) {
   if (limpio.length < 2) return limpio
   const cuerpo = limpio.slice(0, -1)
   const dv = limpio.slice(-1)
-  const cuerpoFormateado = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
-  return `${cuerpoFormateado}-${dv}`
+  return `${cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${dv}`
 }
 
 function formatFecha(fecha) {
@@ -104,6 +100,8 @@ export default function Pacientes() {
   const [historial, setHistorial] = useState({ citas: [], procedimientos: [], pap: [], flujos: [], pagos: [] })
   const [cargandoHistorial, setCargandoHistorial] = useState(false)
   const [modalEliminar, setModalEliminar] = useState(null)
+  const [resumenEliminar, setResumenEliminar] = useState(null)
+  const [modalNombreDuplicado, setModalNombreDuplicado] = useState(null)
   const [toast, setToast] = useState(null)
 
   const rol = localStorage.getItem('rol')
@@ -119,11 +117,8 @@ export default function Pacientes() {
 
   const handleChange = e => {
     const { name, value } = e.target
-    if (name === 'rut') {
-      setForm({ ...form, rut: formatearRut(value) })
-    } else {
-      setForm({ ...form, [name]: value })
-    }
+    if (name === 'rut') setForm({ ...form, rut: formatearRut(value) })
+    else setForm({ ...form, [name]: value })
     setErrores({ ...errores, [name]: '' })
   }
 
@@ -142,8 +137,22 @@ export default function Pacientes() {
       await registrarLog('editar', 'paciente', editando, `${form.nombre} ${form.apellido}`)
       setEditando(null)
     } else {
-      await axios.post(API, form)
-      await registrarLog('crear', 'paciente', null, `${form.nombre} ${form.apellido}`)
+      try {
+        await axios.post(API, form)
+        await registrarLog('crear', 'paciente', null, `${form.nombre} ${form.apellido}`)
+      } catch (err) {
+        if (err.response?.data?.error === 'rut_duplicado') {
+          const p = err.response.data.paciente
+          setToast({ mensaje: `⚠️ Ya existe una paciente con ese RUT: ${p.nombre} ${p.apellido}`, tipo: 'error' })
+          return
+        }
+        if (err.response?.data?.error === 'nombre_duplicado') {
+          setModalNombreDuplicado(err.response.data.pacientes)
+          return
+        }
+        setToast({ mensaje: 'Error al registrar paciente', tipo: 'error' })
+        return
+      }
     }
     setForm({ nombre: '', apellido: '', rut: '', fecha_nacimiento: '', telefono: '', email: '' })
     setErrores({})
@@ -158,31 +167,22 @@ export default function Pacientes() {
 
   const eliminar = async id => {
     const paciente = pacientes.find(p => p.id === id)
+    const res = await axios.get(`${API}/${id}/resumen`)
+    setResumenEliminar(res.data)
     setModalEliminar(paciente)
   }
 
   const confirmarEliminar = async () => {
     const paciente = modalEliminar
     setModalEliminar(null)
+    setResumenEliminar(null)
     try {
       await axios.delete(`${API}/${paciente.id}`)
+      await registrarLog('eliminar', 'paciente', paciente.id, `${paciente.nombre} ${paciente.apellido}`)
       cargar()
-      setToast({ mensaje: 'Paciente eliminado correctamente', tipo: 'exito' })
+      setToast({ mensaje: 'Paciente y todos sus registros eliminados', tipo: 'exito' })
     } catch (err) {
-      if (err.response?.data?.error === 'tiene_registros') {
-        const r = err.response.data.resumen
-        const detalle = [
-          r.citas > 0 && `${r.citas} cita(s)`,
-          r.fichas > 0 && `${r.fichas} ficha(s) clínica(s)`,
-          r.pagos > 0 && `${r.pagos} pago(s)`,
-          r.procedimientos > 0 && `${r.procedimientos} procedimiento(s)`,
-          r.pap > 0 && `${r.pap} PAP`,
-          r.flujos > 0 && `${r.flujos} flujo(s)`,
-        ].filter(Boolean).join(', ')
-        setToast({ mensaje: `No se puede eliminar: tiene ${detalle}`, tipo: 'error' })
-      } else {
-        setToast({ mensaje: 'Error al eliminar el paciente', tipo: 'error' })
-      }
+      setToast({ mensaje: 'Error al eliminar el paciente', tipo: 'error' })
     }
   }
 
@@ -229,6 +229,15 @@ export default function Pacientes() {
     return <Fichas paciente={pacienteSeleccionado} onVolver={() => setPacienteSeleccionado(null)} />
   }
 
+  const detalleEliminar = resumenEliminar ? [
+    resumenEliminar.citas > 0 && `${resumenEliminar.citas} cita(s)`,
+    resumenEliminar.fichas > 0 && `${resumenEliminar.fichas} ficha(s) clínica(s)`,
+    resumenEliminar.pagos > 0 && `${resumenEliminar.pagos} pago(s)`,
+    resumenEliminar.procedimientos > 0 && `${resumenEliminar.procedimientos} procedimiento(s)`,
+    resumenEliminar.pap > 0 && `${resumenEliminar.pap} PAP`,
+    resumenEliminar.flujos > 0 && `${resumenEliminar.flujos} flujo(s)`,
+  ].filter(Boolean) : []
+
   return (
     <div>
       {modalCompletar && (
@@ -240,14 +249,54 @@ export default function Pacientes() {
       )}
 
       {toast && <Toast mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={() => setToast(null)} />}
-      {modalEliminar && (
+
+      {modalEliminar && resumenEliminar && (
         <ModalConfirmar
           titulo={`¿Eliminar a ${modalEliminar.nombre} ${modalEliminar.apellido}?`}
           mensaje="Esta acción no se puede deshacer."
-          textoConfirmar="Eliminar"
+          detalle={detalleEliminar}
+          textoConfirmar="Eliminar todo"
           onConfirmar={confirmarEliminar}
-          onCancelar={() => setModalEliminar(null)}
+          onCancelar={() => { setModalEliminar(null); setResumenEliminar(null) }}
         />
+      )}
+
+      {modalNombreDuplicado && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={() => setModalNombreDuplicado(null)}>
+          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-3xl">⚠️</span>
+              <div>
+                <h3 className="text-lg font-bold text-yellow-800">Posible duplicado</h3>
+                <p className="text-sm text-gray-500">Ya existe una paciente con ese nombre</p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 mb-5">
+              {modalNombreDuplicado.map((p, i) => (
+                <div key={i} className="p-3 bg-yellow-50 rounded-lg text-sm">
+                  <p className="font-medium text-gray-800">{p.nombre} {p.apellido}</p>
+                  <p className="text-xs text-gray-500">{p.rut || 'Sin RUT'}</p>
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-gray-600 mb-5">¿Deseas registrarla de todas formas?</p>
+            <div className="flex gap-3">
+              <button onClick={async () => {
+                setModalNombreDuplicado(null)
+                await axios.post(`${API}?forzar=true`, form)
+                await registrarLog('crear', 'paciente', null, `${form.nombre} ${form.apellido}`)
+                setForm({ nombre: '', apellido: '', rut: '', fecha_nacimiento: '', telefono: '', email: '' })
+                setErrores({})
+                cargar()
+              }} className="flex-1 bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 font-medium">
+                Sí, registrar igual
+              </button>
+              <button onClick={() => setModalNombreDuplicado(null)} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {modalHistorial && (
@@ -377,7 +426,6 @@ export default function Pacientes() {
       </div>
       {busqueda && <p className="text-sm text-gray-500 mb-3">{filtrados.length} resultado{filtrados.length !== 1 ? 's' : ''} encontrado{filtrados.length !== 1 ? 's' : ''}</p>}
 
-      {/* Tabla desktop */}
       <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-green-50 text-green-800 uppercase text-xs">
@@ -441,7 +489,6 @@ export default function Pacientes() {
         </table>
       </div>
 
-      {/* Tarjetas móvil */}
       <div className="md:hidden flex flex-col gap-3">
         {filtrados.map(p => (
           <div key={p.id} className="bg-white rounded-xl shadow p-4">
