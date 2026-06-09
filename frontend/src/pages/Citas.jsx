@@ -9,7 +9,7 @@ import ModalProcedimientos from './ModalProcedimientos'
 import { registrarLog } from '../utils/log'
 import ModalConfirmar from '../components/ModalConfirmar'
 import Toast from '../components/Toast'
-import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop'
+import { withDragAndDrop } from 'react-big-calendar/lib/addons/dragAndDrop'
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
 
 const DnDCalendar = withDragAndDrop(Calendar)
