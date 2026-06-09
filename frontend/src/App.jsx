@@ -16,31 +16,23 @@ import Flujos from './pages/Flujos'
 import Encuesta from './pages/Encuesta'
 import Encuestas from './pages/Encuestas'
 import Logs from './pages/Logs'
-import ModalSalirSinGuardar from './components/ModalSalirSinGuardar'
 import Controles from './pages/Controles'
 
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
-  const navigate = useNavigate()
   const active = location.pathname === to
-
-  const handleClick = async (e) => {
-    e.preventDefault()
-    onClick?.()
-    navigate(to)
-  }
-
   return (
-    <a href={to} onClick={handleClick}
+    <Link to={to} onClick={onClick}
       className={`px-4 py-2 rounded-lg font-medium transition-colors block md:inline-block ${
         active ? 'bg-white text-green-800' : 'text-white hover:bg-green-700'
       }`}
-    >{children}</a>
+    >{children}</Link>
   )
 }
 
-function BottomNav({ links, onLogout, usuario }) {
+function BottomNav({ links, onLogout }) {
   const location = useLocation()
+  const navigate = useNavigate()
   const [mostrarMas, setMostrarMas] = useState(false)
 
   const principales = links.slice(0, 4)
@@ -59,11 +51,11 @@ function BottomNav({ links, onLogout, usuario }) {
     '/usuarios': '👥',
     '/profesionales': '👩‍⚕️',
     '/logs': '📝',
+    '/controles': '📆',
   }
 
   return (
     <>
-      {/* Overlay secundarios */}
       {mostrarMas && (
         <div className="fixed inset-0 z-40" onClick={() => setMostrarMas(false)}>
           <div className="fixed bottom-20 left-0 right-0 mx-4 bg-white rounded-2xl shadow-xl p-4 z-50" onClick={e => e.stopPropagation()}>
@@ -72,20 +64,20 @@ function BottomNav({ links, onLogout, usuario }) {
               {secundarios.map(l => {
                 const active = location.pathname === l.to
                 return (
-                  <a key={l.to} href={l.to} onClick={e => { e.preventDefault(); navigate(l.to); setMostrarMas(false) }}
+                  <Link key={l.to} to={l.to} onClick={() => setMostrarMas(false)}
                     className={`flex flex-col items-center gap-1 p-3 rounded-xl text-center transition-colors ${active ? 'bg-green-50 text-green-800' : 'text-gray-600 hover:bg-gray-50'}`}
                   >
                     <span className="text-2xl">{iconos[l.to] || '📌'}</span>
                     <span className="text-xs font-medium">{l.label}</span>
-                  </a>
+                  </Link>
                 )
               })}
-              <a href="/cambiar-password" onClick={e => { e.preventDefault(); navigate('/cambiar-password'); setMostrarMas(false) }}
+              <Link to="/cambiar-password" onClick={() => setMostrarMas(false)}
                 className="flex flex-col items-center gap-1 p-3 rounded-xl text-center text-gray-600 hover:bg-gray-50"
               >
                 <span className="text-2xl">🔑</span>
                 <span className="text-xs font-medium">Contraseña</span>
-              </a>
+              </Link>
               <button onClick={() => { setMostrarMas(false); onLogout() }}
                 className="flex flex-col items-center gap-1 p-3 rounded-xl text-center text-red-500 hover:bg-red-50"
               >
@@ -97,18 +89,17 @@ function BottomNav({ links, onLogout, usuario }) {
         </div>
       )}
 
-      {/* Barra inferior */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 shadow-lg">
         <div className="flex items-center justify-around px-2 py-2">
           {principales.map(l => {
             const active = location.pathname === l.to
             return (
-              <a key={l.to} href={l.to} onClick={e => { e.preventDefault(); navigate(l.to) }}
+              <Link key={l.to} to={l.to}
                 className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-colors min-w-0 ${active ? 'text-green-700' : 'text-gray-400'}`}
               >
                 <span className="text-2xl">{iconos[l.to] || '📌'}</span>
                 <span className="text-xs font-medium truncate">{l.label}</span>
-              </a>
+              </Link>
             )
           })}
           {secundarios.length > 0 && (
@@ -171,7 +162,6 @@ function Layout({ usuario, onLogout }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <ModalSalirSinGuardar />
       <nav className="bg-green-800 shadow-md px-4 py-3">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3" onClick={() => setMenuAbierto(false)}>
