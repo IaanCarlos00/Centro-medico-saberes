@@ -16,6 +16,7 @@ import Flujos from './pages/Flujos'
 import Encuesta from './pages/Encuesta'
 import Encuestas from './pages/Encuestas'
 import Logs from './pages/Logs'
+import Controles from './pages/Controles'
 
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
@@ -132,6 +133,7 @@ function Layout({ usuario, onLogout }) {
     { to: '/flujos', label: 'Flujos' },
     { to: '/encuestas', label: 'Encuestas' },
     { to: '/logs', label: 'Actividad' },
+    { to: '/controles', label: 'Controles' },
   ]
 
   const linksSecretaria = [
@@ -143,6 +145,7 @@ function Layout({ usuario, onLogout }) {
     { to: '/pap', label: 'PAP' },
     { to: '/flujos', label: 'Flujos' },
     { to: '/encuestas', label: 'Encuestas' },
+    { to: '/controles', label: 'Controles' },
   ]
 
   const linksMatrona = [
@@ -215,6 +218,7 @@ function Layout({ usuario, onLogout }) {
             <Route path="flujos" element={<Flujos />} />
             <Route path="encuestas" element={<Encuestas />} />
             <Route path="logs" element={<Logs />} />
+            <Route path="controles" element={<Controles />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}
           {rol === 'secretaria' && <>
@@ -227,6 +231,7 @@ function Layout({ usuario, onLogout }) {
             <Route path="pap" element={<Pap />} />
             <Route path="flujos" element={<Flujos />} />
             <Route path="encuestas" element={<Encuestas />} />
+            <Route path="controles" element={<Controles />} />
             <Route path="*" element={<Navigate to="/pacientes" />} />
           </>}
           {rol === 'matrona' && <>

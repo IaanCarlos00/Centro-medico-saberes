@@ -226,22 +226,34 @@ export default function Inicio() {
 
           {datos.proximosControles && datos.proximosControles.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-5 mb-6 border-l-4 border-teal-500">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">📅 Próximos controles (60 días)</h3>
-              <ListaConVerMas
-                items={datos.proximosControles}
-                limite={5}
-                renderItem={(c, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-teal-50 rounded-lg">
-                    <div>
-                      <p className="font-semibold text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</p>
-                      <p className="text-xs text-gray-500">{c.telefono} · {c.profesional_nombre} · <span className="capitalize">{c.tipo}</span></p>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-gray-800">📅 Próximos controles</h3>
+                <Link to="/controles" className="text-teal-600 text-sm hover:underline font-medium">Ver todos →</Link>
+              </div>
+              <div className="flex flex-col gap-2">
+                {datos.proximosControles.slice(0, 5).map((c, i) => {
+                  const dias = Math.round((new Date(String(c.proximo_control).slice(0,10) + 'T12:00:00') - new Date().setHours(0,0,0,0)) / 86400000)
+                  const color = dias < 0 ? 'border-red-400 bg-red-50' : dias <= 7 ? 'border-orange-300 bg-orange-50' : dias <= 30 ? 'border-yellow-300 bg-yellow-50' : 'border-green-300 bg-teal-50'
+                  const icono = dias < 0 ? '🔴' : dias <= 7 ? '🟠' : dias <= 30 ? '🟡' : '🟢'
+                  return (
+                    <div key={i} className={`flex items-center justify-between p-3 rounded-lg border-l-4 ${color}`}>
+                      <div>
+                        <p className="font-semibold text-gray-800 text-sm">{c.paciente_nombre} {c.paciente_apellido}</p>
+                        <p className="text-xs text-gray-500">{c.telefono} · {c.profesional_nombre}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-bold text-gray-700">{new Date(String(c.proximo_control).slice(0,10) + 'T12:00:00').toLocaleDateString('es-CL')}</p>
+                        <p className="text-xs">{icono} {dias < 0 ? 'Vencido' : dias === 0 ? 'Hoy' : `En ${dias} días`}</p>
+                      </div>
                     </div>
-                    <span className="text-sm font-bold text-teal-700">
-                      {new Date(String(c.proximo_control).slice(0,10) + 'T12:00:00').toLocaleDateString('es-CL')}
-                    </span>
-                  </div>
-                )}
-              />
+                  )
+                })}
+              </div>
+              {datos.proximosControles.length > 5 && (
+                <Link to="/controles" className="block text-center text-sm text-teal-600 hover:underline font-medium mt-3">
+                  Ver {datos.proximosControles.length - 5} más →
+                </Link>
+              )}
             </div>
           )}
 
