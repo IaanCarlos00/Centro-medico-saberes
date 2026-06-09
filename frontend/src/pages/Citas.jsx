@@ -16,8 +16,6 @@ const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacient
 const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
 const API_BLOQUEOS = 'https://centro-medico-saberes-production.up.railway.app/bloqueos'
 
-useGuardarAviso(!!modalAgendar)
-
 const localizer = dateFnsLocalizer({
   format: (date, formatStr, options) => format(date, formatStr, { locale: es, ...options }),
   parse: (str, formatStr) => parse(str, formatStr, new Date(), { locale: es }),
@@ -174,6 +172,9 @@ export default function Agenda() {
   const [modoMover, setModoMover] = useState(false)
   const [modalConfirmarMover, setModalConfirmarMover] = useState(null)
   const [citaParaMover, setCitaParaMover] = useState(null)
+
+  useGuardarAviso(!!modalAgendar)
+
   const API_PROC = 'https://centro-medico-saberes-production.up.railway.app/procedimientos'
   const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 
