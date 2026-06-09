@@ -969,8 +969,9 @@ export default function Agenda() {
           )}
 
           {/* Calendario */}
-          <div className="bg-white rounded-xl shadow p-4" style={{ height: 'auto' }}>
+          <div className="bg-white rounded-xl shadow p-4 overflow-x-auto" style={{ height: 'auto' }}>
             {/* Resumen disponibilidad del día */}
+            <div style={{ minWidth: '700px' }}>
               {(() => {
                 const hoyStr = new Date().toISOString().slice(0,10)
                 const citasHoy = citas.filter(c => c.fecha_hora?.slice(0,10) === hoyStr)
@@ -1009,7 +1010,7 @@ export default function Agenda() {
               onView={setVistaCalendario}
               date={fecha}
               onNavigate={setFecha}
-              views={window.innerWidth < 768 ? [Views.DAY, Views.AGENDA] : [Views.WEEK, Views.DAY, Views.AGENDA]}
+              views={[Views.WEEK, Views.DAY, Views.AGENDA]}
               min={new Date(0, 0, 0, 8, 30, 0)}
               max={new Date(0, 0, 0, 20, 0, 0)}
               step={30}
@@ -1080,6 +1081,8 @@ export default function Agenda() {
               style={{ height: '100%' }}
             />
           </div>
+              </div>
+              
 
           {/* Modal detalle cita */}
           {citaSeleccionada && (
