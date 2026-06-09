@@ -88,6 +88,88 @@ function formatFecha(fecha) {
   return new Date(String(fecha).slice(0, 10) + 'T12:00:00').toLocaleDateString('es-CL')
 }
 
+function ModalPaciente({ editando, form, errores, handleChange, guardar, onCerrar }) {
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={onCerrar}>
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden" onClick={e => e.stopPropagation()}>
+        {/* Header */}
+        <div className="bg-gradient-to-r from-green-700 to-green-600 px-6 py-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+              <span className="text-xl">{editando ? '✏️' : '👤'}</span>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">{editando ? 'Editar paciente' : 'Registrar paciente'}</h3>
+              <p className="text-green-200 text-xs">{editando ? 'Modifica los datos de la paciente' : 'Solo nombre y apellido son obligatorios'}</p>
+            </div>
+          </div>
+          <button onClick={onCerrar} className="text-white hover:text-green-200 text-2xl leading-none">✕</button>
+        </div>
+
+        {/* Body */}
+        <div className="p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+              <input
+                className={`border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors ${errores.nombre ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-gray-300'}`}
+                name="nombre" placeholder="Ej: María" value={form.nombre} onChange={handleChange}
+              />
+              {errores.nombre && <span className="text-red-500 text-xs mt-1">{errores.nombre}</span>}
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">Apellido *</label>
+              <input
+                className={`border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors ${errores.apellido ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-gray-300'}`}
+                name="apellido" placeholder="Ej: González" value={form.apellido} onChange={handleChange}
+              />
+              {errores.apellido && <span className="text-red-500 text-xs mt-1">{errores.apellido}</span>}
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">RUT <span className="text-gray-400 font-normal">(opcional)</span></label>
+              <input
+                className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors"
+                name="rut" placeholder="12.345.678-9" value={form.rut} onChange={handleChange}
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">Teléfono <span className="text-gray-400 font-normal">(opcional)</span></label>
+              <input
+                className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors"
+                name="telefono" placeholder="+56 9 1234 5678" value={form.telefono} onChange={handleChange}
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">Fecha de nacimiento <span className="text-gray-400 font-normal">(opcional)</span></label>
+              <input
+                className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors"
+                name="fecha_nacimiento" type="date" value={form.fecha_nacimiento} onChange={handleChange}
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm font-medium text-gray-700 mb-1">Email <span className="text-gray-400 font-normal">(opcional)</span></label>
+              <input
+                className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors"
+                name="email" type="email" placeholder="correo@ejemplo.cl" value={form.email} onChange={handleChange}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="px-6 pb-6 flex gap-3">
+          <button onClick={onCerrar} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 font-medium transition-colors">
+            Cancelar
+          </button>
+          <button onClick={guardar} className="flex-1 bg-green-700 text-white py-3 rounded-xl hover:bg-green-800 font-semibold transition-colors">
+            {editando ? '✓ Actualizar' : '+ Registrar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function Pacientes() {
   const [pacientes, setPacientes] = useState([])
   const [deudores, setDeudores] = useState([])
@@ -95,6 +177,7 @@ export default function Pacientes() {
   const [form, setForm] = useState({ nombre: '', apellido: '', rut: '', fecha_nacimiento: '', telefono: '', email: '' })
   const [editando, setEditando] = useState(null)
   const [errores, setErrores] = useState({})
+  const [modalForm, setModalForm] = useState(false)
   const [pacienteSeleccionado, setPacienteSeleccionado] = useState(null)
   const [modalCompletar, setModalCompletar] = useState(null)
   const [modalHistorial, setModalHistorial] = useState(null)
@@ -157,12 +240,22 @@ export default function Pacientes() {
     }
     setForm({ nombre: '', apellido: '', rut: '', fecha_nacimiento: '', telefono: '', email: '' })
     setErrores({})
+    setModalForm(false)
+    setEditando(null)
     cargar()
   }
 
-  const editar = p => {
+  const abrirEditar = p => {
     setForm({ nombre: p.nombre, apellido: p.apellido, rut: p.rut || '', fecha_nacimiento: p.fecha_nacimiento?.slice(0,10) || '', telefono: p.telefono || '', email: p.email || '' })
     setEditando(p.id)
+    setErrores({})
+    setModalForm(true)
+  }
+
+  const cerrarModal = () => {
+    setModalForm(false)
+    setEditando(null)
+    setForm({ nombre: '', apellido: '', rut: '', fecha_nacimiento: '', telefono: '', email: '' })
     setErrores({})
   }
 
@@ -185,12 +278,6 @@ export default function Pacientes() {
     } catch (err) {
       setToast({ mensaje: 'Error al eliminar el paciente', tipo: 'error' })
     }
-  }
-
-  const cancelar = () => {
-    setEditando(null)
-    setForm({ nombre: '', apellido: '', rut: '', fecha_nacimiento: '', telefono: '', email: '' })
-    setErrores({})
   }
 
   const necesitaCompletar = p => !p.rut || !p.fecha_nacimiento || !p.telefono
@@ -243,6 +330,18 @@ export default function Pacientes() {
 
   return (
     <div>
+      {/* Modal registrar/editar */}
+      {modalForm && (
+        <ModalPaciente
+          editando={editando}
+          form={form}
+          errores={errores}
+          handleChange={handleChange}
+          guardar={guardar}
+          onCerrar={cerrarModal}
+        />
+      )}
+
       {modalCompletar && (
         <ModalCompletarPaciente
           paciente={modalCompletar}
@@ -290,6 +389,7 @@ export default function Pacientes() {
                 await registrarLog('crear', 'paciente', null, `${form.nombre} ${form.apellido}`)
                 setForm({ nombre: '', apellido: '', rut: '', fecha_nacimiento: '', telefono: '', email: '' })
                 setErrores({})
+                setModalForm(false)
                 cargar()
               }} className="flex-1 bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 font-medium">
                 Sí, registrar igual
@@ -392,43 +492,30 @@ export default function Pacientes() {
         </div>
       )}
 
-      <h2 className="text-2xl font-bold text-green-800 mb-6">Pacientes</h2>
-
-      <div className="bg-white rounded-xl shadow p-4 md:p-6 mb-6">
-        <h3 className="text-lg font-semibold text-gray-700 mb-4">{editando ? 'Editar paciente' : 'Registrar paciente'}</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          <div className="flex flex-col">
-            <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.nombre ? 'border-red-400' : 'border-gray-300'}`} name="nombre" placeholder="Nombre *" value={form.nombre} onChange={handleChange} />
-            {errores.nombre && <span className="text-red-500 text-xs mt-1">{errores.nombre}</span>}
-          </div>
-          <div className="flex flex-col">
-            <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.apellido ? 'border-red-400' : 'border-gray-300'}`} name="apellido" placeholder="Apellido *" value={form.apellido} onChange={handleChange} />
-            {errores.apellido && <span className="text-red-500 text-xs mt-1">{errores.apellido}</span>}
-          </div>
-          <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="rut" placeholder="RUT (opcional)" value={form.rut} onChange={handleChange} />
-          <div className="flex flex-col">
-            <label className="text-xs text-gray-500 mb-1">Fecha de nacimiento (opcional)</label>
-            <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="fecha_nacimiento" type="date" value={form.fecha_nacimiento} onChange={handleChange} />
-          </div>
-          <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="telefono" placeholder="Teléfono (opcional)" value={form.telefono} onChange={handleChange} />
-          <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="email" placeholder="Email (opcional)" value={form.email} onChange={handleChange} type="email" />
-        </div>
-        <div className="flex gap-3 mt-4">
-          <button onClick={guardar} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 transition-colors font-medium">
-            {editando ? 'Actualizar' : 'Registrar'}
-          </button>
-          {editando && <button onClick={cancelar} className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 transition-colors font-medium">Cancelar</button>}
-        </div>
-        {!editando && <p className="text-xs text-gray-400 mt-2">Solo nombre y apellido son obligatorios para registrar.</p>}
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-green-800">Pacientes</h2>
+        <button
+          onClick={() => { cerrarModal(); setModalForm(true) }}
+          className="flex items-center gap-2 bg-green-700 text-white px-5 py-2.5 rounded-xl hover:bg-green-800 font-medium transition-colors shadow-sm"
+        >
+          <span className="text-lg">+</span> Nueva paciente
+        </button>
       </div>
 
+      {/* Buscador */}
       <div className="mb-4 relative">
-        <input className="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="Buscar por nombre, apellido, RUT, teléfono o email..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
-        <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
-        {busqueda && <button onClick={() => setBusqueda('')} className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">✕</button>}
+        <input
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 pl-11 focus:outline-none focus:ring-2 focus:ring-green-400 bg-white shadow-sm"
+          placeholder="Buscar por nombre, apellido, RUT, teléfono o email..."
+          value={busqueda} onChange={e => setBusqueda(e.target.value)}
+        />
+        <span className="absolute left-4 top-3.5 text-gray-400">🔍</span>
+        {busqueda && <button onClick={() => setBusqueda('')} className="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600">✕</button>}
       </div>
       {busqueda && <p className="text-sm text-gray-500 mb-3">{filtrados.length} resultado{filtrados.length !== 1 ? 's' : ''} encontrado{filtrados.length !== 1 ? 's' : ''}</p>}
 
+      {/* Tabla desktop */}
       <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-green-50 text-green-800 uppercase text-xs">
@@ -480,18 +567,19 @@ export default function Pacientes() {
                   {necesitaCompletar(p) && (
                     <button onClick={() => setModalCompletar(p)} className="text-yellow-600 hover:underline text-sm font-medium">Completar</button>
                   )}
-                  <button onClick={() => editar(p)} className="text-gray-500 hover:underline text-sm font-medium">Editar</button>
+                  <button onClick={() => abrirEditar(p)} className="text-gray-500 hover:underline text-sm font-medium">Editar</button>
                   <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
                 </td>
               </tr>
             ))}
             {filtrados.length === 0 && (
-              <tr><td colSpan="8" className="px-4 py-6 text-center text-gray-400">{busqueda ? 'No se encontraron resultados' : 'No hay pacientes registrados'}</td></tr>
+              <tr><td colSpan="8" className="px-4 py-6 text-center text-gray-400">{busqueda ? 'No se encontraron resultados' : 'No hay pacientes registradas'}</td></tr>
             )}
           </tbody>
         </table>
       </div>
 
+      {/* Tarjetas móvil */}
       <div className="md:hidden flex flex-col gap-3">
         {filtrados.map(p => (
           <div key={p.id} className="bg-white rounded-xl shadow p-4">
@@ -510,7 +598,7 @@ export default function Pacientes() {
                 {necesitaCompletar(p) && (
                   <button onClick={() => setModalCompletar(p)} className="text-yellow-600 text-sm font-medium">Completar</button>
                 )}
-                <button onClick={() => editar(p)} className="text-gray-500 text-sm font-medium">Editar</button>
+                <button onClick={() => abrirEditar(p)} className="text-gray-500 text-sm font-medium">Editar</button>
                 <button onClick={() => eliminar(p.id)} className="text-red-500 text-sm font-medium">Eliminar</button>
               </div>
             </div>
@@ -524,7 +612,7 @@ export default function Pacientes() {
           </div>
         ))}
         {filtrados.length === 0 && (
-          <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">{busqueda ? 'No se encontraron resultados' : 'No hay pacientes registrados'}</div>
+          <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">{busqueda ? 'No se encontraron resultados' : 'No hay pacientes registradas'}</div>
         )}
       </div>
     </div>
