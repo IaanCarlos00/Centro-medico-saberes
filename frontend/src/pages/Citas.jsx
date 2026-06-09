@@ -132,7 +132,7 @@ export default function Agenda() {
   const [pacientes, setPacientes] = useState([])
   const [profesionales, setProfesionales] = useState([])
   const [vistaActiva, setVistaActiva] = useState('agenda') // 'agenda' | 'historial'
-  const [vistaCalendario, setVistaCalendario] = useState(window.innerWidth < 768 ? Views.DAY : Views.WEEK)
+  const [vistaCalendario, setVistaCalendario] = useState(Views.WEEK)
   const [fecha, setFecha] = useState(new Date())
   const [citaSeleccionada, setCitaSeleccionada] = useState(null)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
