@@ -9,11 +9,16 @@ import ModalProcedimientos from './ModalProcedimientos'
 import { registrarLog } from '../utils/log'
 import ModalConfirmar from '../components/ModalConfirmar'
 import Toast from '../components/Toast'
+import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop'
+import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
+
+const DnDCalendar = withDragAndDrop(Calendar)
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
 const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
 const API_BLOQUEOS = 'https://centro-medico-saberes-production.up.railway.app/bloqueos'
+
 
 const localizer = dateFnsLocalizer({
   format: (date, formatStr, options) => format(date, formatStr, { locale: es, ...options }),
@@ -168,6 +173,8 @@ export default function Agenda() {
   const [modalEliminarCita, setModalEliminarCita] = useState(null)
   const [modalEliminarBloqueo, setModalEliminarBloqueo] = useState(null)
   const [toast, setToast] = useState(null)
+  const [modoMover, setModoMover] = useState(false)
+  const [modalConfirmarMover, setModalConfirmarMover] = useState(null)
   const API_PROC = 'https://centro-medico-saberes-production.up.railway.app/procedimientos'
   const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 
@@ -282,6 +289,13 @@ export default function Agenda() {
     setCitaSeleccionada(null)
     setToast({ mensaje: 'Cita eliminada', tipo: 'exito' })
     cargar()
+  }
+
+  const moverCita = async ({ event, start }) => {
+    if (event.tipo === 'bloqueo') return
+    const offset = start.getTimezoneOffset() * 60000
+    const nuevaFecha = new Date(start.getTime() - offset).toISOString().slice(0, 16)
+    setModalConfirmarMover({ cita: event.resource, nuevaFecha })
   }
 
   const cancelar = () => {
@@ -434,6 +448,40 @@ export default function Agenda() {
         citaId={modalProcedimientosCita.id}
         onCerrar={() => { setModalProcedimientosCita(null); cargar() }}
       />
+    )}
+
+    {modalConfirmarMover && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
+        <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-sm">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="text-3xl">📅</span>
+            <div>
+              <h3 className="text-lg font-bold text-green-800">¿Mover cita?</h3>
+              <p className="text-sm text-gray-500">{modalConfirmarMover.cita.paciente_nombre} {modalConfirmarMover.cita.paciente_apellido}</p>
+            </div>
+          </div>
+          <div className="bg-gray-50 rounded-xl p-3 mb-5">
+            <p className="text-xs text-gray-500 mb-1">Nueva hora:</p>
+            <p className="font-bold text-gray-800">{modalConfirmarMover.nuevaFecha.replace('T', ' ')}</p>
+          </div>
+          <div className="flex gap-3">
+            <button onClick={async () => {
+              const { cita, nuevaFecha } = modalConfirmarMover
+              await axios.put(`${API}/${cita.id}`, { ...cita, fecha_hora: nuevaFecha })
+              await registrarLog('editar', 'cita', cita.id, `Cita movida a ${nuevaFecha}`)
+              setModalConfirmarMover(null)
+              setModoMover(false)
+              setToast({ mensaje: 'Cita movida correctamente', tipo: 'exito' })
+              cargar()
+            }} className="flex-1 bg-green-700 text-white py-2.5 rounded-xl hover:bg-green-800 font-semibold">
+              ✓ Confirmar
+            </button>
+            <button onClick={() => { setModalConfirmarMover(null); cargar() }} className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-xl hover:bg-gray-200 font-medium">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
     )}
 
     {modalAgendar && (
@@ -764,7 +812,17 @@ export default function Agenda() {
       {/* VISTA AGENDA */}
       {vistaActiva === 'agenda' && (
         <>
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-end gap-3 mb-4">
+            <button
+              onClick={() => setModoMover(!modoMover)}
+              className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors border-2 ${
+                modoMover
+                  ? 'border-orange-400 bg-orange-50 text-orange-700'
+                  : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {modoMover ? '🔓 Mover citas activo' : '🔒 Agenda bloqueada'}
+            </button>
             <button
               onClick={() => {
                 setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
@@ -938,11 +996,14 @@ export default function Agenda() {
                   </div>
                 )
               })()}
-            <Calendar
+            <DnDCalendar
               localizer={localizer}
               events={eventos}
               startAccessor="start"
               endAccessor="end"
+              draggableAccessor={evento => modoMover && evento.tipo === 'cita'}
+              onEventDrop={moverCita}
+              resizable={false}
               messages={messages}
               culture="es"
               view={vistaCalendario}
