@@ -9,10 +9,6 @@ import ModalProcedimientos from './ModalProcedimientos'
 import { registrarLog } from '../utils/log'
 import ModalConfirmar from '../components/ModalConfirmar'
 import Toast from '../components/Toast'
-import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop'
-import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
-
-const DnDCalendar = withDragAndDrop(Calendar)
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
@@ -461,8 +457,13 @@ export default function Agenda() {
             </div>
           </div>
           <div className="bg-gray-50 rounded-xl p-3 mb-5">
-            <p className="text-xs text-gray-500 mb-1">Nueva hora:</p>
-            <p className="font-bold text-gray-800">{modalConfirmarMover.nuevaFecha.replace('T', ' ')}</p>
+            <p className="text-xs text-gray-500 mb-2">Nueva fecha y hora:</p>
+            <input
+              type="datetime-local"
+              className="w-full border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
+              value={modalConfirmarMover.nuevaFecha}
+              onChange={e => setModalConfirmarMover(m => ({ ...m, nuevaFecha: e.target.value }))}
+            />
           </div>
           <div className="flex gap-3">
             <button onClick={async () => {
@@ -1048,7 +1049,12 @@ export default function Agenda() {
 }}
             onSelectEvent={e => {
                   if (e.tipo === 'bloqueo') {
+                    if (modoMover) return
                     setModalEliminarBloqueo(e.resource.id)
+                    return
+                  }
+                  if (modoMover) {
+                    setModalConfirmarMover({ cita: e.resource, nuevaFecha: e.resource.fecha_hora?.slice(0,16) })
                     return
                   }
                   setCitaSeleccionada(e.resource)
