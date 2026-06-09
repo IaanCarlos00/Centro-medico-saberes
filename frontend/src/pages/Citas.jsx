@@ -268,9 +268,8 @@ export default function Agenda() {
     setBusquedaPaciente(`${c.paciente_nombre} ${c.paciente_apellido}`)
     setHistorialPaciente(citas.filter(ci => ci.paciente_id === c.paciente_id && ci.id !== c.id).slice(0, 3))
     setEditando(c.id)
-    setMostrarFormulario(true)
     setCitaSeleccionada(null)
-    setVistaActiva('agenda')
+    setModalAgendar(true)
   }
 
   const eliminar = async id => {
@@ -440,7 +439,7 @@ export default function Agenda() {
     {modalAgendar && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={() => setModalAgendar(null)}>
     <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-      <h3 className="text-lg font-bold text-green-800 mb-4">🗓️ Agendar cita</h3>
+      <h3 className="text-lg font-bold text-green-800 mb-4">{editando ? '✏️ Editar cita' : '🗓️ Agendar cita'}</h3>
       <div className="flex gap-2 mb-4">
         <button onClick={() => setTipoAgendamiento('confirmado')} className={`flex-1 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${tipoAgendamiento === 'confirmado' ? 'border-green-600 bg-green-50 text-green-800' : 'border-gray-200 text-gray-500'}`}>✅ Confirmada</button>
         <button onClick={() => setTipoAgendamiento('tentativo')} className={`flex-1 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${tipoAgendamiento === 'tentativo' ? 'border-yellow-500 bg-yellow-50 text-yellow-800' : 'border-gray-200 text-gray-500'}`}>⏳ Tentativa</button>
@@ -577,8 +576,23 @@ export default function Agenda() {
   </div>
 )}
 
-      <div className="flex gap-3 mt-6">
+<div className="flex gap-3 mt-6">
         <button onClick={async () => {
+          // CASO EDITAR
+          if (editando) {
+            const e = validar()
+            if (Object.keys(e).length > 0) { setErrores(e); return }
+            await axios.put(`${API}/${editando}`, form)
+            await registrarLog('editar', 'cita', editando, `Cita de ${busquedaPaciente}`)
+            setEditando(null)
+            setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+            setBusquedaPaciente('')
+            setErrores({})
+            setModalAgendar(null)
+            cargar()
+            return
+          }
+          // CASO TENTATIVO
           if (tipoAgendamiento === 'tentativo') {
             const e = {}
             if (!form.profesional_id) e.profesional_id = 'Selecciona un profesional'
@@ -600,6 +614,7 @@ export default function Agenda() {
             cargar()
             return
           }
+          // CASO NUEVO
           const e = validar()
           if (Object.keys(e).length > 0) { setErrores(e); return }
           const estadoCita = procedimientoSeleccionado ? 'confirmada' : 'pendiente'
@@ -633,8 +648,10 @@ export default function Agenda() {
           setNumeroBono('')
           setModalAgendar(null)
           cargar()
-        }} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">{tipoAgendamiento === 'tentativo' ? '⏳ Reservar tentativa' : 'Agendar'}</button>
-        <button onClick={() => { setModalAgendar(null); setBusquedaPaciente(''); setErrores({}) }} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancelar</button>
+        }} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">
+          {editando ? '✓ Actualizar cita' : tipoAgendamiento === 'tentativo' ? '⏳ Reservar tentativa' : 'Agendar'}
+        </button>
+        <button onClick={() => { setModalAgendar(null); setBusquedaPaciente(''); setErrores({}); setEditando(null) }} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancelar</button>
       </div>
     </div>
   </div>
@@ -749,10 +766,16 @@ export default function Agenda() {
         <>
           <div className="flex justify-end mb-4">
             <button
-              onClick={() => { setMostrarFormulario(!mostrarFormulario); if (mostrarFormulario) cancelar() }}
+              onClick={() => {
+                setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+                setBusquedaPaciente('')
+                setErrores({})
+                setTipoAgendamiento('confirmado')
+                setModalAgendar(true)
+              }}
               className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium transition-colors"
             >
-              {mostrarFormulario ? 'Cancelar' : '+ Nueva cita'}
+              + Nueva cita
             </button>
           </div>
 
