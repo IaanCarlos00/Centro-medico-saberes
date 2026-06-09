@@ -50,6 +50,7 @@ export default function Pagos() {
   const [filtroEstado, setFiltroEstado] = useState('')
   const [filtroMetodo, setFiltroMetodo] = useState('')
   const [filtroPeriodo, setFiltroPeriodo] = useState('mes')
+  const [fechaDia, setFechaDia] = useState(new Date().toISOString().slice(0, 10))
   const [mostrarForm, setMostrarForm] = useState(false)
   const [editando, setEditando] = useState(null)
   const [form, setForm] = useState(formInicial)
@@ -235,6 +236,52 @@ export default function Pagos() {
           </div>
         </div>
       )}
+
+      {/* Resumen por día */}
+      <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
+        <h3 className="text-lg font-bold text-gray-800 mb-3">📆 Resumen por día</h3>
+        <div className="flex items-center gap-3 mb-4">
+          <input
+            type="date"
+            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 text-sm"
+            value={fechaDia}
+            onChange={e => setFechaDia(e.target.value)}
+          />
+          <span className="text-sm text-gray-500">
+            {new Date(fechaDia + 'T12:00:00').toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
+          </span>
+        </div>
+        {(() => {
+          const pagosDia = pagos.filter(p => {
+            const f = String(p.fecha_cita || p.fecha).slice(0, 10)
+            return f === fechaDia && p.estado === 'pagado'
+          })
+          const totalDia = pagosDia.reduce((s, p) => s + parseFloat(p.monto), 0)
+          const porMetodo = pagosDia.reduce((acc, p) => {
+            acc[p.metodo] = (acc[p.metodo] || 0) + parseFloat(p.monto)
+            return acc
+          }, {})
+          return (
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-gray-600 text-sm">{pagosDia.length} pago{pagosDia.length !== 1 ? 's' : ''} registrado{pagosDia.length !== 1 ? 's' : ''}</span>
+                <span className="text-2xl font-bold text-green-800">{formatCLP(totalDia)}</span>
+              </div>
+              {pagosDia.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(porMetodo).map(([metodo, total]) => (
+                    <div key={metodo} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${metodoBadge[metodo]}`}>
+                      {metodoIcono[metodo]} {metodo}: {formatCLP(total)}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-400 text-sm">Sin pagos registrados este día</p>
+              )}
+            </div>
+          )
+        })()}
+      </div>
 
       {/* Pagos pendientes de cobro */}
       {pendientes.length > 0 && (
