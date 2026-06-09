@@ -2,9 +2,12 @@ import { useEffect, useState, useRef } from 'react'
 import axios from 'axios'
 import { registrarLog } from '../utils/log'
 import ListaConVerMas from '../components/ListaConVerMas'
+import { useGuardarAviso } from '../hooks/useGuardarAviso'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
+
+useGuardarAviso(modalForm)
 
 const metodoBadge = {
   fonasa: 'bg-teal-100 text-teal-700',

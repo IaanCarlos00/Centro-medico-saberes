@@ -4,6 +4,7 @@ import Fichas from './Fichas'
 import { registrarLog } from '../utils/log'
 import ModalConfirmar from '../components/ModalConfirmar'
 import Toast from '../components/Toast'
+import { useGuardarAviso } from '../hooks/useGuardarAviso'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
 const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
@@ -189,6 +190,8 @@ export default function Pacientes() {
   const [toast, setToast] = useState(null)
 
   const rol = localStorage.getItem('rol')
+
+  useGuardarAviso(modalForm)
 
   const cargar = async () => {
     const [p, pg] = await Promise.all([axios.get(API), axios.get(API_PAGOS)])

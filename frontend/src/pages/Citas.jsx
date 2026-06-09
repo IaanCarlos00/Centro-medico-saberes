@@ -9,12 +9,14 @@ import ModalProcedimientos from './ModalProcedimientos'
 import { registrarLog } from '../utils/log'
 import ModalConfirmar from '../components/ModalConfirmar'
 import Toast from '../components/Toast'
+import { useGuardarAviso } from '../hooks/useGuardarAviso'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
 const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
 const API_BLOQUEOS = 'https://centro-medico-saberes-production.up.railway.app/bloqueos'
 
+useGuardarAviso(!!modalAgendar)
 
 const localizer = dateFnsLocalizer({
   format: (date, formatStr, options) => format(date, formatStr, { locale: es, ...options }),

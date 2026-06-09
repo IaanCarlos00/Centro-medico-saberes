@@ -16,17 +16,26 @@ import Flujos from './pages/Flujos'
 import Encuesta from './pages/Encuesta'
 import Encuestas from './pages/Encuestas'
 import Logs from './pages/Logs'
+import ModalSalirSinGuardar from './components/ModalSalirSinGuardar'
 import Controles from './pages/Controles'
 
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
+  const navigate = useNavigate()
   const active = location.pathname === to
+
+  const handleClick = async (e) => {
+    e.preventDefault()
+    onClick?.()
+    navigate(to)
+  }
+
   return (
-    <Link to={to} onClick={onClick}
+    <a href={to} onClick={handleClick}
       className={`px-4 py-2 rounded-lg font-medium transition-colors block md:inline-block ${
         active ? 'bg-white text-green-800' : 'text-white hover:bg-green-700'
       }`}
-    >{children}</Link>
+    >{children}</a>
   )
 }
 
@@ -63,20 +72,20 @@ function BottomNav({ links, onLogout, usuario }) {
               {secundarios.map(l => {
                 const active = location.pathname === l.to
                 return (
-                  <Link key={l.to} to={l.to} onClick={() => setMostrarMas(false)}
+                  <a key={l.to} href={l.to} onClick={e => { e.preventDefault(); navigate(l.to); setMostrarMas(false) }}
                     className={`flex flex-col items-center gap-1 p-3 rounded-xl text-center transition-colors ${active ? 'bg-green-50 text-green-800' : 'text-gray-600 hover:bg-gray-50'}`}
                   >
                     <span className="text-2xl">{iconos[l.to] || '📌'}</span>
                     <span className="text-xs font-medium">{l.label}</span>
-                  </Link>
+                  </a>
                 )
               })}
-              <Link to="/cambiar-password" onClick={() => setMostrarMas(false)}
+              <a href="/cambiar-password" onClick={e => { e.preventDefault(); navigate('/cambiar-password'); setMostrarMas(false) }}
                 className="flex flex-col items-center gap-1 p-3 rounded-xl text-center text-gray-600 hover:bg-gray-50"
               >
                 <span className="text-2xl">🔑</span>
                 <span className="text-xs font-medium">Contraseña</span>
-              </Link>
+              </a>
               <button onClick={() => { setMostrarMas(false); onLogout() }}
                 className="flex flex-col items-center gap-1 p-3 rounded-xl text-center text-red-500 hover:bg-red-50"
               >
@@ -94,12 +103,12 @@ function BottomNav({ links, onLogout, usuario }) {
           {principales.map(l => {
             const active = location.pathname === l.to
             return (
-              <Link key={l.to} to={l.to}
+              <a key={l.to} href={l.to} onClick={e => { e.preventDefault(); navigate(l.to) }}
                 className={`flex flex-col items-center gap-0.5 px-3 py-1 rounded-xl transition-colors min-w-0 ${active ? 'text-green-700' : 'text-gray-400'}`}
               >
                 <span className="text-2xl">{iconos[l.to] || '📌'}</span>
                 <span className="text-xs font-medium truncate">{l.label}</span>
-              </Link>
+              </a>
             )
           })}
           {secundarios.length > 0 && (
@@ -162,6 +171,7 @@ function Layout({ usuario, onLogout }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ModalSalirSinGuardar />
       <nav className="bg-green-800 shadow-md px-4 py-3">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3" onClick={() => setMenuAbierto(false)}>
