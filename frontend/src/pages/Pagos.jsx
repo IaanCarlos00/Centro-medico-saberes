@@ -21,11 +21,7 @@ const estadoBadge = {
 }
 
 const metodoIcono = {
-  fonasa: '🏥',
-  efectivo: '💵',
-  transferencia: '🏦',
-  debito: '💳',
-  credito: '💳',
+  fonasa: '🏥', efectivo: '💵', transferencia: '🏦', debito: '💳', credito: '💳',
 }
 
 function formatCLP(n) {
@@ -51,7 +47,7 @@ export default function Pagos() {
   const [filtroMetodo, setFiltroMetodo] = useState('')
   const [filtroPeriodo, setFiltroPeriodo] = useState('mes')
   const [fechaDia, setFechaDia] = useState(new Date().toISOString().slice(0, 10))
-  const [mostrarForm, setMostrarForm] = useState(false)
+  const [modalForm, setModalForm] = useState(false)
   const [editando, setEditando] = useState(null)
   const [form, setForm] = useState(formInicial)
   const [errores, setErrores] = useState({})
@@ -106,7 +102,6 @@ export default function Pagos() {
     if (editando) {
       await axios.put(`${API}/${editando}`, form)
       await registrarLog('editar', 'pago', editando, `Pago de ${busquedaPaciente}`)
-      setEditando(null)
     } else {
       await axios.post(API, form)
       await registrarLog('crear', 'pago', null, `Pago de ${busquedaPaciente}`)
@@ -114,11 +109,12 @@ export default function Pagos() {
     setForm(formInicial)
     setBusquedaPaciente('')
     setErrores({})
-    setMostrarForm(false)
+    setModalForm(false)
+    setEditando(null)
     cargar()
   }
 
-  const editar = p => {
+  const abrirEditar = p => {
     setForm({
       paciente_id: p.paciente_id,
       monto: p.monto,
@@ -131,8 +127,15 @@ export default function Pagos() {
     })
     setBusquedaPaciente(`${p.paciente_nombre} ${p.paciente_apellido}`)
     setEditando(p.id)
-    setMostrarForm(true)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    setModalForm(true)
+  }
+
+  const cerrarModal = () => {
+    setEditando(null)
+    setForm(formInicial)
+    setBusquedaPaciente('')
+    setErrores({})
+    setModalForm(false)
   }
 
   const eliminar = async id => {
@@ -141,14 +144,6 @@ export default function Pagos() {
       await registrarLog('eliminar', 'pago', id, 'Pago eliminado')
       cargar()
     }
-  }
-
-  const cancelar = () => {
-    setEditando(null)
-    setForm(formInicial)
-    setBusquedaPaciente('')
-    setErrores({})
-    setMostrarForm(false)
   }
 
   const toggleBoleta = async p => {
@@ -164,17 +159,9 @@ export default function Pagos() {
 
   const fechaOrden = p => p.fecha_cita || p.fecha
 
-  const pendientes = pagos
-    .filter(p => p.estado === 'pendiente')
-    .sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
-
-  const bonosPendientes = pagos
-    .filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono)
-    .sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
-
-  const boletasPendientes = pagos
-    .filter(p => (p.metodo === 'efectivo' || p.metodo === 'transferencia') && p.estado_boleta === 'pendiente')
-    .sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
+  const pendientes = pagos.filter(p => p.estado === 'pendiente').sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
+  const bonosPendientes = pagos.filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono).sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
+  const boletasPendientes = pagos.filter(p => (p.metodo === 'efectivo' || p.metodo === 'transferencia') && p.estado_boleta === 'pendiente').sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
 
   const filtrados = pagos
     .filter(p => {
@@ -188,23 +175,140 @@ export default function Pagos() {
       const fecha = new Date(String(p.fecha_cita || p.fecha).slice(0, 10) + 'T12:00:00')
       const hoy = new Date()
       let coincidePeriodo = true
-      if (filtroPeriodo === 'hoy') {
-        coincidePeriodo = fecha.toDateString() === hoy.toDateString()
-      } else if (filtroPeriodo === 'semana') {
-        const lunes = new Date(hoy)
-        lunes.setDate(hoy.getDate() - hoy.getDay() + 1)
-        lunes.setHours(0, 0, 0, 0)
+      if (filtroPeriodo === 'hoy') coincidePeriodo = fecha.toDateString() === hoy.toDateString()
+      else if (filtroPeriodo === 'semana') {
+        const lunes = new Date(hoy); lunes.setDate(hoy.getDate() - hoy.getDay() + 1); lunes.setHours(0,0,0,0)
         coincidePeriodo = fecha >= lunes
-      } else if (filtroPeriodo === 'mes') {
-        coincidePeriodo = fecha.getMonth() === hoy.getMonth() && fecha.getFullYear() === hoy.getFullYear()
-      }
+      } else if (filtroPeriodo === 'mes') coincidePeriodo = fecha.getMonth() === hoy.getMonth() && fecha.getFullYear() === hoy.getFullYear()
       return coincideBusqueda && coincideEstado && coincideMetodo && coincidePeriodo
     })
     .sort((a, b) => new Date(fechaOrden(b)) - new Date(fechaOrden(a)))
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-green-800 mb-6">Pagos</h2>
+      {/* Modal registrar/editar pago */}
+      {modalForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={cerrarModal}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="bg-gradient-to-r from-green-700 to-green-600 px-6 py-5 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+                  <span className="text-xl">{editando ? '✏️' : '💰'}</span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white">{editando ? 'Editar pago' : 'Registrar pago'}</h3>
+                  <p className="text-green-200 text-xs">{editando ? 'Modifica los datos del pago' : 'Registra un nuevo pago'}</p>
+                </div>
+              </div>
+              <button onClick={cerrarModal} className="text-white hover:text-green-200 text-2xl leading-none">✕</button>
+            </div>
+
+            <div className="p-6 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex flex-col relative sm:col-span-2" ref={dropdownRef}>
+                  <label className="text-sm font-medium text-gray-700 mb-1">Paciente *</label>
+                  <input
+                    className={`border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.paciente_id ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-gray-300'}`}
+                    placeholder="Buscar por nombre, apellido o RUT..."
+                    value={busquedaPaciente}
+                    onChange={e => { setBusquedaPaciente(e.target.value); setMostrarDropdown(true); setForm(f => ({ ...f, paciente_id: '' })); setErrores(er => ({ ...er, paciente_id: '' })) }}
+                    onFocus={() => setMostrarDropdown(true)}
+                  />
+                  {errores.paciente_id && <span className="text-red-500 text-xs mt-1">{errores.paciente_id}</span>}
+                  {mostrarDropdown && busquedaPaciente.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto mt-1">
+                      {pacientesFiltrados.length === 0
+                        ? <p className="px-3 py-2 text-sm text-gray-400">No se encontraron pacientes</p>
+                        : pacientesFiltrados.map(p => (
+                          <button key={p.id} className="w-full text-left px-3 py-2 hover:bg-green-50 text-sm border-b border-gray-100 last:border-0" onClick={() => seleccionarPaciente(p)}>
+                            <span className="font-medium text-gray-800">{p.nombre} {p.apellido}</span>
+                            {p.rut && <span className="text-gray-400 ml-2 text-xs">{p.rut}</span>}
+                          </button>
+                        ))
+                      }
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-col">
+                  <label className="text-sm font-medium text-gray-700 mb-1">Monto ($) *</label>
+                  <input className={`border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.monto ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-gray-300'}`} name="monto" type="number" placeholder="25000" value={form.monto} onChange={handleChange} />
+                  {errores.monto && <span className="text-red-500 text-xs mt-1">{errores.monto}</span>}
+                </div>
+
+                <div className="flex flex-col">
+                  <label className="text-sm font-medium text-gray-700 mb-1">Método de pago</label>
+                  <select className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400" name="metodo" value={form.metodo} onChange={handleChange}>
+                    <option value="debito">💳 Débito</option>
+                    <option value="efectivo">💵 Efectivo</option>
+                    <option value="transferencia">🏦 Transferencia</option>
+                    <option value="fonasa">🏥 Fonasa</option>
+                    <option value="credito">💳 Crédito</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col">
+                  <label className="text-sm font-medium text-gray-700 mb-1">Estado</label>
+                  <select className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400" name="estado" value={form.estado} onChange={handleChange}>
+                    <option value="pagado">Pagado</option>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="condonado">Condonado</option>
+                  </select>
+                </div>
+
+                {form.metodo === 'fonasa' && (
+                  <>
+                    <div className="flex flex-col">
+                      <label className="text-sm font-medium text-gray-700 mb-1">Número de bono</label>
+                      <input className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400" name="numero_bono" placeholder="Ej: 123456789" value={form.numero_bono || ''} onChange={handleChange} />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-sm font-medium text-gray-700 mb-1">Estado del bono</label>
+                      <select className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400" name="estado_bono" value={form.estado_bono || 'pendiente'} onChange={handleChange}>
+                        <option value="pendiente">⏳ Pendiente verificación</option>
+                        <option value="verificado">✅ Verificado</option>
+                        <option value="rechazado">❌ Rechazado</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+
+                {(form.metodo === 'efectivo' || form.metodo === 'transferencia') && (
+                  <div className="flex flex-col">
+                    <label className="text-sm font-medium text-gray-700 mb-1">Estado boleta</label>
+                    <select className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400" name="estado_boleta" value={form.estado_boleta || 'pendiente'} onChange={handleChange}>
+                      <option value="pendiente">⏳ Pendiente emisión</option>
+                      <option value="emitida">✅ Emitida</option>
+                    </select>
+                  </div>
+                )}
+
+                <div className="flex flex-col sm:col-span-2">
+                  <label className="text-sm font-medium text-gray-700 mb-1">Notas <span className="text-gray-400 font-normal">(opcional)</span></label>
+                  <input className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400" name="notas" placeholder="Ej: Control mensual, primera consulta..." value={form.notas} onChange={handleChange} />
+                </div>
+              </div>
+            </div>
+
+            <div className="px-6 pb-6 flex gap-3">
+              <button onClick={cerrarModal} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 font-medium transition-colors">Cancelar</button>
+              <button onClick={guardar} className="flex-1 bg-green-700 text-white py-3 rounded-xl hover:bg-green-800 font-semibold transition-colors">
+                {editando ? '✓ Actualizar' : '+ Registrar pago'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-bold text-green-800">Pagos</h2>
+        <button
+          onClick={() => { cerrarModal(); setModalForm(true) }}
+          className="flex items-center gap-2 bg-green-700 text-white px-5 py-2.5 rounded-xl hover:bg-green-800 font-medium transition-colors shadow-sm"
+        >
+          <span className="text-lg">+</span> Registrar pago
+        </button>
+      </div>
 
       {/* Resumen */}
       {resumen && (
@@ -241,26 +345,13 @@ export default function Pagos() {
       <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
         <h3 className="text-lg font-bold text-gray-800 mb-3">📆 Resumen por día</h3>
         <div className="flex items-center gap-3 mb-4">
-          <input
-            type="date"
-            className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 text-sm"
-            value={fechaDia}
-            onChange={e => setFechaDia(e.target.value)}
-          />
-          <span className="text-sm text-gray-500">
-            {new Date(fechaDia + 'T12:00:00').toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
-          </span>
+          <input type="date" className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 text-sm" value={fechaDia} onChange={e => setFechaDia(e.target.value)} />
+          <span className="text-sm text-gray-500">{new Date(fechaDia + 'T12:00:00').toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
         </div>
         {(() => {
-          const pagosDia = pagos.filter(p => {
-            const f = String(p.fecha_cita || p.fecha).slice(0, 10)
-            return f === fechaDia && p.estado === 'pagado'
-          })
+          const pagosDia = pagos.filter(p => String(p.fecha_cita || p.fecha).slice(0, 10) === fechaDia && p.estado === 'pagado')
           const totalDia = pagosDia.reduce((s, p) => s + parseFloat(p.monto), 0)
-          const porMetodo = pagosDia.reduce((acc, p) => {
-            acc[p.metodo] = (acc[p.metodo] || 0) + parseFloat(p.monto)
-            return acc
-          }, {})
+          const porMetodo = pagosDia.reduce((acc, p) => { acc[p.metodo] = (acc[p.metodo] || 0) + parseFloat(p.monto); return acc }, {})
           return (
             <div>
               <div className="flex items-center justify-between mb-3">
@@ -275,64 +366,49 @@ export default function Pagos() {
                     </div>
                   ))}
                 </div>
-              ) : (
-                <p className="text-gray-400 text-sm">Sin pagos registrados este día</p>
-              )}
+              ) : <p className="text-gray-400 text-sm">Sin pagos registrados este día</p>}
             </div>
           )
         })()}
       </div>
 
-      {/* Pagos pendientes de cobro */}
+      {/* Pagos pendientes */}
       {pendientes.length > 0 && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6">
           <h3 className="text-sm font-bold text-yellow-800 mb-3">⚠️ Pagos pendientes de cobro ({pendientes.length}) — {formatCLP(pendientes.reduce((s, p) => s + parseFloat(p.monto), 0))}</h3>
-          <ListaConVerMas
-            items={pendientes}
-            limite={5}
-            renderItem={(p, i) => (
-              <div key={i} className="flex items-center justify-between bg-white rounded-lg p-3">
-                <div>
-                  <p className="text-sm font-semibold text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
-                  <p className="text-xs text-gray-500">
-                    {metodoIcono[p.metodo]} {p.metodo} · {formatFecha(p.fecha_cita || p.fecha)}
-                    {p.fecha_cita && <span className="ml-1 text-teal-600">(fecha cita)</span>}
-                  </p>
-                  {p.notas && <p className="text-xs text-gray-400 mt-0.5">{p.notas}</p>}
-                </div>
-                <div className="flex items-center gap-2 ml-3">
-                  <span className="font-bold text-gray-800 text-sm">{formatCLP(p.monto)}</span>
-                  <button onClick={() => marcarPagado(p)} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium whitespace-nowrap">✅ Marcar pagado</button>
-                  <button onClick={() => editar(p)} className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-lg hover:bg-blue-100 font-medium">Editar</button>
-                </div>
+          <ListaConVerMas items={pendientes} limite={5} renderItem={(p, i) => (
+            <div key={i} className="flex items-center justify-between bg-white rounded-lg p-3">
+              <div>
+                <p className="text-sm font-semibold text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
+                <p className="text-xs text-gray-500">{metodoIcono[p.metodo]} {p.metodo} · {formatFecha(p.fecha_cita || p.fecha)}{p.fecha_cita && <span className="ml-1 text-teal-600">(fecha cita)</span>}</p>
+                {p.notas && <p className="text-xs text-gray-400 mt-0.5">{p.notas}</p>}
               </div>
-            )}
-          />
+              <div className="flex items-center gap-2 ml-3">
+                <span className="font-bold text-gray-800 text-sm">{formatCLP(p.monto)}</span>
+                <button onClick={() => marcarPagado(p)} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium whitespace-nowrap">✅ Marcar pagado</button>
+                <button onClick={() => abrirEditar(p)} className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-lg hover:bg-blue-100 font-medium">Editar</button>
+              </div>
+            </div>
+          )} />
         </div>
       )}
 
-      {/* Bonos Fonasa pendientes */}
+      {/* Bonos Fonasa */}
       {bonosPendientes.length > 0 && (
         <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 mb-6">
           <h3 className="text-sm font-bold text-teal-800 mb-3">🏥 Bonos Fonasa por verificar ({bonosPendientes.length})</h3>
-          <ListaConVerMas
-            items={bonosPendientes}
-            limite={5}
-            renderItem={(p, i) => (
-              <div key={i} className="flex items-center justify-between bg-white rounded-lg p-3">
-                <div>
-                  <p className="text-sm font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
-                  <p className="text-xs text-gray-500">
-                    🏥 Bono: {p.numero_bono} · {formatFecha(p.fecha_cita || p.fecha)}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={async () => { await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'verificado' }); cargar() }} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium">✅ Verificado</button>
-                  <button onClick={async () => { await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'rechazado' }); cargar() }} className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-lg hover:bg-red-200 font-medium">❌ Rechazado</button>
-                </div>
+          <ListaConVerMas items={bonosPendientes} limite={5} renderItem={(p, i) => (
+            <div key={i} className="flex items-center justify-between bg-white rounded-lg p-3">
+              <div>
+                <p className="text-sm font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
+                <p className="text-xs text-gray-500">🏥 Bono: {p.numero_bono} · {formatFecha(p.fecha_cita || p.fecha)}</p>
               </div>
-            )}
-          />
+              <div className="flex gap-2">
+                <button onClick={async () => { await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'verificado' }); cargar() }} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium">✅ Verificado</button>
+                <button onClick={async () => { await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'rechazado' }); cargar() }} className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-lg hover:bg-red-200 font-medium">❌ Rechazado</button>
+              </div>
+            </div>
+          )} />
         </div>
       )}
 
@@ -340,121 +416,19 @@ export default function Pagos() {
       {boletasPendientes.length > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
           <h3 className="text-sm font-bold text-blue-800 mb-3">🧾 Boletas pendientes de emitir ({boletasPendientes.length})</h3>
-          <ListaConVerMas
-            items={boletasPendientes}
-            limite={5}
-            renderItem={(p, i) => (
-              <div key={i} className="flex items-center justify-between bg-white rounded-lg p-3">
-                <div>
-                  <p className="text-sm font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
-                  <p className="text-xs text-gray-500">
-                    {metodoIcono[p.metodo]} {p.metodo} · {formatCLP(p.monto)} · {formatFecha(p.fecha_cita || p.fecha)}
-                  </p>
-                </div>
-                <button onClick={() => toggleBoleta(p)} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium">✅ Marcar emitida</button>
+          <ListaConVerMas items={boletasPendientes} limite={5} renderItem={(p, i) => (
+            <div key={i} className="flex items-center justify-between bg-white rounded-lg p-3">
+              <div>
+                <p className="text-sm font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
+                <p className="text-xs text-gray-500">{metodoIcono[p.metodo]} {p.metodo} · {formatCLP(p.monto)} · {formatFecha(p.fecha_cita || p.fecha)}</p>
               </div>
-            )}
-          />
+              <button onClick={() => toggleBoleta(p)} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium">✅ Marcar emitida</button>
+            </div>
+          )} />
         </div>
       )}
 
-      {/* Botón registrar */}
-      <div className="flex justify-end mb-4">
-        <button onClick={() => { setMostrarForm(!mostrarForm); if (mostrarForm) cancelar() }} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium transition-colors">
-          {mostrarForm ? 'Cancelar' : '+ Registrar pago'}
-        </button>
-      </div>
-
-      {/* Formulario */}
-      {mostrarForm && (
-        <div className="bg-white rounded-xl shadow p-5 mb-6">
-          <h3 className="text-lg font-semibold text-gray-700 mb-4">{editando ? 'Editar pago' : 'Registrar nuevo pago'}</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <div className="flex flex-col relative" ref={dropdownRef}>
-              <label className="text-sm text-gray-600 mb-1">Paciente</label>
-              <input
-                className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.paciente_id ? 'border-red-400' : 'border-gray-300'}`}
-                placeholder="Buscar por nombre, apellido o RUT..."
-                value={busquedaPaciente}
-                onChange={e => { setBusquedaPaciente(e.target.value); setMostrarDropdown(true); setForm(f => ({ ...f, paciente_id: '' })); setErrores(er => ({ ...er, paciente_id: '' })) }}
-                onFocus={() => setMostrarDropdown(true)}
-              />
-              {errores.paciente_id && <span className="text-red-500 text-xs mt-1">{errores.paciente_id}</span>}
-              {mostrarDropdown && busquedaPaciente.length > 0 && (
-                <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-48 overflow-y-auto mt-1">
-                  {pacientesFiltrados.length === 0
-                    ? <p className="px-3 py-2 text-sm text-gray-400">No se encontraron pacientes</p>
-                    : pacientesFiltrados.map(p => (
-                      <button key={p.id} className="w-full text-left px-3 py-2 hover:bg-green-50 text-sm border-b border-gray-100 last:border-0" onClick={() => seleccionarPaciente(p)}>
-                        <span className="font-medium text-gray-800">{p.nombre} {p.apellido}</span>
-                        {p.rut && <span className="text-gray-400 ml-2 text-xs">{p.rut}</span>}
-                      </button>
-                    ))
-                  }
-                </div>
-              )}
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm text-gray-600 mb-1">Monto ($)</label>
-              <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.monto ? 'border-red-400' : 'border-gray-300'}`} name="monto" type="number" placeholder="25000" value={form.monto} onChange={handleChange} />
-              {errores.monto && <span className="text-red-500 text-xs mt-1">{errores.monto}</span>}
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm text-gray-600 mb-1">Método de pago</label>
-              <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="metodo" value={form.metodo} onChange={handleChange}>
-                <option value="debito">💳 Débito</option>
-                <option value="efectivo">💵 Efectivo</option>
-                <option value="transferencia">🏦 Transferencia</option>
-                <option value="fonasa">🏥 Fonasa</option>
-                <option value="credito">💳 Crédito</option>
-              </select>
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm text-gray-600 mb-1">Estado</label>
-              <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="estado" value={form.estado} onChange={handleChange}>
-                <option value="pagado">Pagado</option>
-                <option value="pendiente">Pendiente</option>
-                <option value="condonado">Condonado</option>
-              </select>
-            </div>
-            {form.metodo === 'fonasa' && (
-              <>
-                <div className="flex flex-col">
-                  <label className="text-sm text-gray-600 mb-1">Número de bono</label>
-                  <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="numero_bono" placeholder="Ej: 123456789" value={form.numero_bono || ''} onChange={handleChange} />
-                </div>
-                <div className="flex flex-col">
-                  <label className="text-sm text-gray-600 mb-1">Estado del bono</label>
-                  <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="estado_bono" value={form.estado_bono || 'pendiente'} onChange={handleChange}>
-                    <option value="pendiente">⏳ Pendiente verificación</option>
-                    <option value="verificado">✅ Verificado</option>
-                    <option value="rechazado">❌ Rechazado</option>
-                  </select>
-                </div>
-              </>
-            )}
-            {(form.metodo === 'efectivo' || form.metodo === 'transferencia') && (
-              <div className="flex flex-col">
-                <label className="text-sm text-gray-600 mb-1">Estado boleta</label>
-                <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="estado_boleta" value={form.estado_boleta || 'pendiente'} onChange={handleChange}>
-                  <option value="pendiente">⏳ Pendiente emisión</option>
-                  <option value="emitida">✅ Emitida</option>
-                </select>
-              </div>
-            )}
-            <div className="flex flex-col sm:col-span-2">
-              <label className="text-sm text-gray-600 mb-1">Notas (opcional)</label>
-              <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="notas" placeholder="Ej: Control mensual, primera consulta..." value={form.notas} onChange={handleChange} />
-            </div>
-          </div>
-          <div className="flex gap-3 mt-4">
-            <button onClick={guardar} className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium">{editando ? 'Actualizar' : 'Registrar pago'}</button>
-            <button onClick={cancelar} className="bg-gray-200 text-gray-700 px-5 py-2 rounded-lg hover:bg-gray-300 font-medium">Cancelar</button>
-          </div>
-        </div>
-      )}
-
-      {/* Historial completo */}
+      {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="relative flex-1">
           <input className="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-green-400" placeholder="Buscar por paciente, RUT o notas..." value={busqueda} onChange={e => setBusqueda(e.target.value)} />
@@ -511,19 +485,10 @@ export default function Pagos() {
                 </td>
                 <td className="px-4 py-3 text-gray-500 text-xs">{p.notas || '—'}</td>
                 <td className="px-4 py-3 font-semibold text-gray-800">{formatCLP(p.monto)}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
-                </td>
+                <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span></td>
+                <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span></td>
                 <td className="px-4 py-3 text-xs">
-                  {p.numero_bono && (
-                    <p className="text-blue-600 mb-1">
-                      🏥 {p.numero_bono}{' '}
-                      <span className={`px-1 rounded ${p.estado_bono === 'verificado' ? 'bg-green-100 text-green-700' : p.estado_bono === 'rechazado' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_bono}</span>
-                    </p>
-                  )}
+                  {p.numero_bono && <p className="text-blue-600 mb-1">🏥 {p.numero_bono} <span className={`px-1 rounded ${p.estado_bono === 'verificado' ? 'bg-green-100 text-green-700' : p.estado_bono === 'rechazado' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_bono}</span></p>}
                   {(p.metodo === 'efectivo' || p.metodo === 'transferencia') && (
                     <button onClick={() => toggleBoleta(p)} className={`px-2 py-0.5 rounded-full text-xs font-semibold cursor-pointer ${p.estado_boleta === 'emitida' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                       {p.estado_boleta === 'emitida' ? '✅ Boleta emitida' : '🧾 Boleta pendiente'}
@@ -532,18 +497,14 @@ export default function Pagos() {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2 flex-wrap">
-                    {p.estado === 'pendiente' && (
-                      <button onClick={() => marcarPagado(p)} className="text-green-700 hover:underline text-xs font-medium">✅ Pagado</button>
-                    )}
-                    <button onClick={() => editar(p)} className="text-blue-600 hover:underline text-xs font-medium">Editar</button>
+                    {p.estado === 'pendiente' && <button onClick={() => marcarPagado(p)} className="text-green-700 hover:underline text-xs font-medium">✅ Pagado</button>}
+                    <button onClick={() => abrirEditar(p)} className="text-blue-600 hover:underline text-xs font-medium">Editar</button>
                     <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-xs font-medium">Eliminar</button>
                   </div>
                 </td>
               </tr>
             ))}
-            {filtrados.length === 0 && (
-              <tr><td colSpan="8" className="px-4 py-6 text-center text-gray-400">{busqueda || filtroEstado || filtroMetodo ? 'No se encontraron resultados' : 'No hay pagos registrados'}</td></tr>
-            )}
+            {filtrados.length === 0 && <tr><td colSpan="8" className="px-4 py-6 text-center text-gray-400">{busqueda || filtroEstado || filtroMetodo ? 'No se encontraron resultados' : 'No hay pagos registrados'}</td></tr>}
           </tbody>
         </table>
       </div>
@@ -564,26 +525,20 @@ export default function Pagos() {
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
               <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
             </div>
-            {p.numero_bono && (
-              <p className="text-xs text-blue-600 mb-1">🏥 Bono: {p.numero_bono} <span className={`px-1 rounded ${p.estado_bono === 'verificado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_bono}</span></p>
-            )}
+            {p.numero_bono && <p className="text-xs text-blue-600 mb-1">🏥 Bono: {p.numero_bono} <span className={`px-1 rounded ${p.estado_bono === 'verificado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_bono}</span></p>}
             {(p.metodo === 'efectivo' || p.metodo === 'transferencia') && (
               <button onClick={() => toggleBoleta(p)} className={`text-xs px-2 py-0.5 rounded-full font-semibold mb-2 ${p.estado_boleta === 'emitida' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                 {p.estado_boleta === 'emitida' ? '✅ Boleta emitida' : '🧾 Boleta pendiente'}
               </button>
             )}
             <div className="flex gap-3">
-              {p.estado === 'pendiente' && (
-                <button onClick={() => marcarPagado(p)} className="text-green-700 text-sm font-medium">✅ Pagado</button>
-              )}
-              <button onClick={() => editar(p)} className="text-blue-600 text-sm font-medium">Editar</button>
+              {p.estado === 'pendiente' && <button onClick={() => marcarPagado(p)} className="text-green-700 text-sm font-medium">✅ Pagado</button>}
+              <button onClick={() => abrirEditar(p)} className="text-blue-600 text-sm font-medium">Editar</button>
               <button onClick={() => eliminar(p.id)} className="text-red-500 text-sm font-medium">Eliminar</button>
             </div>
           </div>
         ))}
-        {filtrados.length === 0 && (
-          <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">{busqueda || filtroEstado || filtroMetodo ? 'No se encontraron resultados' : 'No hay pagos registrados'}</div>
-        )}
+        {filtrados.length === 0 && <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">{busqueda || filtroEstado || filtroMetodo ? 'No se encontraron resultados' : 'No hay pagos registrados'}</div>}
       </div>
     </div>
   )
