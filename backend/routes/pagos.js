@@ -102,7 +102,17 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    await pool.query('DELETE FROM pago WHERE id=$1', [req.params.id])
+    // Buscar si tiene procedimiento vinculado
+    const pago = await pool.query('SELECT procedimiento_id FROM pago WHERE id = $1', [req.params.id])
+    const procedimientoId = pago.rows[0]?.procedimiento_id
+
+    await pool.query('DELETE FROM pago WHERE id = $1', [req.params.id])
+
+    // Si tenía procedimiento vinculado, eliminarlo también
+    if (procedimientoId) {
+      await pool.query('DELETE FROM procedimiento WHERE id = $1', [procedimientoId])
+    }
+
     res.json({ mensaje: 'Pago eliminado' })
   } catch (error) { res.status(500).json({ error: error.message }) }
 })
