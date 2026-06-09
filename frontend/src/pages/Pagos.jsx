@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from 'react'
 import axios from 'axios'
 import { registrarLog } from '../utils/log'
 import ListaConVerMas from '../components/ListaConVerMas'
-import { useGuardarAviso } from '../hooks/useGuardarAviso'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
@@ -56,9 +55,6 @@ export default function Pagos() {
   const [busquedaPaciente, setBusquedaPaciente] = useState('')
   const [mostrarDropdown, setMostrarDropdown] = useState(false)
   const dropdownRef = useRef(null)
-
-  
-  useGuardarAviso(modalForm)
 
   const cargar = async () => {
     const [p, pa, r] = await Promise.all([axios.get(API), axios.get(API_PAC), axios.get(`${API}/resumen`)])

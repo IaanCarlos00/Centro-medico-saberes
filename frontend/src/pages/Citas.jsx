@@ -9,7 +9,6 @@ import ModalProcedimientos from './ModalProcedimientos'
 import { registrarLog } from '../utils/log'
 import ModalConfirmar from '../components/ModalConfirmar'
 import Toast from '../components/Toast'
-import { useGuardarAviso } from '../hooks/useGuardarAviso'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
@@ -172,8 +171,6 @@ export default function Agenda() {
   const [modoMover, setModoMover] = useState(false)
   const [modalConfirmarMover, setModalConfirmarMover] = useState(null)
   const [citaParaMover, setCitaParaMover] = useState(null)
-
-  useGuardarAviso(!!modalAgendar)
 
   const API_PROC = 'https://centro-medico-saberes-production.up.railway.app/procedimientos'
   const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'

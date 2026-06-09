@@ -61,6 +61,17 @@ export default function Fichas({ paciente, onVolver }) {
 
   useEffect(() => { cargar() }, [])
 
+  useEffect(() => {
+    const tieneCambios = vista === 'control' && (form.motivo_consulta.trim() !== '' || form.diagnostico.trim() !== '' || form.tratamiento.trim() !== '')
+    const handler = e => {
+      if (!tieneCambios) return
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [vista, form])
+
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value })
     setErrores({ ...errores, [e.target.name]: '' })
