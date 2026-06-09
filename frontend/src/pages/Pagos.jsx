@@ -7,7 +7,6 @@ import { useGuardarAviso } from '../hooks/useGuardarAviso'
 const API = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
 
-useGuardarAviso(modalForm)
 
 const metodoBadge = {
   fonasa: 'bg-teal-100 text-teal-700',
@@ -57,6 +56,9 @@ export default function Pagos() {
   const [busquedaPaciente, setBusquedaPaciente] = useState('')
   const [mostrarDropdown, setMostrarDropdown] = useState(false)
   const dropdownRef = useRef(null)
+
+  
+  useGuardarAviso(modalForm)
 
   const cargar = async () => {
     const [p, pa, r] = await Promise.all([axios.get(API), axios.get(API_PAC), axios.get(`${API}/resumen`)])
