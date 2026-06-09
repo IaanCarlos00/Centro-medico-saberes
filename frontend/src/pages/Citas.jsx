@@ -171,6 +171,7 @@ export default function Agenda() {
   const [toast, setToast] = useState(null)
   const [modoMover, setModoMover] = useState(false)
   const [modalConfirmarMover, setModalConfirmarMover] = useState(null)
+  const [citaParaMover, setCitaParaMover] = useState(null)
   const API_PROC = 'https://centro-medico-saberes-production.up.railway.app/procedimientos'
   const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 
@@ -815,14 +816,14 @@ export default function Agenda() {
         <>
           <div className="flex justify-end gap-3 mb-4">
             <button
-              onClick={() => setModoMover(!modoMover)}
+              onClick={() => { setModoMover(!modoMover); setCitaParaMover(null) }}
               className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors border-2 ${
                 modoMover
                   ? 'border-orange-400 bg-orange-50 text-orange-700'
                   : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
               }`}
             >
-              {modoMover ? '🔓 Mover citas activo' : '🔒 Agenda bloqueada'}
+              {modoMover ? (citaParaMover ? `📌 ${citaParaMover.paciente_nombre} — click en destino` : '🔓 Selecciona una cita') : '🔒 Agenda bloqueada'}
             </button>
             <button
               onClick={() => {
@@ -1048,28 +1049,34 @@ export default function Agenda() {
   }
 }}
             onSelectEvent={e => {
-                  if (e.tipo === 'bloqueo') {
-                    if (modoMover) return
-                    setModalEliminarBloqueo(e.resource.id)
-                    return
-                  }
-                  if (modoMover) {
-                    setModalConfirmarMover({ cita: e.resource, nuevaFecha: e.resource.fecha_hora?.slice(0,16) })
-                    return
-                  }
-                  setCitaSeleccionada(e.resource)
-                }}
+              if (e.tipo === 'bloqueo') {
+                if (modoMover) return
+                setModalEliminarBloqueo(e.resource.id)
+                return
+              }
+              if (modoMover) {
+                setCitaParaMover(e.resource)
+                setToast({ mensaje: `📌 ${e.resource.paciente_nombre} seleccionada — ahora haz click en el nuevo horario`, tipo: 'info' })
+                return
+              }
+              setCitaSeleccionada(e.resource)
+            }}
               selectable
               onSelectSlot={({ start, end }) => {
-                  const offset = start.getTimezoneOffset() * 60000
-                  const fechaHora = new Date(start.getTime() - offset).toISOString().slice(0, 16)
-                  const fechaHoraFin = new Date(end.getTime() - offset).toISOString().slice(0, 16)
-                  setForm({ paciente_id: '', profesional_id: '', fecha_hora: fechaHora, estado: 'pendiente', observaciones: '' })
-                  setBusquedaPaciente('')
-                  setErrores({})
-                  setMostrarNuevoPaciente(false)
-                  setModalOpcion({ fechaHora, fechaHoraFin, start, end })
-                }}
+                const offset = start.getTimezoneOffset() * 60000
+                const fechaHora = new Date(start.getTime() - offset).toISOString().slice(0, 16)
+                const fechaHoraFin = new Date(end.getTime() - offset).toISOString().slice(0, 16)
+                if (modoMover && citaParaMover) {
+                  setModalConfirmarMover({ cita: citaParaMover, nuevaFecha: fechaHora })
+                  setCitaParaMover(null)
+                  return
+                }
+                setForm({ paciente_id: '', profesional_id: '', fecha_hora: fechaHora, estado: 'pendiente', observaciones: '' })
+                setBusquedaPaciente('')
+                setErrores({})
+                setMostrarNuevoPaciente(false)
+                setModalOpcion({ fechaHora, fechaHoraFin, start, end })
+              }}
               style={{ height: '100%' }}
             />
           </div>
