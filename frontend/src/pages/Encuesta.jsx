@@ -9,12 +9,11 @@ function EstrellaRating({ label, value, onChange }) {
   return (
     <div className="flex flex-col gap-2">
       <p className="text-sm font-medium text-gray-700">{label}</p>
-      <div className="flex gap-1">
+      <div className="flex gap-1" onMouseLeave={() => setHover(0)}>
         {[1,2,3,4,5].map(n => (
           <button key={n} type="button"
             onClick={() => onChange(n)}
             onMouseEnter={() => setHover(n)}
-            onMouseLeave={() => setHover(0)}
             className="text-3xl transition-transform hover:scale-110 focus:outline-none"
           >
             {n <= (hover || value) ? '⭐' : '☆'}
