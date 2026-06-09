@@ -7,17 +7,3 @@
 .rbc-time-view {
   overflow: visible !important;
 }
-
-.rbc-time-header {
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 10 !important;
-  background: white !important;
-}
-
-.rbc-time-gutter {
-  position: sticky !important;
-  left: 0 !important;
-  z-index: 9 !important;
-  background: white !important;
-}
