@@ -175,23 +175,11 @@ export default function Encuesta() {
               {/* Calificación general */}
               <div className="mb-6">
                 <label className="text-sm font-semibold text-gray-700 mb-3 block">¿Cómo calificarías tu experiencia general? *</label>
-                <div className="flex justify-center gap-3 mb-2">
-                  {[1,2,3,4,5].map(n => {
-                    const [hoverVal, setHoverVal] = useState(0)
-                    return (
-                      <button key={n} type="button"
-                        onClick={() => set('estrellas', n)}
-                        onMouseEnter={() => setHoverVal(n)}
-                        onMouseLeave={() => setHoverVal(0)}
-                        className="text-4xl transition-transform hover:scale-125 focus:outline-none"
-                      >
-                        {n <= (hoverVal || form.estrellas) ? '⭐' : '☆'}
-                      </button>
-                    )
-                  })}
+                <div className="flex justify-center mb-2">
+                  <EstrellaRating label="" value={form.estrellas} onChange={v => set('estrellas', v)} />
                 </div>
                 {form.estrellas > 0 && (
-                  <p className="text-center text-sm font-medium text-green-700 bg-green-50 rounded-xl py-2">
+                  <p className="text-center text-sm font-medium text-green-700 bg-green-50 rounded-xl py-2 mt-2">
                     {labelEstrellas[form.estrellas]}
                   </p>
                 )}
