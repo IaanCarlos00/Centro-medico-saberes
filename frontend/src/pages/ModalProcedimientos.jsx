@@ -28,6 +28,7 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
   const [formEdit, setFormEdit] = useState({})
   const [guardando, setGuardando] = useState(false)
   const [aviso, setAviso] = useState(null)
+  const [duplicados, setDuplicados] = useState([])
 
   const cargar = async () => {
     const [cat, proc, pag] = await Promise.all([
@@ -38,6 +39,16 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
     setCatalogo(cat.data)
     setProcedimientos(proc.data)
     setPagos(pag.data)
+
+    // Detectar duplicados automáticamente
+    const vistos = {}
+    const dups = []
+    proc.data.forEach(p => {
+      const key = `${p.nombre}__${p.fecha?.slice(0, 10)}`
+      if (vistos[key]) dups.push(p)
+      else vistos[key] = true
+    })
+    setDuplicados(dups)
   }
 
   useEffect(() => { cargar() }, [])
@@ -152,6 +163,20 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
             <p className="font-bold text-yellow-600">{formatCLP(totalPendiente)}</p>
           </div>
         </div>
+
+        {duplicados.length > 0 && (
+          <div className="px-6 py-3 bg-red-50 border-b border-red-200 shrink-0">
+            <p className="text-sm font-semibold text-red-700 mb-1">⚠️ Se detectaron {duplicados.length} posible{duplicados.length > 1 ? 's' : ''} duplicado{duplicados.length > 1 ? 's' : ''}:</p>
+            <div className="flex flex-col gap-1">
+              {duplicados.map((d, i) => (
+                <div key={i} className="flex items-center justify-between text-xs text-red-600">
+                  <span>{d.nombre} — {formatFecha(d.fecha)}</span>
+                  <button onClick={() => eliminarProc(d.id)} className="text-red-700 font-semibold hover:underline ml-3">Eliminar</button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Tabs */}
         <div className="flex border-b border-gray-200 shrink-0">
