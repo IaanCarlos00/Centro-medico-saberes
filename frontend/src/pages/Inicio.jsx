@@ -249,11 +249,6 @@ export default function Inicio() {
                   )
                 })}
               </div>
-              {datos.proximosControles.length > 5 && (
-                <Link to="/controles" className="block text-center text-sm text-teal-600 hover:underline font-medium mt-3">
-                  Ver {datos.proximosControles.length - 5} más →
-                </Link>
-              )}
             </div>
           )}
 
