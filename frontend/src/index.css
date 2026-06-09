@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
 
 .rbc-time-content {
   overflow-y: visible !important;
