@@ -9,7 +9,7 @@ import ModalProcedimientos from './ModalProcedimientos'
 import { registrarLog } from '../utils/log'
 import ModalConfirmar from '../components/ModalConfirmar'
 import Toast from '../components/Toast'
-import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop/index'
+import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop'
 import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
 
 const DnDCalendar = withDragAndDrop(Calendar)
@@ -996,14 +996,11 @@ export default function Agenda() {
                   </div>
                 )
               })()}
-            <DnDCalendar
+            <Calendar
               localizer={localizer}
               events={eventos}
               startAccessor="start"
               endAccessor="end"
-              draggableAccessor={evento => modoMover && evento.tipo === 'cita'}
-              onEventDrop={moverCita}
-              resizable={false}
               messages={messages}
               culture="es"
               view={vistaCalendario}
