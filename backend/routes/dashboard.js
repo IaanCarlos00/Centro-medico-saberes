@@ -166,4 +166,41 @@ router.get('/', async (req, res) => {
   }
 })
 
+
+router.get('/atenciones-profesional', async (req, res) => {
+  try {
+    const { fecha, desde, hasta } = req.query
+    
+    let whereClause = "c.estado = 'realizada'"
+    let params = []
+
+    if (fecha) {
+      whereClause += ` AND DATE(c.fecha_hora) = $1`
+      params = [fecha]
+    } else if (desde && hasta) {
+      whereClause += ` AND DATE(c.fecha_hora) >= $1 AND DATE(c.fecha_hora) <= $2`
+      params = [desde, hasta]
+    } else {
+      whereClause += ` AND DATE_TRUNC('month', c.fecha_hora) = DATE_TRUNC('month', NOW())`
+    }
+
+    const result = await pool.query(`
+      SELECT 
+        pr.id, pr.nombre, pr.apellido,
+        COUNT(*) AS atenciones,
+        COALESCE(SUM(pg.monto) FILTER (WHERE pg.estado = 'pagado'), 0) AS ingresos
+      FROM cita c
+      JOIN profesional pr ON c.profesional_id = pr.id
+      LEFT JOIN pago pg ON pg.paciente_id = c.paciente_id AND pg.profesional_id = pr.id
+      WHERE ${whereClause}
+      GROUP BY pr.id, pr.nombre, pr.apellido
+      ORDER BY atenciones DESC
+    `, params)
+
+    res.json(result.rows)
+  } catch (error) {
+    res.status(500).json({ error: error.message })
+  }
+})
+
 module.exports = router

@@ -27,7 +27,29 @@ function formatCLP(n) {
 export default function Inicio() {
   const [datos, setDatos] = useState(null)
   const [cargando, setCargando] = useState(true)
+  const [filtroFecha, setFiltroFecha] = useState('mes')
+  const [fechaDia, setFechaDia] = useState(new Date().toISOString().slice(0, 10))
+  const [fechaDesde, setFechaDesde] = useState('')
+  const [fechaHasta, setFechaHasta] = useState('')
+  const [atencionesProf, setAtencionesProf] = useState([])
+  const [cargandoProf, setCargandoProf] = useState(false)
   const nombre = localStorage.getItem('nombre')
+
+
+  const cargarAtencionesProf = async () => {
+  setCargandoProf(true)
+  try {
+    let url = `${API}/atenciones-profesional`
+    if (filtroFecha === 'dia') url += `?fecha=${fechaDia}`
+    else if (filtroFecha === 'rango' && fechaDesde && fechaHasta) url += `?desde=${fechaDesde}&hasta=${fechaHasta}`
+    const res = await axios.get(url)
+    setAtencionesProf(res.data)
+  } finally {
+    setCargandoProf(false)
+  }
+}
+
+useEffect(() => { cargarAtencionesProf() }, [filtroFecha, fechaDia, fechaDesde, fechaHasta])
 
   const getFrase = () => {
     const usuarioId = parseInt(localStorage.getItem('id') || '1')
@@ -122,23 +144,38 @@ export default function Inicio() {
               </div>
             </div>
             <div className="bg-white rounded-2xl shadow-sm p-5">
-              <h3 className="text-lg font-bold text-gray-800 mb-4">🩺 Atenciones por profesional</h3>
+              <h3 className="text-lg font-bold text-gray-800 mb-3">🩺 Atenciones por profesional</h3>
+              <div className="flex flex-wrap gap-2 mb-4">
+                <button onClick={() => setFiltroFecha('mes')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filtroFecha === 'mes' ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>Este mes</button>
+                <button onClick={() => setFiltroFecha('dia')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filtroFecha === 'dia' ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>Por día</button>
+                <button onClick={() => setFiltroFecha('rango')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${filtroFecha === 'rango' ? 'bg-green-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>Rango</button>
+              </div>
+              {filtroFecha === 'dia' && (
+                <input type="date" className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 mb-3 w-full" value={fechaDia} onChange={e => setFechaDia(e.target.value)} />
+              )}
+              {filtroFecha === 'rango' && (
+                <div className="flex gap-2 mb-3">
+                  <input type="date" className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 flex-1" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)} />
+                  <span className="text-gray-400 self-center">→</span>
+                  <input type="date" className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 flex-1" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)} />
+                </div>
+              )}
               <div className="flex flex-col gap-2">
-                {datos.atencionesPorProfesional?.map((p, i) => (
+                {cargandoProf ? (
+                  <p className="text-sm text-gray-400 text-center py-4">Cargando...</p>
+                ) : atencionesProf.length === 0 ? (
+                  <p className="text-sm text-gray-400 text-center py-4">Sin atenciones en el período</p>
+                ) : atencionesProf.map((p, i) => (
                   <div key={i} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
                     <p className="font-medium text-gray-800">{p.nombre} {p.apellido}</p>
                     <div className="flex gap-4 text-sm">
                       <div className="text-center">
-                        <p className="font-bold text-teal-700">{p.mes}</p>
-                        <p className="text-xs text-gray-400">citas mes</p>
+                        <p className="font-bold text-teal-700">{p.atenciones}</p>
+                        <p className="text-xs text-gray-400">atenciones</p>
                       </div>
                       <div className="text-center">
-                        <p className="font-bold text-gray-700">{p.total}</p>
-                        <p className="text-xs text-gray-400">total</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="font-bold text-green-700">{formatCLP(p.ingresos_mes || 0)}</p>
-                        <p className="text-xs text-gray-400">recaudado mes</p>
+                        <p className="font-bold text-green-700">{formatCLP(p.ingresos || 0)}</p>
+                        <p className="text-xs text-gray-400">ingresos</p>
                       </div>
                     </div>
                   </div>
