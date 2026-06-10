@@ -52,6 +52,7 @@ export default function Pagos() {
   const [filtroPeriodo, setFiltroPeriodo] = useState('mes')
   const [fechaDesde, setFechaDesde] = useState('')
   const [fechaHasta, setFechaHasta] = useState('')
+  const [filtroProcedimiento, setFiltroProcedimiento] = useState('')
   const [filtroBonosProfesional, setFiltroBonosProfesional] = useState('')
   const [fechaDia, setFechaDia] = useState(new Date().toISOString().slice(0, 10))
   const [modalForm, setModalForm] = useState(false)
@@ -213,7 +214,8 @@ export default function Pagos() {
         if (fechaDesde) coincidePeriodo = coincidePeriodo && fecha >= new Date(fechaDesde + 'T00:00:00')
         if (fechaHasta) coincidePeriodo = coincidePeriodo && fecha <= new Date(fechaHasta + 'T23:59:59')
       }
-      return coincideBusqueda && coincideEstado && coincideMetodo && coincidePeriodo
+      const coincideProcedimiento = !filtroProcedimiento || (p.notas || '').toLowerCase().includes(filtroProcedimiento.toLowerCase())
+      return coincideBusqueda && coincideEstado && coincideMetodo && coincidePeriodo && coincideProcedimiento
     })
     .sort((a, b) => new Date(fechaOrden(b)) - new Date(fechaOrden(a)))
 
@@ -529,6 +531,10 @@ export default function Pagos() {
           <option value="debito">Débito</option>
           <option value="credito">Crédito</option>
           <option value="fonasa">Fonasa</option>
+        </select>
+        <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={filtroProcedimiento} onChange={e => setFiltroProcedimiento(e.target.value)}>
+          <option value="">Todos los procedimientos</option>
+          {catalogo.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
         </select>
       </div>
 
