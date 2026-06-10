@@ -27,12 +27,6 @@ const metodoIcono = {
   fonasa: '🏥', efectivo: '💵', transferencia: '🏦', debito: '💳', credito: '💳',
 }
 
-const estadoLabel = {
-  pagado: 'Realizada',
-  pendiente: 'Pendiente',
-  condonado: 'Condonado',
-}
-
 function formatCLP(n) {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(n)
 }
@@ -276,7 +270,7 @@ export default function Pagos() {
                 <div className="flex flex-col">
                   <label className="text-sm font-medium text-gray-700 mb-1">Estado</label>
                   <select className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400" name="estado" value={form.estado} onChange={handleChange}>
-                    <option value="pagado">Realizada</option>
+                    <option value="pagado">Pagado</option>
                     <option value="pendiente">Pendiente</option>
                     <option value="condonado">Condonado</option>
                   </select>
@@ -432,7 +426,7 @@ export default function Pagos() {
               </div>
               <div className="flex items-center gap-2 ml-3">
                 <span className="font-bold text-gray-800 text-sm">{formatCLP(p.monto)}</span>
-                <button onClick={() => marcarPagado(p)} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium whitespace-nowrap">✅ Marcar pagado</button>
+                <button onClick={() => marcarPagado(p)} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-lg hover:bg-green-200 font-medium whitespace-nowrap">✅ Marcar realizada</button>
                 <button onClick={() => abrirEditar(p)} className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-lg hover:bg-blue-100 font-medium">Editar</button>
               </div>
             </div>
@@ -499,7 +493,7 @@ export default function Pagos() {
         )}
         <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}>
           <option value="">Todos los estados</option>
-          <option value="pagado">Realizada</option>
+          <option value="pagado">Pagado</option>
           <option value="pendiente">Pendiente</option>
           <option value="condonado">Condonado</option>
         </select>
@@ -542,7 +536,7 @@ export default function Pagos() {
                 <td className="px-4 py-3 text-gray-500 text-xs">{p.notas || '—'}</td>
                 <td className="px-4 py-3 font-semibold text-gray-800">{formatCLP(p.monto)}</td>
                 <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span></td>
-                <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{estadoLabel[p.estado] || p.estado}</span></td>
+                <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span></td>
                 <td className="px-4 py-3 text-xs">
                   {p.numero_bono && <p className="text-blue-600 mb-1">🏥 {p.numero_bono} <span className={`px-1 rounded ${p.estado_bono === 'verificado' ? 'bg-green-100 text-green-700' : p.estado_bono === 'rechazado' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_bono}</span></p>}
                   {(p.metodo === 'efectivo' || p.metodo === 'transferencia') && (
@@ -553,7 +547,7 @@ export default function Pagos() {
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex gap-2 flex-wrap">
-                    {p.estado === 'pendiente' && <button onClick={() => marcarPagado(p)} className="text-green-700 hover:underline text-xs font-medium">✅ Pagado</button>}
+                    {p.estado === 'pendiente' && <button onClick={() => marcarPagado(p)} className="text-green-700 hover:underline text-xs font-medium">✅ Realizada</button>}
                     <button onClick={() => abrirEditar(p)} className="text-blue-600 hover:underline text-xs font-medium">Editar</button>
                     <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-xs font-medium">Eliminar</button>
                   </div>
@@ -579,7 +573,7 @@ export default function Pagos() {
             {p.notas && <p className="text-xs text-gray-500 mb-1">{p.notas}</p>}
             <div className="flex gap-2 mb-2 flex-wrap">
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
-              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{estadoLabel[p.estado] || p.estado}</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
             </div>
             {p.numero_bono && <p className="text-xs text-blue-600 mb-1">🏥 Bono: {p.numero_bono} <span className={`px-1 rounded ${p.estado_bono === 'verificado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_bono}</span></p>}
             {(p.metodo === 'efectivo' || p.metodo === 'transferencia') && (
@@ -588,7 +582,7 @@ export default function Pagos() {
               </button>
             )}
             <div className="flex gap-3">
-              {p.estado === 'pendiente' && <button onClick={() => marcarPagado(p)} className="text-green-700 text-sm font-medium">✅ Pagado</button>}
+              {p.estado === 'pendiente' && <button onClick={() => marcarPagado(p)} className="text-green-700 text-sm font-medium">✅ Realizada</button>}
               <button onClick={() => abrirEditar(p)} className="text-blue-600 text-sm font-medium">Editar</button>
               <button onClick={() => eliminar(p.id)} className="text-red-500 text-sm font-medium">Eliminar</button>
             </div>
