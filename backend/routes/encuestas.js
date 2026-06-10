@@ -82,7 +82,7 @@ router.get('/responder/:token', async (req, res) => {
     if (enc.rows.length === 0) return res.status(404).json({ error: 'Encuesta no encontrada' })
 
     // Traer profesionales para el selector
-    const profesionales = await pool.query('SELECT id, nombre, apellido FROM profesional ORDER BY nombre')
+    const profesionales = await pool.query('SELECT id, nombre, apellido, foto FROM profesional ORDER BY nombre')
     res.json({ ...enc.rows[0], profesionales: profesionales.rows })
   } catch (error) { res.status(500).json({ error: error.message }) }
 })

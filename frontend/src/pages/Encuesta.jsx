@@ -154,11 +154,15 @@ export default function Encuesta() {
                           : 'border-gray-100 hover:border-green-300 bg-gray-50'
                       }`}
                     >
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
-                        form.profesional_id === p.id ? 'bg-green-600 text-white' : 'bg-gray-200'
-                      }`}>
-                        👩‍⚕️
-                      </div>
+                      {p.foto ? (
+                        <img src={p.foto} alt={p.nombre} className={`w-14 h-14 rounded-full object-cover border-2 ${form.profesional_id === p.id ? 'border-green-600' : 'border-gray-200'}`} />
+                      ) : (
+                        <div className={`w-14 h-14 rounded-full flex items-center justify-center text-lg ${
+                          form.profesional_id === p.id ? 'bg-green-600 text-white' : 'bg-gray-200'
+                        }`}>
+                          👩‍⚕️
+                        </div>
+                      )}
                       <div>
                         <p className="font-semibold text-gray-800">{p.nombre} {p.apellido}</p>
                         <p className="text-xs text-gray-400">Matrona</p>
