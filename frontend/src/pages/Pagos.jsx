@@ -5,6 +5,8 @@ import ListaConVerMas from '../components/ListaConVerMas'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
+const API_PROC = 'https://centro-medico-saberes-production.up.railway.app/procedimientos'
+const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
 
 
 const metodoBadge = {
@@ -36,7 +38,8 @@ function formatFecha(f) {
 
 const formInicial = {
   paciente_id: '', monto: '', metodo: 'debito', estado: 'pendiente',
-  notas: '', numero_bono: '', estado_bono: 'pendiente', estado_boleta: 'pendiente'
+  notas: '', numero_bono: '', estado_bono: 'pendiente', estado_boleta: 'pendiente',
+  procedimiento_nombre: '', profesional_id: ''
 }
 
 export default function Pagos() {
@@ -55,12 +58,19 @@ export default function Pagos() {
   const [busquedaPaciente, setBusquedaPaciente] = useState('')
   const [mostrarDropdown, setMostrarDropdown] = useState(false)
   const dropdownRef = useRef(null)
+  const [catalogo, setCatalogo] = useState([])
+  const [profesionales, setProfesionales] = useState([])
 
   const cargar = async () => {
-    const [p, pa, r] = await Promise.all([axios.get(API), axios.get(API_PAC), axios.get(`${API}/resumen`)])
+    const [p, pa, r, cat, pro] = await Promise.all([
+      axios.get(API), axios.get(API_PAC), axios.get(`${API}/resumen`),
+      axios.get(`${API_PROC}/catalogo`), axios.get(API_PRO)
+    ])
     setPagos(p.data)
     setPacientes(pa.data)
     setResumen(r.data)
+    setCatalogo(cat.data)
+    setProfesionales(pro.data)
   }
 
   useEffect(() => { cargar() }, [])
@@ -283,6 +293,22 @@ export default function Pagos() {
                     </select>
                   </div>
                 )}
+
+                <div className="flex flex-col">
+                  <label className="text-sm font-medium text-gray-700 mb-1">Procedimiento <span className="text-gray-400 font-normal">(opcional)</span></label>
+                  <select className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400" name="procedimiento_nombre" value={form.procedimiento_nombre} onChange={handleChange}>
+                    <option value="">Sin procedimiento</option>
+                    {catalogo.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
+                  </select>
+                </div>
+
+                <div className="flex flex-col">
+                  <label className="text-sm font-medium text-gray-700 mb-1">Matrona <span className="text-gray-400 font-normal">(opcional)</span></label>
+                  <select className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400" name="profesional_id" value={form.profesional_id} onChange={handleChange}>
+                    <option value="">Sin especificar</option>
+                    {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
+                  </select>
+                </div>
 
                 <div className="flex flex-col sm:col-span-2">
                   <label className="text-sm font-medium text-gray-700 mb-1">Notas <span className="text-gray-400 font-normal">(opcional)</span></label>
