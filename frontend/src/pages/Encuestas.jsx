@@ -58,6 +58,8 @@ export default function Encuestas() {
       const { link } = res.data
       const telefono = paciente.telefono?.replace(/\D/g, '')
       const numero = telefono?.startsWith('56') ? telefono : `56${telefono}`
+      console.log('Número WhatsApp:', numero)
+      console.log('Link:', `https://wa.me/${numero}`)
       const mensaje = encodeURIComponent(`Hola ${paciente.nombre} 👋, gracias por tu visita a Saberes. Te invitamos a compartir tu experiencia respondiendo esta breve encuesta: ${link} 💚`)
       const a = document.createElement('a')
       a.href = `https://wa.me/${numero}?text=${mensaje}`
