@@ -177,10 +177,12 @@ export default function Pagos() {
   const fechaOrden = p => p.fecha_cita || p.fecha
 
   const pendientes = pagos.filter(p => p.estado === 'pendiente').sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
-  const bonosPendientes = pagos
+  const bonosPendientesTodos = pagos
     .filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono)
-    .filter(p => !filtroBonosProfesional || String(p.profesional_id) === String(filtroBonosProfesional))
     .sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
+
+  const bonosPendientes = bonosPendientesTodos
+    .filter(p => !filtroBonosProfesional || String(p.profesional_id) === String(filtroBonosProfesional))
   const boletasPendientes = pagos.filter(p => (p.metodo === 'efectivo' || p.metodo === 'transferencia') && p.estado_boleta === 'pendiente').sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
 
   const filtrados = pagos
@@ -439,7 +441,7 @@ export default function Pagos() {
       )}
 
       {/* Bonos Fonasa */}
-      {bonosPendientes.length > 0 && (
+      {bonosPendientesTodos.length > 0 && (
         <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 mb-6">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-sm font-bold text-teal-800">🏥 Bonos Fonasa por verificar ({bonosPendientes.length})</h3>
