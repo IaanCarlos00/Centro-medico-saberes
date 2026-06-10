@@ -39,16 +39,34 @@ export default function Encuestas() {
   const [pacientes, setPacientes] = useState([])
   const [busqueda, setBusqueda] = useState('')
   const [enviando, setEnviando] = useState(null)
+  const [generando, setGenerando] = useState(null)
   const [filtroEstado, setFiltroEstado] = useState('')
   const [expandida, setExpandida] = useState(null)
 
   const cargar = async () => {
     const [e, p] = await Promise.all([axios.get(API), axios.get(API_PAC)])
     setEncuestas(e.data)
-    setPacientes(p.data.filter(p => p.email))
+    setPacientes(p.data.filter(p => p.email || p.telefono))
   }
 
   useEffect(() => { cargar() }, [])
+
+  const enviarWhatsApp = async (paciente) => {
+    setGenerando(paciente.id)
+    try {
+      const res = await axios.post(`${API}/generar-link/${paciente.id}`)
+      const { link } = res.data
+      const telefono = paciente.telefono?.replace(/\D/g, '')
+      const numero = telefono?.startsWith('56') ? telefono : `56${telefono}`
+      const mensaje = encodeURIComponent(`Hola ${paciente.nombre} 👋, gracias por tu visita a Saberes. Te invitamos a compartir tu experiencia respondiendo esta breve encuesta: ${link} 💚`)
+      window.open(`https://wa.me/${numero}?text=${mensaje}`, '_blank')
+      cargar()
+    } catch (err) {
+      alert(err.response?.data?.error || 'Error al generar link')
+    } finally {
+      setGenerando(null)
+    }
+  }
 
   const enviarEncuesta = async (paciente_id) => {
     setEnviando(paciente_id)
@@ -127,21 +145,38 @@ export default function Encuestas() {
       <div className="bg-white rounded-2xl shadow-sm p-6">
         <h3 className="text-lg font-bold text-gray-800 mb-2">📨 Enviar encuesta a paciente</h3>
         <p className="text-sm text-gray-500 mb-4">Solo aparecen pacientes con email registrado.</p>
+        <p className="text-sm text-gray-500 mb-4">Puedes enviar por correo o por WhatsApp.</p>
         <div className="flex flex-col gap-2 max-h-52 overflow-y-auto">
-          {pacientes.length === 0 && <p className="text-gray-400 text-sm">No hay pacientes con email registrado.</p>}
+          {pacientes.length === 0 && <p className="text-gray-400 text-sm">No hay pacientes registrados.</p>}
           {pacientes.map(p => (
-            <div key={p.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
-              <div>
+            <div key={p.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl gap-3">
+              <div className="flex-1 min-w-0">
                 <p className="font-medium text-gray-800 text-sm">{p.nombre} {p.apellido}</p>
-                <p className="text-xs text-gray-400">{p.email}</p>
+                <div className="flex gap-2 flex-wrap">
+                  {p.email && <p className="text-xs text-gray-400">✉️ {p.email}</p>}
+                  {p.telefono && <p className="text-xs text-gray-400">📱 {p.telefono}</p>}
+                </div>
               </div>
-              <button
-                onClick={() => enviarEncuesta(p.id)}
-                disabled={enviando === p.id}
-                className="bg-green-700 text-white px-4 py-1.5 rounded-lg hover:bg-green-800 text-sm font-medium disabled:opacity-50"
-              >
-                {enviando === p.id ? 'Enviando...' : '📨 Enviar'}
-              </button>
+              <div className="flex gap-2 shrink-0">
+                {p.email && (
+                  <button
+                    onClick={() => enviarEncuesta(p.id)}
+                    disabled={enviando === p.id}
+                    className="bg-green-700 text-white px-3 py-1.5 rounded-lg hover:bg-green-800 text-xs font-medium disabled:opacity-50"
+                  >
+                    {enviando === p.id ? '...' : '📨 Email'}
+                  </button>
+                )}
+                {p.telefono && (
+                  <button
+                    onClick={() => enviarWhatsApp(p)}
+                    disabled={generando === p.id}
+                    className="bg-emerald-500 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-600 text-xs font-medium disabled:opacity-50"
+                  >
+                    {generando === p.id ? '...' : '💬 WhatsApp'}
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>

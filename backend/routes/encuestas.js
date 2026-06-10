@@ -133,4 +133,21 @@ router.delete('/:id', async (req, res) => {
   } catch (error) { res.status(500).json({ error: error.message }) }
 })
 
+router.post('/generar-link/:paciente_id', async (req, res) => {
+  try {
+    const paciente = await pool.query('SELECT * FROM paciente WHERE id = $1', [req.params.paciente_id])
+    if (paciente.rows.length === 0) return res.status(404).json({ error: 'Paciente no encontrado' })
+    const p = paciente.rows[0]
+
+    const enc = await pool.query(
+      'INSERT INTO encuesta (paciente_id, estado) VALUES ($1, $2) RETURNING *',
+      [p.id, 'pendiente']
+    )
+    const token = Buffer.from(`${enc.rows[0].id}-${p.id}-${Date.now()}`).toString('base64')
+    await pool.query('UPDATE encuesta SET token=$1 WHERE id=$2', [token, enc.rows[0].id])
+
+    res.json({ link: `${BASE_URL}/encuesta/${token}`, paciente: p })
+  } catch (error) { res.status(500).json({ error: error.message }) }
+})
+
 module.exports = router
