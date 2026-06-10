@@ -51,25 +51,6 @@ export default function Encuestas() {
 
   useEffect(() => { cargar() }, [])
 
-  const enviarWhatsApp = async (paciente) => {
-    setGenerando(paciente.id)
-    try {
-      const res = await axios.post(`${API}/generar-link/${paciente.id}`)
-      const { link } = res.data
-      const telefono = paciente.telefono?.replace(/\D/g, '')
-      const numero = telefono?.startsWith('56') ? telefono : `56${telefono}`
-      console.log('Número WhatsApp:', numero)
-      console.log('Link:', `https://wa.me/${numero}`)
-      const mensaje = encodeURIComponent(`Hola ${paciente.nombre} 👋, gracias por tu visita a Saberes. Te invitamos a compartir tu experiencia respondiendo esta breve encuesta: ${link} 💚`)
-      alert(`Link generado:\nhttps://wa.me/${numero}`)
-      cargar()
-    } catch (err) {
-      alert(err.response?.data?.error || 'Error al generar link')
-    } finally {
-      setGenerando(null)
-    }
-  }
-
   const enviarEncuesta = async (paciente_id) => {
     setEnviando(paciente_id)
     try {
