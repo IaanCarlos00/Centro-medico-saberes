@@ -497,15 +497,19 @@ export default function Reportes() {
           </div>
           <h3 className="text-lg font-bold text-gray-800 mb-3">👩‍⚕️ Por profesional</h3>
           <div className="flex flex-col gap-2">
-            {datos.citasPorProfesional?.map((p, i) => (
-              <div key={i} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl text-sm">
-                <span className="font-medium text-gray-800">{p.nombre} {p.apellido}</span>
-                <div className="flex gap-4 text-xs">
-                  <div className="text-center"><p className="font-bold text-gray-800">{p.total}</p><p className="text-gray-400">total</p></div>
-                  <div className="text-center"><p className="font-bold text-green-700">{p.realizadas}</p><p className="text-gray-400">realiz.</p></div>
+            {datos.citasPorProfesional?.map((p, i) => {
+              const ingreso = datos.ingresosPorProfesional?.find(ip => ip.nombre === p.nombre && ip.apellido === p.apellido)
+              return (
+                <div key={i} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl text-sm">
+                  <span className="font-medium text-gray-800">{p.nombre} {p.apellido}</span>
+                  <div className="flex gap-4 text-xs">
+                    <div className="text-center"><p className="font-bold text-gray-800">{p.total}</p><p className="text-gray-400">total</p></div>
+                    <div className="text-center"><p className="font-bold text-green-700">{p.realizadas}</p><p className="text-gray-400">realiz.</p></div>
+                    {ingreso && <div className="text-center"><p className="font-bold text-teal-700">{formatCLP(ingreso.total)}</p><p className="text-gray-400">recaudado</p></div>}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </div>

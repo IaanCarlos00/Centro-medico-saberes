@@ -115,9 +115,12 @@ router.get('/', async (req, res) => {
         SELECT 
           pr.nombre, pr.apellido,
           COUNT(*) FILTER (WHERE DATE_TRUNC('month', c.fecha_hora) = DATE_TRUNC('month', NOW())) AS mes,
-          COUNT(*) AS total
+          COUNT(*) AS total,
+          COALESCE(SUM(pg.monto) FILTER (WHERE DATE_TRUNC('month', c.fecha_hora) = DATE_TRUNC('month', NOW()) AND pg.estado = 'pagado'), 0) AS ingresos_mes,
+          COALESCE(SUM(pg.monto) FILTER (WHERE pg.estado = 'pagado'), 0) AS ingresos_total
         FROM cita c
         JOIN profesional pr ON c.profesional_id = pr.id
+        LEFT JOIN pago pg ON pg.paciente_id = c.paciente_id AND pg.profesional_id = pr.id
         WHERE c.estado = 'realizada'
         GROUP BY pr.id, pr.nombre, pr.apellido
         ORDER BY total DESC

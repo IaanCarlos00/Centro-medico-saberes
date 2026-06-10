@@ -127,14 +127,18 @@ export default function Inicio() {
                 {datos.atencionesPorProfesional?.map((p, i) => (
                   <div key={i} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
                     <p className="font-medium text-gray-800">{p.nombre} {p.apellido}</p>
-                    <div className="flex gap-6 text-sm">
+                    <div className="flex gap-4 text-sm">
                       <div className="text-center">
                         <p className="font-bold text-teal-700">{p.mes}</p>
-                        <p className="text-xs text-gray-400">este mes</p>
+                        <p className="text-xs text-gray-400">citas mes</p>
                       </div>
                       <div className="text-center">
                         <p className="font-bold text-gray-700">{p.total}</p>
                         <p className="text-xs text-gray-400">total</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-bold text-green-700">{formatCLP(p.ingresos_mes || 0)}</p>
+                        <p className="text-xs text-gray-400">recaudado mes</p>
                       </div>
                     </div>
                   </div>
