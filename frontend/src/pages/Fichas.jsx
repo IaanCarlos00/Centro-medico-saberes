@@ -294,17 +294,41 @@ export default function Fichas({ paciente, onVolver }) {
                         </div>
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           {f.motivo_consulta && <div className="col-span-2"><span className="font-semibold text-gray-600">Motivo:</span> <span className="text-gray-700">{f.motivo_consulta}</span></div>}
+                          {f.direccion && <div className="col-span-2"><span className="font-semibold text-gray-600">Dirección:</span> <span className="text-gray-700">{f.direccion}</span></div>}
+                          {f.ocupacion && <div><span className="font-semibold text-gray-600">Ocupación:</span> <span className="text-gray-700">{f.ocupacion}</span></div>}
                           {f.paridad && <div><span className="font-semibold text-gray-600">Paridad:</span> <span className="text-gray-700">{f.paridad}</span></div>}
                           {f.fur && <div><span className="font-semibold text-gray-600">FUR:</span> <span className="text-gray-700">{f.fur}</span></div>}
+                          {f.ciclos_menstruales && <div><span className="font-semibold text-gray-600">Ciclos menstruales:</span> <span className="text-gray-700">{f.ciclos_menstruales}</span></div>}
                           {f.mac && <div><span className="font-semibold text-gray-600">MAC:</span> <span className="text-gray-700">{f.mac}</span></div>}
-                          {f.presion_arterial && <div><span className="font-semibold text-gray-600">PA:</span> <span className="text-gray-700">{f.presion_arterial}</span></div>}
+                          {f.menarquia && <div><span className="font-semibold text-gray-600">Menarquia:</span> <span className="text-gray-700">{f.menarquia}</span></div>}
+                          {f.ivs && <div><span className="font-semibold text-gray-600">IVS:</span> <span className="text-gray-700">{f.ivs}</span></div>}
+                          {f.orientacion_sexual && <div><span className="font-semibold text-gray-600">Orientación sexual:</span> <span className="text-gray-700">{f.orientacion_sexual}</span></div>}
+                          {f.parejas_sexuales && <div><span className="font-semibold text-gray-600">Parejas sexuales:</span> <span className="text-gray-700">{f.parejas_sexuales}</span></div>}
+                          {f.pareja_actual && <div><span className="font-semibold text-gray-600">Pareja actual:</span> <span className="text-gray-700">{f.pareja_actual}</span></div>}
+                          {f.its && <div><span className="font-semibold text-gray-600">ITS:</span> <span className="text-gray-700">{f.its}</span></div>}
+                          {f.uso_pstv && <div><span className="font-semibold text-gray-600">Uso PSTV:</span> <span className="text-gray-700">{f.uso_pstv}</span></div>}
+                          {f.eco_tv && <div><span className="font-semibold text-gray-600">ECO TV:</span> <span className="text-gray-700">{f.eco_tv}</span></div>}
+                          {f.pap && <div><span className="font-semibold text-gray-600">PAP:</span> <span className="text-gray-700">{f.pap}</span></div>}
+                          {f.presion_arterial && <div><span className="font-semibold text-gray-600">Presión arterial:</span> <span className="text-gray-700">{f.presion_arterial}</span></div>}
                           {f.peso && <div><span className="font-semibold text-gray-600">Peso:</span> <span className="text-gray-700">{f.peso}</span></div>}
                           {f.altura && <div><span className="font-semibold text-gray-600">Altura:</span> <span className="text-gray-700">{f.altura}</span></div>}
+                          {f.efm && <div><span className="font-semibold text-gray-600">EFM:</span> <span className="text-gray-700">{f.efm}</span></div>}
+                          {f.especulo && <div><span className="font-semibold text-gray-600">Espéculo:</span> <span className="text-gray-700">{f.especulo}</span></div>}
+                          {f.vacuna_vph && <div><span className="font-semibold text-gray-600">Vacuna VPH:</span> <span className="text-gray-700">{f.vacuna_vph}</span></div>}
                           {f.ant_morbidos && <div className="col-span-2"><span className="font-semibold text-gray-600">Ant. mórbidos:</span> <span className="text-gray-700">{f.ant_morbidos}</span></div>}
+                          {f.ant_familiares && <div className="col-span-2"><span className="font-semibold text-gray-600">Ant. familiares:</span> <span className="text-gray-700">{f.ant_familiares}</span></div>}
+                          {f.ant_ca_mama && <div className="col-span-2"><span className="font-semibold text-gray-600">Ant. Ca mama fam:</span> <span className="text-gray-700">{f.ant_ca_mama}</span></div>}
                           {f.medicamentos && <div className="col-span-2"><span className="font-semibold text-gray-600">Medicamentos:</span> <span className="text-gray-700">{f.medicamentos}</span></div>}
+                          {f.tabaco && <div><span className="font-semibold text-gray-600">Tabaco:</span> <span className="text-gray-700">{f.tabaco}</span></div>}
+                          {f.alcohol && <div><span className="font-semibold text-gray-600">Alcohol:</span> <span className="text-gray-700">{f.alcohol}</span></div>}
+                          {f.drogas && <div><span className="font-semibold text-gray-600">Drogas:</span> <span className="text-gray-700">{f.drogas}</span></div>}
+                          {f.alimentacion && <div><span className="font-semibold text-gray-600">Alimentación:</span> <span className="text-gray-700">{f.alimentacion}</span></div>}
+                          {f.ejercicio && <div><span className="font-semibold text-gray-600">Ejercicio:</span> <span className="text-gray-700">{f.ejercicio}</span></div>}
                           {f.alergias && <div className="col-span-2"><span className="font-semibold text-gray-600">Alergias:</span> <span className="text-gray-700">{f.alergias}</span></div>}
-                          {f.observaciones && <div className="col-span-2"><span className="font-semibold text-gray-600">Observaciones:</span> <span className="text-gray-700">{f.observaciones}</span></div>}
+                          {f.cirugias && <div className="col-span-2"><span className="font-semibold text-gray-600">Cirugías:</span> <span className="text-gray-700">{f.cirugias}</span></div>}
+                          {f.examenes_sangre && <div className="col-span-2"><span className="font-semibold text-gray-600">Exámenes sangre:</span> <span className="text-gray-700">{f.examenes_sangre}</span></div>}
                           {f.indicaciones && <div className="col-span-2"><span className="font-semibold text-gray-600">Indicaciones:</span> <span className="text-gray-700">{f.indicaciones}</span></div>}
+                          {f.observaciones && <div className="col-span-2"><span className="font-semibold text-gray-600">Observaciones:</span> <span className="text-gray-700">{f.observaciones}</span></div>}
                         </div>
                       </div>
                     ))}
@@ -327,13 +351,32 @@ export default function Fichas({ paciente, onVolver }) {
                         </div>
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           {f.motivo_consulta && <div className="col-span-2"><span className="font-semibold text-gray-600">Motivo:</span> <span className="text-gray-700">{f.motivo_consulta}</span></div>}
+                          {f.edad && <div><span className="font-semibold text-gray-600">Edad:</span> <span className="text-gray-700">{f.edad}</span></div>}
                           {f.gpa && <div><span className="font-semibold text-gray-600">GPA:</span> <span className="text-gray-700">{f.gpa}</span></div>}
+                          {f.ocupacion && <div><span className="font-semibold text-gray-600">Ocupación:</span> <span className="text-gray-700">{f.ocupacion}</span></div>}
+                          {f.pareja && <div><span className="font-semibold text-gray-600">Pareja:</span> <span className="text-gray-700">{f.pareja}</span></div>}
+                          {f.red_apoyo && <div className="col-span-2"><span className="font-semibold text-gray-600">Red de apoyo:</span> <span className="text-gray-700">{f.red_apoyo}</span></div>}
                           {f.fur && <div><span className="font-semibold text-gray-600">FUR:</span> <span className="text-gray-700">{f.fur}</span></div>}
                           {f.mac && <div><span className="font-semibold text-gray-600">MAC:</span> <span className="text-gray-700">{f.mac}</span></div>}
                           {f.menarquia && <div><span className="font-semibold text-gray-600">Menarquia:</span> <span className="text-gray-700">{f.menarquia}</span></div>}
+                          {f.menstruaciones && <div className="col-span-2"><span className="font-semibold text-gray-600">Menstruaciones:</span> <span className="text-gray-700">{f.menstruaciones}</span></div>}
+                          {f.ias && <div><span className="font-semibold text-gray-600">IAS:</span> <span className="text-gray-700">{f.ias}</span></div>}
+                          {f.parejas_sexuales && <div><span className="font-semibold text-gray-600">Parejas sexuales:</span> <span className="text-gray-700">{f.parejas_sexuales}</span></div>}
+                          {f.sexo_biologico && <div><span className="font-semibold text-gray-600">Sexo biológico:</span> <span className="text-gray-700">{f.sexo_biologico}</span></div>}
+                          {f.its && <div><span className="font-semibold text-gray-600">ITS:</span> <span className="text-gray-700">{f.its}</span></div>}
+                          {f.eco_tv && <div><span className="font-semibold text-gray-600">ECO TV:</span> <span className="text-gray-700">{f.eco_tv}</span></div>}
+                          {f.pap && <div><span className="font-semibold text-gray-600">PAP:</span> <span className="text-gray-700">{f.pap}</span></div>}
+                          {f.eco_mam_mamo && <div><span className="font-semibold text-gray-600">ECO MAM/MAMO:</span> <span className="text-gray-700">{f.eco_mam_mamo}</span></div>}
+                          {f.ant_cacu && <div><span className="font-semibold text-gray-600">Ant. CaCu:</span> <span className="text-gray-700">{f.ant_cacu}</span></div>}
+                          {f.ant_ca_mama && <div><span className="font-semibold text-gray-600">Ant. Ca mama:</span> <span className="text-gray-700">{f.ant_ca_mama}</span></div>}
                           {f.ant_morbidos && <div className="col-span-2"><span className="font-semibold text-gray-600">Ant. mórbidos:</span> <span className="text-gray-700">{f.ant_morbidos}</span></div>}
-                          {f.medicamentos && <div className="col-span-2"><span className="font-semibold text-gray-600">Medicamentos:</span> <span className="text-gray-700">{f.medicamentos}</span></div>}
+                          {f.cirugias && <div className="col-span-2"><span className="font-semibold text-gray-600">Cirugías:</span> <span className="text-gray-700">{f.cirugias}</span></div>}
                           {f.alergias && <div className="col-span-2"><span className="font-semibold text-gray-600">Alergias:</span> <span className="text-gray-700">{f.alergias}</span></div>}
+                          {f.medicamentos && <div className="col-span-2"><span className="font-semibold text-gray-600">Medicamentos:</span> <span className="text-gray-700">{f.medicamentos}</span></div>}
+                          {f.tabaco && <div><span className="font-semibold text-gray-600">Tabaco:</span> <span className="text-gray-700">{f.tabaco}</span></div>}
+                          {f.alcohol && <div><span className="font-semibold text-gray-600">Alcohol:</span> <span className="text-gray-700">{f.alcohol}</span></div>}
+                          {f.drogas && <div><span className="font-semibold text-gray-600">Drogas:</span> <span className="text-gray-700">{f.drogas}</span></div>}
+                          {f.examenes_sangre && <div className="col-span-2"><span className="font-semibold text-gray-600">Exámenes sangre:</span> <span className="text-gray-700">{f.examenes_sangre}</span></div>}
                           {f.observaciones && <div className="col-span-2"><span className="font-semibold text-gray-600">Observaciones:</span> <span className="text-gray-700">{f.observaciones}</span></div>}
                         </div>
                       </div>
