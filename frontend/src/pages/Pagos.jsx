@@ -390,13 +390,13 @@ export default function Pagos() {
           <span className="text-sm text-gray-500">{new Date(fechaDia + 'T12:00:00').toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
         </div>
         {(() => {
-          const pagosDia = pagos.filter(p => String(p.fecha_cita || p.fecha).slice(0, 10) === fechaDia && p.estado === 'pagado')
-          const totalDia = pagosDia.reduce((s, p) => s + parseFloat(p.monto), 0)
+          const pagosDia = pagos.filter(p => String(p.fecha_cita || p.fecha).slice(0, 10) === fechaDia)
+          const totalDia = pagosDia.filter(p => p.estado === 'pagado').reduce((s, p) => s + parseFloat(p.monto), 0)
           const porMetodo = pagosDia.reduce((acc, p) => { acc[p.metodo] = (acc[p.metodo] || 0) + parseFloat(p.monto); return acc }, {})
           return (
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-gray-600 text-sm">{pagosDia.length} pago{pagosDia.length !== 1 ? 's' : ''} registrado{pagosDia.length !== 1 ? 's' : ''}</span>
+                <span className="text-gray-600 text-sm">{pagosDia.length} paciente{pagosDia.length !== 1 ? 's' : ''} atendida{pagosDia.length !== 1 ? 's' : ''} · {pagosDia.filter(p => p.estado === 'pagado').length} pago{pagosDia.filter(p => p.estado === 'pagado').length !== 1 ? 's' : ''} confirmado{pagosDia.filter(p => p.estado === 'pagado').length !== 1 ? 's' : ''}</span>
                 <span className="text-2xl font-bold text-green-800">{formatCLP(totalDia)}</span>
               </div>
               {pagosDia.length > 0 ? (
