@@ -61,13 +61,7 @@ export default function Encuestas() {
       console.log('Número WhatsApp:', numero)
       console.log('Link:', `https://wa.me/${numero}`)
       const mensaje = encodeURIComponent(`Hola ${paciente.nombre} 👋, gracias por tu visita a Saberes. Te invitamos a compartir tu experiencia respondiendo esta breve encuesta: ${link} 💚`)
-      const a = document.createElement('a')
-      a.href = `https://wa.me/${numero}?text=${mensaje}`
-      a.target = '_blank'
-      a.rel = 'noopener noreferrer'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
+      alert(`Link generado:\nhttps://wa.me/${numero}`)
       cargar()
     } catch (err) {
       alert(err.response?.data?.error || 'Error al generar link')
