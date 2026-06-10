@@ -21,15 +21,14 @@ router.get('/', async (req, res) => {
 router.get('/paciente/:paciente_id', async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT p.*, 
-             pa.nombre AS paciente_nombre, pa.apellido AS paciente_apellido,
-             pa.rut AS paciente_rut,
+      SELECT p.*, pa.nombre AS paciente_nombre, pa.apellido AS paciente_apellido,
              c.fecha_hora AS fecha_cita,
              pr.nombre AS profesional_nombre, pr.apellido AS profesional_apellido
       FROM pago p
       JOIN paciente pa ON p.paciente_id = pa.id
       LEFT JOIN cita c ON p.cita_id = c.id
       LEFT JOIN profesional pr ON p.profesional_id = pr.id
+      WHERE p.paciente_id = $1
       ORDER BY p.fecha DESC
     `, [req.params.paciente_id])
     res.json(result.rows)
