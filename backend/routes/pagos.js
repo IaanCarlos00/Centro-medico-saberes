@@ -81,20 +81,15 @@ router.post('/', async (req, res) => {
 })
 
 router.put('/:id', async (req, res) => {
-  const { monto, metodo, estado, notas, numero_bono, estado_bono, estado_boleta, profesional_id } = req.body
+  const { monto, metodo, estado, notas, numero_bono, estado_bono, estado_boleta, profesional_id, fecha } = req.body
   try {
     const result = await pool.query(
-      'UPDATE pago SET monto=$1, metodo=$2, estado=$3, notas=$4, numero_bono=$5, estado_bono=$6, estado_boleta=$7, profesional_id=$8 WHERE id=$9 RETURNING *',
+      'UPDATE pago SET monto=$1, metodo=$2, estado=$3, notas=$4, numero_bono=$5, estado_bono=$6, estado_boleta=$7, profesional_id=$8, fecha=$9 WHERE id=$10 RETURNING *',
       [
-        monto,
-        metodo,
-        estado || 'pendiente',
-        notas || null,
-        numero_bono || null,
+        monto, metodo, estado || 'pendiente', notas || null, numero_bono || null,
         metodo === 'fonasa' ? (estado_bono || 'pendiente') : null,
         (metodo === 'efectivo' || metodo === 'transferencia') ? (estado_boleta || 'pendiente') : null,
-        profesional_id || null,
-        req.params.id
+        profesional_id || null, fecha || null, req.params.id
       ]
     )
     if (result.rows.length === 0) return res.status(404).json({ error: 'Pago no encontrado' })

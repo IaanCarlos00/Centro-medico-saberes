@@ -45,7 +45,7 @@ function formatFecha(f) {
 const formInicial = {
   paciente_id: '', monto: '', metodo: 'debito', estado: 'pendiente',
   notas: '', numero_bono: '', estado_bono: 'pendiente', estado_boleta: 'pendiente',
-  procedimiento_nombre: '', profesional_id: ''
+  procedimiento_nombre: '', profesional_id: '', fecha: ''
 }
 
 export default function Pagos() {
@@ -56,6 +56,8 @@ export default function Pagos() {
   const [filtroEstado, setFiltroEstado] = useState('')
   const [filtroMetodo, setFiltroMetodo] = useState('')
   const [filtroPeriodo, setFiltroPeriodo] = useState('mes')
+  const [fechaDesde, setFechaDesde] = useState('')
+  const [fechaHasta, setFechaHasta] = useState('')
   const [fechaDia, setFechaDia] = useState(new Date().toISOString().slice(0, 10))
   const [modalForm, setModalForm] = useState(false)
   const [editando, setEditando] = useState(null)
@@ -140,7 +142,10 @@ export default function Pagos() {
       notas: p.notas || '',
       numero_bono: p.numero_bono || '',
       estado_bono: p.estado_bono || 'pendiente',
-      estado_boleta: p.estado_boleta || 'pendiente'
+      estado_boleta: p.estado_boleta || 'pendiente',
+      procedimiento_nombre: p.procedimiento_nombre || '',
+      profesional_id: p.profesional_id || '',
+      fecha: String(p.fecha_cita || p.fecha || '').slice(0, 10)
     })
     setBusquedaPaciente(`${p.paciente_nombre} ${p.paciente_apellido}`)
     setEditando(p.id)
@@ -197,6 +202,10 @@ export default function Pagos() {
         const lunes = new Date(hoy); lunes.setDate(hoy.getDate() - hoy.getDay() + 1); lunes.setHours(0,0,0,0)
         coincidePeriodo = fecha >= lunes
       } else if (filtroPeriodo === 'mes') coincidePeriodo = fecha.getMonth() === hoy.getMonth() && fecha.getFullYear() === hoy.getFullYear()
+      else if (filtroPeriodo === 'personalizado') {
+        if (fechaDesde) coincidePeriodo = coincidePeriodo && fecha >= new Date(fechaDesde + 'T00:00:00')
+        if (fechaHasta) coincidePeriodo = coincidePeriodo && fecha <= new Date(fechaHasta + 'T23:59:59')
+      }
       return coincideBusqueda && coincideEstado && coincideMetodo && coincidePeriodo
     })
     .sort((a, b) => new Date(fechaOrden(b)) - new Date(fechaOrden(a)))
@@ -314,6 +323,11 @@ export default function Pagos() {
                     <option value="">Sin especificar</option>
                     {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
                   </select>
+                </div>
+
+                <div className="flex flex-col">
+                  <label className="text-sm font-medium text-gray-700 mb-1">Fecha del pago</label>
+                  <input type="date" className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400" name="fecha" value={form.fecha || ''} onChange={handleChange} />
                 </div>
 
                 <div className="flex flex-col sm:col-span-2">
@@ -473,8 +487,16 @@ export default function Pagos() {
           <option value="hoy">Hoy</option>
           <option value="semana">Esta semana</option>
           <option value="mes">Este mes</option>
+          <option value="personalizado">Rango de fechas</option>
           <option value="todos">Todos</option>
         </select>
+        {filtroPeriodo === 'personalizado' && (
+          <div className="flex gap-2 items-center">
+            <input type="date" className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 text-sm" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)} />
+            <span className="text-gray-400 text-sm">→</span>
+            <input type="date" className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 text-sm" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)} />
+          </div>
+        )}
         <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)}>
           <option value="">Todos los estados</option>
           <option value="pagado">Realizada</option>
