@@ -38,6 +38,9 @@ export default function Fichas({ paciente, onVolver }) {
   const [toast, setToast] = useState(null)
   const [modalSalirAviso, setModalSalirAviso] = useState(null)
   const [modalPDF, setModalPDF] = useState(null)
+  const [modalFichasIngreso, setModalFichasIngreso] = useState(false)
+  const [fichasIngresoData, setFichasIngresoData] = useState({ i1: [], i2: [] })
+  const [tabIngreso, setTabIngreso] = useState('v')
   const [formDatos, setFormDatos] = useState({
     rut: paciente.rut || '',
     telefono: paciente.telefono || '',
@@ -168,6 +171,15 @@ export default function Fichas({ paciente, onVolver }) {
     }
   }
 
+  const cargarFichasIngreso = async () => {
+    const [fi1, fi2] = await Promise.all([
+      axios.get(`${API_FI}/1/paciente/${paciente.id}`),
+      axios.get(`${API_FI}/2/paciente/${paciente.id}`)
+    ])
+    setFichasIngresoData({ i1: fi1.data, i2: fi2.data })
+    setModalFichasIngreso(true)
+  }
+
   const generarHTMLPDF = f => `
     <html><head><title>Ficha Control — ${paciente.nombre} ${paciente.apellido}</title>
     <style>
@@ -247,6 +259,93 @@ export default function Fichas({ paciente, onVolver }) {
         </div>
       )}
 
+      {modalFichasIngreso && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4" onClick={() => setModalFichasIngreso(false)}>
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="bg-gradient-to-r from-green-700 to-green-600 px-6 py-4 flex items-center justify-between shrink-0">
+              <div>
+                <h3 className="text-lg font-bold text-white">Fichas de ingreso</h3>
+                <p className="text-green-200 text-xs">{paciente.nombre} {paciente.apellido}</p>
+              </div>
+              <button onClick={() => setModalFichasIngreso(false)} className="text-white hover:text-green-200 text-2xl">✕</button>
+            </div>
+            <div className="flex border-b border-gray-200 shrink-0">
+              <button onClick={() => setTabIngreso('v')} className={`flex-1 py-3 text-sm font-semibold transition-colors ${tabIngreso === 'v' ? 'text-orange-600 border-b-2 border-orange-500' : 'text-gray-400 hover:text-gray-600'}`}>
+                📝 Matrona V ({fichasIngresoData.i1.length})
+              </button>
+              <button onClick={() => setTabIngreso('j')} className={`flex-1 py-3 text-sm font-semibold transition-colors ${tabIngreso === 'j' ? 'text-blue-600 border-b-2 border-blue-500' : 'text-gray-400 hover:text-gray-600'}`}>
+                🗂️ Matrona J ({fichasIngresoData.i2.length})
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-5">
+              {tabIngreso === 'v' && (
+                fichasIngresoData.i1.length === 0 ? (
+                  <p className="text-center text-gray-400 py-8">Sin fichas de ingreso registradas</p>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    {fichasIngresoData.i1.map(f => (
+                      <div key={f.id} className="border border-orange-100 rounded-xl p-4 bg-orange-50">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <p className="text-xs text-gray-400">{formatFecha(f.fecha)}</p>
+                            <p className="text-sm font-medium text-gray-700">{f.profesional_nombre} {f.profesional_apellido}</p>
+                          </div>
+                          {f.proximo_control && <span className="text-xs bg-teal-50 text-teal-700 px-2 py-1 rounded-full font-semibold">📅 {formatFecha(f.proximo_control)}</span>}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          {f.motivo_consulta && <div className="col-span-2"><span className="font-semibold text-gray-600">Motivo:</span> <span className="text-gray-700">{f.motivo_consulta}</span></div>}
+                          {f.paridad && <div><span className="font-semibold text-gray-600">Paridad:</span> <span className="text-gray-700">{f.paridad}</span></div>}
+                          {f.fur && <div><span className="font-semibold text-gray-600">FUR:</span> <span className="text-gray-700">{f.fur}</span></div>}
+                          {f.mac && <div><span className="font-semibold text-gray-600">MAC:</span> <span className="text-gray-700">{f.mac}</span></div>}
+                          {f.presion_arterial && <div><span className="font-semibold text-gray-600">PA:</span> <span className="text-gray-700">{f.presion_arterial}</span></div>}
+                          {f.peso && <div><span className="font-semibold text-gray-600">Peso:</span> <span className="text-gray-700">{f.peso}</span></div>}
+                          {f.altura && <div><span className="font-semibold text-gray-600">Altura:</span> <span className="text-gray-700">{f.altura}</span></div>}
+                          {f.ant_morbidos && <div className="col-span-2"><span className="font-semibold text-gray-600">Ant. mórbidos:</span> <span className="text-gray-700">{f.ant_morbidos}</span></div>}
+                          {f.medicamentos && <div className="col-span-2"><span className="font-semibold text-gray-600">Medicamentos:</span> <span className="text-gray-700">{f.medicamentos}</span></div>}
+                          {f.alergias && <div className="col-span-2"><span className="font-semibold text-gray-600">Alergias:</span> <span className="text-gray-700">{f.alergias}</span></div>}
+                          {f.observaciones && <div className="col-span-2"><span className="font-semibold text-gray-600">Observaciones:</span> <span className="text-gray-700">{f.observaciones}</span></div>}
+                          {f.indicaciones && <div className="col-span-2"><span className="font-semibold text-gray-600">Indicaciones:</span> <span className="text-gray-700">{f.indicaciones}</span></div>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              )}
+              {tabIngreso === 'j' && (
+                fichasIngresoData.i2.length === 0 ? (
+                  <p className="text-center text-gray-400 py-8">Sin fichas de ingreso registradas</p>
+                ) : (
+                  <div className="flex flex-col gap-4">
+                    {fichasIngresoData.i2.map(f => (
+                      <div key={f.id} className="border border-blue-100 rounded-xl p-4 bg-blue-50">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                            <p className="text-xs text-gray-400">{formatFecha(f.fecha)}</p>
+                            <p className="text-sm font-medium text-gray-700">{f.profesional_nombre} {f.profesional_apellido}</p>
+                          </div>
+                          {f.proximo_control && <span className="text-xs bg-teal-50 text-teal-700 px-2 py-1 rounded-full font-semibold">📅 {formatFecha(f.proximo_control)}</span>}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          {f.motivo_consulta && <div className="col-span-2"><span className="font-semibold text-gray-600">Motivo:</span> <span className="text-gray-700">{f.motivo_consulta}</span></div>}
+                          {f.gpa && <div><span className="font-semibold text-gray-600">GPA:</span> <span className="text-gray-700">{f.gpa}</span></div>}
+                          {f.fur && <div><span className="font-semibold text-gray-600">FUR:</span> <span className="text-gray-700">{f.fur}</span></div>}
+                          {f.mac && <div><span className="font-semibold text-gray-600">MAC:</span> <span className="text-gray-700">{f.mac}</span></div>}
+                          {f.menarquia && <div><span className="font-semibold text-gray-600">Menarquia:</span> <span className="text-gray-700">{f.menarquia}</span></div>}
+                          {f.ant_morbidos && <div className="col-span-2"><span className="font-semibold text-gray-600">Ant. mórbidos:</span> <span className="text-gray-700">{f.ant_morbidos}</span></div>}
+                          {f.medicamentos && <div className="col-span-2"><span className="font-semibold text-gray-600">Medicamentos:</span> <span className="text-gray-700">{f.medicamentos}</span></div>}
+                          {f.alergias && <div className="col-span-2"><span className="font-semibold text-gray-600">Alergias:</span> <span className="text-gray-700">{f.alergias}</span></div>}
+                          {f.observaciones && <div className="col-span-2"><span className="font-semibold text-gray-600">Observaciones:</span> <span className="text-gray-700">{f.observaciones}</span></div>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {modalSalirAviso && (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[200] px-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden">
@@ -274,9 +373,14 @@ export default function Fichas({ paciente, onVolver }) {
           <button onClick={() => salirConAviso(() => setVista(null))} className="text-green-700 hover:underline font-medium text-sm">← Volver</button>
           <h2 className="text-xl font-bold text-green-800">Ficha Control — {paciente.nombre} {paciente.apellido}</h2>
         </div>
-        <button onClick={() => { cancelar(); setMostrarForm(true) }} className="bg-green-700 text-white px-4 py-2 rounded-xl hover:bg-green-800 font-medium text-sm">
-          + Nueva ficha
-        </button>
+        <div className="flex gap-2">
+          <button onClick={cargarFichasIngreso} className="bg-white border border-green-600 text-green-700 px-4 py-2 rounded-xl hover:bg-green-50 font-medium text-sm transition-colors">
+            📋 Ver ingreso
+          </button>
+          <button onClick={() => { cancelar(); setMostrarForm(true) }} className="bg-green-700 text-white px-4 py-2 rounded-xl hover:bg-green-800 font-medium text-sm">
+            + Nueva ficha
+          </button>
+        </div>
       </div>
 
       {/* Datos del paciente */}
