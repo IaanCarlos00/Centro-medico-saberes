@@ -171,7 +171,23 @@ export default function Encuestas() {
                 )}
                 {p.telefono && (
                   <button
-                    onClick={() => enviarWhatsApp(p)}
+                    onClick={async () => {
+                      if (generando === p.id) return
+                      setGenerando(p.id)
+                      try {
+                        const res = await axios.post(`${API}/generar-link/${p.id}`)
+                        const { link } = res.data
+                        const telefono = p.telefono?.replace(/\D/g, '')
+                        const numero = telefono?.startsWith('56') ? telefono : `56${telefono}`
+                        const mensaje = encodeURIComponent(`Hola ${p.nombre} 👋, gracias por tu visita a Saberes. Te invitamos a compartir tu experiencia respondiendo esta breve encuesta: ${link} 💚`)
+                        window.location.href = `https://wa.me/${numero}?text=${mensaje}`
+                        cargar()
+                      } catch (err) {
+                        alert(err.response?.data?.error || 'Error al generar link')
+                      } finally {
+                        setGenerando(null)
+                      }
+                    }}
                     disabled={generando === p.id}
                     className="bg-emerald-500 text-white px-3 py-1.5 rounded-lg hover:bg-emerald-600 text-xs font-medium disabled:opacity-50"
                   >
