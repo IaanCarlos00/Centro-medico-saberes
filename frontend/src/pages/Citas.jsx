@@ -684,7 +684,7 @@ export default function Agenda() {
               monto: procedimientoSeleccionado.monto,
               metodo: metodoPago,
               estado: 'pendiente',
-              profesional_id: localStorage.getItem('profesional_id') || null,
+              profesional_id: form.profesional_id || localStorage.getItem('profesional_id') || null,
               numero_bono: metodoPago === 'fonasa' ? numeroBono : null,
               cita_id: res.data.id,
               fecha_atencion: form.fecha_hora?.slice(0, 10)
