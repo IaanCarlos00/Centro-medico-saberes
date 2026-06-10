@@ -263,7 +263,14 @@ export default function Pap() {
               return (
                 <>
                   <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</td>
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
+                      {pacientes.find(pac => pac.id === p.paciente_id)?.email && (
+                        <a href={`mailto:${pacientes.find(pac => pac.id === p.paciente_id).email}`} className="text-xs text-blue-500 hover:underline">
+                          ✉️ {pacientes.find(pac => pac.id === p.paciente_id).email}
+                        </a>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-gray-600">{p.nombre || '—'}</td>
                     <td className="px-4 py-3 text-gray-600">{p.profesional_nombre ? `${p.profesional_nombre} ${p.profesional_apellido}` : '—'}</td>
                     <td className="px-4 py-3 text-gray-600">{formatFecha(p.fecha_toma)}</td>
@@ -368,7 +375,14 @@ export default function Pap() {
           return (
             <div key={p.id} className="bg-white rounded-xl shadow p-4">
               <div className="flex justify-between items-start mb-2">
+                <div>
                 <p className="font-semibold text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
+                {pacientes.find(pac => pac.id === p.paciente_id)?.email && (
+                  <a href={`mailto:${pacientes.find(pac => pac.id === p.paciente_id).email}`} className="text-xs text-blue-500 hover:underline">
+                    ✉️ {pacientes.find(pac => pac.id === p.paciente_id).email}
+                  </a>
+                )}
+              </div>
                 <button onClick={() => cambiarEstado(p.id, p.estado_envio === 'pendiente' ? 'enviado' : 'pendiente')} className={`px-2 py-1 rounded-full text-xs font-semibold cursor-pointer ${p.estado_envio === 'enviado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                   {p.estado_envio === 'enviado' ? '✓ Enviado' : '⏳ Pendiente'}
                 </button>

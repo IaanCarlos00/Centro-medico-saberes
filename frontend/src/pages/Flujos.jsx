@@ -231,7 +231,14 @@ export default function Flujos() {
             {filtrados.map(f => (
               <>
                 <tr key={f.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-gray-800">{f.paciente_nombre} {f.paciente_apellido}</td>
+                  <td className="px-4 py-3">
+                    <p className="font-medium text-gray-800">{f.paciente_nombre} {f.paciente_apellido}</p>
+                    {pacientes.find(pac => pac.id === f.paciente_id)?.email && (
+                      <a href={`mailto:${pacientes.find(pac => pac.id === f.paciente_id).email}`} className="text-xs text-blue-500 hover:underline">
+                        ✉️ {pacientes.find(pac => pac.id === f.paciente_id).email}
+                      </a>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-gray-600">{f.tipo_examen || '—'}</td>
                   <td className="px-4 py-3 text-gray-600">{f.nombre || '—'}</td>
                   <td className="px-4 py-3 text-gray-600">{f.profesional_nombre ? `${f.profesional_nombre} ${f.profesional_apellido}` : '—'}</td>
@@ -266,7 +273,14 @@ export default function Flujos() {
         {filtrados.map(f => (
           <div key={f.id} className="bg-white rounded-xl shadow p-4">
             <div className="flex justify-between items-start mb-2">
-              <p className="font-semibold text-gray-800">{f.paciente_nombre} {f.paciente_apellido}</p>
+              <div>
+                <p className="font-semibold text-gray-800">{f.paciente_nombre} {f.paciente_apellido}</p>
+                {pacientes.find(pac => pac.id === f.paciente_id)?.email && (
+                  <a href={`mailto:${pacientes.find(pac => pac.id === f.paciente_id).email}`} className="text-xs text-blue-500 hover:underline">
+                    ✉️ {pacientes.find(pac => pac.id === f.paciente_id).email}
+                  </a>
+                )}
+              </div>
               <button onClick={() => cambiarEntregado(f.id, !f.entregado)} className={`px-2 py-1 rounded-full text-xs font-semibold cursor-pointer ${f.entregado ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                 {f.entregado ? '✓ Entregado' : '⏳ Pendiente'}
               </button>
