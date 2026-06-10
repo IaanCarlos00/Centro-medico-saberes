@@ -53,6 +53,8 @@ export default function Pagos() {
   const [fechaDesde, setFechaDesde] = useState('')
   const [fechaHasta, setFechaHasta] = useState('')
   const [filtroProcedimiento, setFiltroProcedimiento] = useState('')
+  const [vistaPagos, setVistaPagos] = useState('cronologica')
+  const [expandidoPaciente, setExpandidoPaciente] = useState(null)
   const [filtroBonosProfesional, setFiltroBonosProfesional] = useState('')
   const [fechaDia, setFechaDia] = useState(new Date().toISOString().slice(0, 10))
   const [modalForm, setModalForm] = useState(false)
@@ -497,6 +499,16 @@ export default function Pagos() {
         </div>
       )}
 
+      {/* Selector de vista */}
+      <div className="flex gap-2 mb-4">
+        <button onClick={() => setVistaPagos('cronologica')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${vistaPagos === 'cronologica' ? 'bg-green-700 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>
+          📅 Vista cronológica
+        </button>
+        <button onClick={() => setVistaPagos('paciente')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${vistaPagos === 'paciente' ? 'bg-green-700 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>
+          👤 Vista por paciente
+        </button>
+      </div>
+
       {/* Filtros */}
       <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <div className="relative flex-1">
@@ -537,6 +549,76 @@ export default function Pagos() {
           {catalogo.map(c => <option key={c.id} value={c.nombre}>{c.nombre}</option>)}
         </select>
       </div>
+
+      {/* VISTA POR PACIENTE */}
+      {vistaPagos === 'paciente' && (
+        <div className="flex flex-col gap-3 mb-6">
+          {gruposPaciente.length === 0 && (
+            <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">No hay pagos registrados</div>
+          )}
+          {gruposPaciente.map(grupo => (
+            <div key={grupo.paciente_id} className="bg-white rounded-xl shadow overflow-hidden">
+              <div
+                className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                onClick={() => setExpandidoPaciente(expandidoPaciente === grupo.paciente_id ? null : grupo.paciente_id)}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-700 font-bold text-sm">
+                    {grupo.paciente_nombre?.charAt(0)}{grupo.paciente_apellido?.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800">{grupo.paciente_nombre} {grupo.paciente_apellido}</p>
+                    <p className="text-xs text-gray-400">{grupo.paciente_rut || 'Sin RUT'} · {grupo.pagos.length} pago{grupo.pagos.length !== 1 ? 's' : ''}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="font-bold text-gray-800">{formatCLP(grupo.total)}</p>
+                    {grupo.pendiente > 0 && <p className="text-xs text-yellow-600">⚠️ {formatCLP(grupo.pendiente)} pendiente</p>}
+                  </div>
+                  <span className="text-gray-400 text-lg">{expandidoPaciente === grupo.paciente_id ? '▲' : '▼'}</span>
+                </div>
+              </div>
+
+              {expandidoPaciente === grupo.paciente_id && (
+                <div className="border-t border-gray-100">
+                  {grupo.pagos.map((p, i) => (
+                    <div key={p.id} className={`flex items-center justify-between px-4 py-3 text-sm ${i % 2 === 0 ? 'bg-gray-50' : 'bg-white'} ${p.estado === 'pendiente' ? 'border-l-4 border-yellow-400' : ''}`}>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-gray-700 font-medium">{p.notas || 'Pago'}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
+                        </div>
+                        <div className="flex gap-3 mt-0.5 flex-wrap">
+                          <span className="text-xs text-gray-400">{formatFecha(p.fecha_cita || p.fecha)}</span>
+                          {p.profesional_nombre && <span className="text-xs text-teal-600">👩‍⚕️ {p.profesional_nombre} {p.profesional_apellido}</span>}
+                          {p.numero_bono && <span className="text-xs text-blue-600">🏥 Bono: {p.numero_bono}</span>}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3 ml-3 shrink-0">
+                        <span className="font-bold text-gray-800">{formatCLP(p.monto)}</span>
+                        <div className="flex gap-2">
+                          {p.estado === 'pendiente' && <button onClick={() => marcarPagado(p)} className="text-xs text-green-700 hover:underline font-medium">✅ Realizada</button>}
+                          <button onClick={() => abrirEditar(p)} className="text-xs text-blue-600 hover:underline font-medium">Editar</button>
+                          <button onClick={() => eliminar(p.id)} className="text-xs text-red-500 hover:underline font-medium">Eliminar</button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="flex justify-between items-center px-4 py-3 bg-green-50 border-t border-green-100">
+                    <span className="text-sm font-semibold text-green-800">Total {grupo.paciente_nombre}</span>
+                    <span className="text-lg font-bold text-green-800">{formatCLP(grupo.total)}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* VISTA CRONOLÓGICA */}
+      {vistaPagos === 'cronologica' && <>
 
       {/* Tabla desktop */}
       <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
@@ -624,6 +706,7 @@ export default function Pagos() {
         ))}
         {filtrados.length === 0 && <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">{busqueda || filtroEstado || filtroMetodo ? 'No se encontraron resultados' : 'No hay pagos registrados'}</div>}
       </div>
+    </>}
     </div>
   )
 }
