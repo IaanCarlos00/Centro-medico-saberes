@@ -532,6 +532,7 @@ export default function Pagos() {
               <th className="px-4 py-3 text-left">Paciente</th>
               <th className="px-4 py-3 text-left">Fecha atención</th>
               <th className="px-4 py-3 text-left">Procedimiento</th>
+              <th className="px-4 py-3 text-left">Matrona</th>
               <th className="px-4 py-3 text-left">Monto</th>
               <th className="px-4 py-3 text-left">Método</th>
               <th className="px-4 py-3 text-left">Estado</th>
@@ -551,6 +552,7 @@ export default function Pagos() {
                   {p.fecha_cita && <p className="text-teal-500">fecha cita</p>}
                 </td>
                 <td className="px-4 py-3 text-gray-500 text-xs">{p.notas || '—'}</td>
+                <td className="px-4 py-3 text-gray-500 text-xs">{p.profesional_nombre ? `${p.profesional_nombre} ${p.profesional_apellido}` : '—'}</td>
                 <td className="px-4 py-3 font-semibold text-gray-800">{formatCLP(p.monto)}</td>
                 <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span></td>
                 <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span></td>
@@ -588,6 +590,7 @@ export default function Pagos() {
               <p className="font-bold text-green-800 text-lg">{formatCLP(p.monto)}</p>
             </div>
             {p.notas && <p className="text-xs text-gray-500 mb-1">{p.notas}</p>}
+            {p.profesional_nombre && <p className="text-xs text-teal-600 mb-1">👩‍⚕️ {p.profesional_nombre} {p.profesional_apellido}</p>}
             <div className="flex gap-2 mb-2 flex-wrap">
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
               <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
