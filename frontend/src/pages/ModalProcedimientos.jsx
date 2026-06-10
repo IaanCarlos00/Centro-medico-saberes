@@ -20,7 +20,7 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
   const [tab, setTab] = useState('procedimientos')
   const [form, setForm] = useState({
     catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'debito',
-    estado: 'pendiente', notas: '', fecha_atencion: new Date().toISOString().slice(0, 10)
+    estado: 'pendiente', notas: '', numero_bono: '', fecha_atencion: new Date().toISOString().slice(0, 10)
   })
   const [errores, setErrores] = useState({})
   const [editandoProc, setEditandoProc] = useState(null)
@@ -94,7 +94,7 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
         const citaActual = await axios.get(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`)
         await axios.put(`https://centro-medico-saberes-production.up.railway.app/citas/${citaId}`, { ...citaActual.data, estado: 'confirmada' })
       }
-      setForm({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'debito', estado: 'pendiente', notas: '', fecha_atencion: new Date().toISOString().slice(0, 10) })
+      setForm({ catalogo_procedimiento_id: '', nombre: '', monto: '', metodo: 'debito', estado: 'pendiente', notas: '', numero_bono: '', fecha_atencion: new Date().toISOString().slice(0, 10) })
       setErrores({})
       cargar()
     } finally {
@@ -248,8 +248,12 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
                     <input type="date" className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                       name="fecha_atencion" value={form.fecha_atencion} onChange={handleChange} />
                   </div>
-                  <input className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
-                    name="notas" placeholder="Notas (opcional)" value={form.notas} onChange={handleChange} />
+                    {form.metodo === 'fonasa' && (
+                      <input className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                        name="numero_bono" placeholder="🏥 Número de bono" value={form.numero_bono || ''} onChange={handleChange} />
+                    )}
+                    <input className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                      name="notas" placeholder="Notas (opcional)" value={form.notas} onChange={handleChange} />
                   <button onClick={() => guardar(false)} disabled={guardando}
                     className={`py-2.5 rounded-xl font-semibold text-sm text-white transition-colors ${guardando ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-700 hover:bg-green-800'}`}>
                     {guardando ? 'Guardando...' : '+ Agregar procedimiento'}
