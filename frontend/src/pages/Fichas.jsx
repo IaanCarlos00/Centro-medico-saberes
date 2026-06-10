@@ -411,16 +411,17 @@ export default function Fichas({ paciente, onVolver }) {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="sticky top-0 z-30 bg-gray-50 py-3 mb-6 flex items-center justify-between border-b border-gray-200">
         <div className="flex items-center gap-3">
           <button onClick={() => salirConAviso(() => setVista(null))} className="text-green-700 hover:underline font-medium text-sm">← Volver</button>
-          <h2 className="text-xl font-bold text-green-800">Ficha Control — {paciente.nombre} {paciente.apellido}</h2>
+          <h2 className="text-lg font-bold text-green-800 hidden sm:block">Ficha Control — {paciente.nombre} {paciente.apellido}</h2>
+          <h2 className="text-sm font-bold text-green-800 sm:hidden">{paciente.nombre} {paciente.apellido}</h2>
         </div>
         <div className="flex gap-2">
-          <button onClick={cargarFichasIngreso} className="bg-white border border-green-600 text-green-700 px-4 py-2 rounded-xl hover:bg-green-50 font-medium text-sm transition-colors">
+          <button onClick={cargarFichasIngreso} className="bg-white border border-green-600 text-green-700 px-3 py-2 rounded-xl hover:bg-green-50 font-medium text-sm transition-colors">
             📋 Ver ingreso
           </button>
-          <button onClick={() => { cancelar(); setMostrarForm(true) }} className="bg-green-700 text-white px-4 py-2 rounded-xl hover:bg-green-800 font-medium text-sm">
+          <button onClick={() => { cancelar(); setMostrarForm(true) }} className="bg-green-700 text-white px-3 py-2 rounded-xl hover:bg-green-800 font-medium text-sm">
             + Nueva ficha
           </button>
         </div>
