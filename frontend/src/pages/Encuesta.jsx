@@ -155,7 +155,7 @@ export default function Encuesta() {
                       }`}
                     >
                       {p.foto ? (
-                        <img src={p.foto} alt={p.nombre} className={`w-20 h-20 rounded-full object-cover border-4 shadow-md ${form.profesional_id === p.id ? 'border-green-600' : 'border-gray-200'}`} />
+                        <img src={p.foto} alt={p.nombre} className={`w-20 h-20 rounded-full object-cover object-top border-4 shadow-md ${form.profesional_id === p.id ? 'border-green-600' : 'border-gray-200'}`} />
                       ) : (
                         <div className={`w-14 h-14 rounded-full flex items-center justify-center text-lg ${
                           form.profesional_id === p.id ? 'bg-green-600 text-white' : 'bg-gray-200'
