@@ -67,8 +67,8 @@ router.post('/', async (req, res) => {
     )
     if (pagoExistente.rows.length === 0) {
       await pool.query(
-        'INSERT INTO pago (paciente_id, monto, metodo, estado, notas, numero_bono, estado_bono, fecha, procedimiento_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
-        [paciente_id, monto, metodo, estado || 'pendiente', `Procedimiento: ${nombre}`, numero_bono || null, metodo === 'fonasa' ? 'pendiente' : null, fechaFinal, procedimientoId]
+        'INSERT INTO pago (paciente_id, monto, metodo, estado, notas, numero_bono, estado_bono, fecha, procedimiento_id, profesional_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',
+        [paciente_id, monto, metodo, estado || 'pendiente', `Procedimiento: ${nombre}`, numero_bono || null, metodo === 'fonasa' ? 'pendiente' : null, fechaFinal, procedimientoId, profesional_id || null]
       )
     }
 

@@ -59,20 +59,21 @@ router.get('/resumen', async (req, res) => {
 })
 
 router.post('/', async (req, res) => {
-  const { paciente_id, cita_id, monto, metodo, estado, notas, numero_bono, estado_bono, estado_boleta } = req.body
+  const { paciente_id, cita_id, monto, metodo, estado, notas, numero_bono, estado_bono, estado_boleta, profesional_id, procedimiento_nombre } = req.body
   try {
     const result = await pool.query(
-      'INSERT INTO pago (paciente_id, cita_id, monto, metodo, estado, notas, numero_bono, estado_bono, estado_boleta) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *',
+      'INSERT INTO pago (paciente_id, cita_id, monto, metodo, estado, notas, numero_bono, estado_bono, estado_boleta, profesional_id) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING *',
       [
         paciente_id,
         cita_id || null,
         monto,
         metodo,
         estado || 'pendiente',
-        notas || null,
+        procedimiento_nombre ? `Procedimiento: ${procedimiento_nombre}` : (notas || null),
         numero_bono || null,
         metodo === 'fonasa' ? (estado_bono || 'pendiente') : null,
-        (metodo === 'efectivo' || metodo === 'transferencia') ? (estado_boleta || 'pendiente') : null
+        (metodo === 'efectivo' || metodo === 'transferencia') ? (estado_boleta || 'pendiente') : null,
+        profesional_id || null
       ]
     )
     res.status(201).json(result.rows[0])
@@ -80,10 +81,10 @@ router.post('/', async (req, res) => {
 })
 
 router.put('/:id', async (req, res) => {
-  const { monto, metodo, estado, notas, numero_bono, estado_bono, estado_boleta } = req.body
+  const { monto, metodo, estado, notas, numero_bono, estado_bono, estado_boleta, profesional_id } = req.body
   try {
     const result = await pool.query(
-      'UPDATE pago SET monto=$1, metodo=$2, estado=$3, notas=$4, numero_bono=$5, estado_bono=$6, estado_boleta=$7 WHERE id=$8 RETURNING *',
+      'UPDATE pago SET monto=$1, metodo=$2, estado=$3, notas=$4, numero_bono=$5, estado_bono=$6, estado_boleta=$7, profesional_id=$8 WHERE id=$9 RETURNING *',
       [
         monto,
         metodo,
@@ -92,6 +93,7 @@ router.put('/:id', async (req, res) => {
         numero_bono || null,
         metodo === 'fonasa' ? (estado_bono || 'pendiente') : null,
         (metodo === 'efectivo' || metodo === 'transferencia') ? (estado_boleta || 'pendiente') : null,
+        profesional_id || null,
         req.params.id
       ]
     )
