@@ -99,8 +99,14 @@ export default function Pagos() {
   }
 
   const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-    setErrores({ ...errores, [e.target.name]: '' })
+    const { name, value } = e.target
+    if (name === 'procedimiento_nombre') {
+      const proc = catalogo.find(c => c.nombre === value)
+      setForm({ ...form, procedimiento_nombre: value, monto: proc ? proc.monto : form.monto })
+    } else {
+      setForm({ ...form, [name]: value })
+    }
+    setErrores({ ...errores, [name]: '' })
   }
 
   const validar = () => {
