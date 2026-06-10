@@ -221,6 +221,27 @@ export default function Pagos() {
     })
     .sort((a, b) => new Date(fechaOrden(b)) - new Date(fechaOrden(a)))
 
+    const pagosAgrupadosPorPaciente = filtrados.reduce((acc, p) => {
+    const key = p.paciente_id
+    if (!acc[key]) acc[key] = {
+      paciente_id: p.paciente_id,
+      paciente_nombre: p.paciente_nombre,
+      paciente_apellido: p.paciente_apellido,
+      paciente_rut: p.paciente_rut,
+      pagos: [],
+      total: 0,
+      pendiente: 0
+    }
+    acc[key].pagos.push(p)
+    acc[key].total += parseFloat(p.monto)
+    if (p.estado === 'pendiente') acc[key].pendiente += parseFloat(p.monto)
+    return acc
+  }, {})
+
+  const gruposPaciente = Object.values(pagosAgrupadosPorPaciente).sort((a, b) =>
+    new Date(fechaOrden(b.pagos[0])) - new Date(fechaOrden(a.pagos[0]))
+  )
+
   return (
     <div>
       {/* Modal registrar/editar pago */}
