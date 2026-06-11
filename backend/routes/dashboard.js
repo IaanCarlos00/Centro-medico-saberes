@@ -120,7 +120,12 @@ router.get('/', async (req, res) => {
           COALESCE(SUM(pg.monto) FILTER (WHERE pg.estado = 'pagado'), 0) AS ingresos_total
         FROM cita c
         JOIN profesional pr ON c.profesional_id = pr.id
-        LEFT JOIN pago pg ON pg.paciente_id = c.paciente_id AND pg.profesional_id = pr.id
+        LEFT JOIN pago pg ON pg.paciente_id = c.paciente_id
+          AND pg.estado = 'pagado'
+          AND (
+            pg.profesional_id = pr.id
+            OR (pg.profesional_id IS NULL AND DATE(pg.fecha) = DATE(c.fecha_hora))
+          )
         WHERE c.estado = 'realizada'
         GROUP BY pr.id, pr.nombre, pr.apellido
         ORDER BY total DESC
@@ -188,10 +193,15 @@ router.get('/atenciones-profesional', async (req, res) => {
       SELECT 
         pr.id, pr.nombre, pr.apellido,
         COUNT(*) AS atenciones,
-        COALESCE(SUM(pg.monto) FILTER (WHERE pg.estado = 'pagado'), 0) AS ingresos
+        COALESCE(SUM(pg.monto), 0) AS ingresos
       FROM cita c
       JOIN profesional pr ON c.profesional_id = pr.id
-      LEFT JOIN pago pg ON pg.paciente_id = c.paciente_id AND pg.profesional_id = pr.id
+      LEFT JOIN pago pg ON pg.paciente_id = c.paciente_id
+        AND pg.estado = 'pagado'
+        AND (
+          pg.profesional_id = pr.id
+          OR (pg.profesional_id IS NULL AND DATE(pg.fecha) = DATE(c.fecha_hora))
+        )
       WHERE ${whereClause}
       GROUP BY pr.id, pr.nombre, pr.apellido
       ORDER BY atenciones DESC
