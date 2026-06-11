@@ -123,6 +123,25 @@ export default function InicioMatrona({ usuario }) {
 
   useEffect(() => { cargar() }, [])
 
+  const [citasSinFinalizar, setCitasSinFinalizar] = useState([])
+  const [atencionesProf, setAtencionesProf] = useState([])
+
+  useEffect(() => {
+    const profesionalId = localStorage.getItem('profesional_id')
+    const ahora = new Date()
+    const sinFinalizar = citas.filter(c => {
+      const horaCita = new Date(c.fecha_hora.replace(' ', 'T'))
+      return (c.estado === 'pendiente' || c.estado === 'confirmada') && horaCita < ahora
+    })
+    setCitasSinFinalizar(sinFinalizar)
+  }, [citas])
+
+  useEffect(() => {
+    axios.get('https://centro-medico-saberes-production.up.railway.app/dashboard/atenciones-profesional')
+      .then(res => setAtencionesProf(res.data))
+      .catch(() => {})
+  }, [])
+
   const getPaciente = id => pacientesMap[parseInt(id)] || null
 
   const necesitaCompletar = p => !p || !p.rut || !p.fecha_nacimiento || !p.telefono
@@ -256,6 +275,32 @@ export default function InicioMatrona({ usuario }) {
         <div className="text-center py-20 text-gray-400">Cargando agenda...</div>
       ) : (
         <>
+          {citasSinFinalizar.length > 0 && (
+            <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-5 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">⏰</span>
+                <div>
+                  <p className="text-sm font-semibold text-orange-800">
+                    {citasSinFinalizar.length} cita{citasSinFinalizar.length !== 1 ? 's' : ''} sin finalizar
+                  </p>
+                  <p className="text-xs text-orange-600">
+                    {citasSinFinalizar.map(c => `${c.paciente_nombre} ${c.paciente_apellido} (${c.fecha_hora?.slice(11,16)})`).join(', ')}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2 shrink-0 flex-wrap">
+                {citasSinFinalizar.map(c => (
+                  <button key={c.id} onClick={async () => {
+                    await axios.put(`${API_CITAS}/${c.id}`, { ...c, estado: 'realizada' })
+                    cargar()
+                  }} className="text-xs bg-orange-500 text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 font-medium whitespace-nowrap">
+                    ✅ {c.paciente_nombre?.split(' ')[0]}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             <div className="bg-white rounded-2xl shadow-sm p-4 border-l-4 border-blue-500">
               <p className="text-3xl font-bold text-gray-800">{citas.length}</p>
@@ -323,7 +368,30 @@ export default function InicioMatrona({ usuario }) {
                 })}
               </div>
             )}
-          </div>
+         </div>
+
+          {atencionesProf.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-sm p-5 mt-5">
+              <h3 className="text-lg font-bold text-gray-800 mb-3">🩺 Atenciones e ingresos este mes</h3>
+              <div className="flex flex-col gap-2">
+                {atencionesProf.map((p, i) => (
+                  <div key={i} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                    <p className="font-medium text-gray-800 text-sm">{p.nombre} {p.apellido}</p>
+                    <div className="flex gap-4 text-xs">
+                      <div className="text-center">
+                        <p className="font-bold text-teal-700">{p.atenciones}</p>
+                        <p className="text-gray-400">atenciones</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-bold text-green-700">{new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(p.ingresos || 0)}</p>
+                        <p className="text-gray-400">ingresos</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
