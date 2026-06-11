@@ -19,6 +19,7 @@ const archivosRouter = require('./routes/archivos');
 const logsRouter = require('./routes/logs');
 const auth = require('./middleware/auth');
 const reportesRouter = require('./routes/reportes');
+const asistente = require('./routes/asistente');
 
 const app = express();
 const PORT = 3000;
@@ -51,6 +52,7 @@ app.use('/flujos', auth, flujosRouter);
 app.use('/archivos', auth, archivosRouter);
 app.use('/logs', auth, logsRouter);
 app.use('/reportes', auth, reportesRouter);
+app.use('/asistente', auth, asistente);
 
 
 // Ruta de prueba

@@ -17,6 +17,7 @@ import Encuesta from './pages/Encuesta'
 import Encuestas from './pages/Encuestas'
 import Logs from './pages/Logs'
 import Controles from './pages/Controles'
+import AsistenteIA from './components/AsistenteIA'
 
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
@@ -247,6 +248,8 @@ function Layout({ usuario, onLogout }) {
           </>}
         </Routes>
       </main>
+      
+      <AsistenteIA />
 
       <BottomNav links={links} onLogout={onLogout} usuario={usuario} />
     </div>
