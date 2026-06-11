@@ -703,6 +703,20 @@ export default function Agenda() {
         }} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">
           {editando ? '✓ Actualizar cita' : tipoAgendamiento === 'tentativo' ? '⏳ Reservar tentativa' : 'Agendar'}
         </button>
+        {editando && form.estado !== 'realizada' && (
+          <button onClick={async () => {
+            await axios.put(`${API}/${editando}`, { ...form, estado: 'realizada' })
+            await registrarLog('editar', 'cita', editando, `Cita marcada como realizada`)
+            setEditando(null)
+            setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+            setBusquedaPaciente('')
+            setErrores({})
+            setModalAgendar(null)
+            cargar()
+          }} className="flex-1 bg-teal-600 text-white py-2 rounded-lg hover:bg-teal-700 font-medium">
+            ✅ Finalizar atención
+          </button>
+        )}
         <button onClick={() => { setModalAgendar(null); setBusquedaPaciente(''); setErrores({}); setEditando(null) }} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancelar</button>
       </div>
     </div>
