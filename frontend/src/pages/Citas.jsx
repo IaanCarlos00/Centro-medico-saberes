@@ -995,8 +995,8 @@ export default function Agenda() {
                 const citasHoy = citas.filter(c => c.fecha_hora?.slice(0,10) === hoyStr)
                 const horasDisponibles = []
                 const inicio = 8.5 // 8:30
-                const fin = 19.5 // 19:30
-                for (let h = inicio; h < fin; h += 0.5) {
+                const fin = 20 // hasta 19:30 inclusive
+                for (let h = inicio; h <= 19.5; h += 0.5) {
                   const hh = Math.floor(h)
                   const mm = h % 1 === 0 ? '00' : '30'
                   const horaStr = `${String(hh).padStart(2,'0')}:${mm}`
@@ -1082,6 +1082,7 @@ export default function Agenda() {
             }}
               selectable
               onSelectSlot={({ start, end }) => {
+                if (start.getHours() === 0 && start.getMinutes() === 0) return
                 const offset = start.getTimezoneOffset() * 60000
                 const fechaHora = new Date(start.getTime() - offset).toISOString().slice(0, 16)
                 const fechaHoraFin = new Date(end.getTime() - offset).toISOString().slice(0, 16)
