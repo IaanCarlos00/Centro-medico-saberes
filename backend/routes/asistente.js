@@ -41,7 +41,7 @@ router.post('/', async (req, res) => {
     ]
 
     const { data } = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`,
       {
         system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
         contents: mensajes
