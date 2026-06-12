@@ -137,7 +137,7 @@ export default function Flujos() {
   }
 
   const filtrados = flujos.filter(f => {
-    const esFlujoOPanel = !(f.tipo_examen || '').toLowerCase().includes('toma')
+    const esFlujoOPanel = !(f.nombre || '').toLowerCase().includes('toma') && !(f.tipo_examen || '').toLowerCase().includes('toma')
     const q = busqueda.toLowerCase()
     const coincideBusqueda = !busqueda ||
       `${f.paciente_nombre || ''} ${f.paciente_apellido || ''}`.toLowerCase().includes(q) ||
