@@ -14,6 +14,52 @@ const formatFecha = fecha => {
 
 const formInicial = { paciente_id: '', profesional_id: '', tipo_examen: '', nombre: '', fecha_toma: hoyStr, entregado: false, codigo: '' }
 
+function FormEdit({ f, formEdit, setFormEdit, guardarEdit, setEditandoId, pacientes, profesionales }) {
+  return (
+    <div className="bg-green-50 rounded-xl p-4 mt-1">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-500 mb-1">Paciente</label>
+          <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.paciente_id} onChange={e => setFormEdit(fe => ({ ...fe, paciente_id: e.target.value }))}>
+            {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
+          </select>
+        </div>
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-500 mb-1">Profesional</label>
+          <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.profesional_id} onChange={e => setFormEdit(fe => ({ ...fe, profesional_id: e.target.value }))}>
+            <option value="">Sin profesional</option>
+            {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
+          </select>
+        </div>
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-500 mb-1">Tipo examen</label>
+          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.tipo_examen} onChange={e => setFormEdit(fe => ({ ...fe, tipo_examen: e.target.value }))} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-500 mb-1">Nombre</label>
+          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.nombre} onChange={e => setFormEdit(fe => ({ ...fe, nombre: e.target.value }))} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-500 mb-1">Fecha toma</label>
+          <input type="date" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.fecha_toma} onChange={e => setFormEdit(fe => ({ ...fe, fecha_toma: e.target.value }))} />
+        </div>
+        <div className="flex flex-col">
+          <label className="text-xs text-gray-500 mb-1">Código</label>
+          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.codigo} onChange={e => setFormEdit(fe => ({ ...fe, codigo: e.target.value }))} />
+        </div>
+        <div className="flex items-center gap-2 mt-3">
+          <input type="checkbox" checked={formEdit.entregado} onChange={e => setFormEdit(fe => ({ ...fe, entregado: e.target.checked }))} className="w-4 h-4 accent-green-700" />
+          <label className="text-sm text-gray-600">Entregado</label>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <button onClick={() => guardarEdit(f.id)} className="bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-800">Guardar</button>
+        <button onClick={() => setEditandoId(null)} className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-300">Cancelar</button>
+      </div>
+    </div>
+  )
+}
+
 export default function Flujos() {
   const [flujos, setFlujos] = useState([])
   const [pacientes, setPacientes] = useState([])
@@ -91,6 +137,7 @@ export default function Flujos() {
   }
 
   const filtrados = flujos.filter(f => {
+    const esFlujoOPanel = !(f.tipo_examen || '').toLowerCase().includes('toma')
     const q = busqueda.toLowerCase()
     const coincideBusqueda = !busqueda ||
       `${f.paciente_nombre || ''} ${f.paciente_apellido || ''}`.toLowerCase().includes(q) ||
@@ -98,52 +145,8 @@ export default function Flujos() {
       (f.nombre || '').toLowerCase().includes(q) ||
       (f.codigo || '').toLowerCase().includes(q)
     const coincideEntregado = filtroEntregado === '' || (filtroEntregado === 'entregado' ? f.entregado : !f.entregado)
-    return coincideBusqueda && coincideEntregado
+    return coincideBusqueda && coincideEntregado && esFlujoOPanel
   })
-
-  const FormEdit = ({ f }) => (
-    <div className="bg-green-50 rounded-xl p-4 mt-1">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-        <div className="flex flex-col">
-          <label className="text-xs text-gray-500 mb-1">Paciente</label>
-          <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.paciente_id} onChange={e => setFormEdit(fe => ({ ...fe, paciente_id: e.target.value }))}>
-            {pacientes.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
-          </select>
-        </div>
-        <div className="flex flex-col">
-          <label className="text-xs text-gray-500 mb-1">Profesional</label>
-          <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.profesional_id} onChange={e => setFormEdit(fe => ({ ...fe, profesional_id: e.target.value }))}>
-            <option value="">Sin profesional</option>
-            {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
-          </select>
-        </div>
-        <div className="flex flex-col">
-          <label className="text-xs text-gray-500 mb-1">Tipo examen</label>
-          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.tipo_examen} onChange={e => setFormEdit(fe => ({ ...fe, tipo_examen: e.target.value }))} />
-        </div>
-        <div className="flex flex-col">
-          <label className="text-xs text-gray-500 mb-1">Nombre</label>
-          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.nombre} onChange={e => setFormEdit(fe => ({ ...fe, nombre: e.target.value }))} />
-        </div>
-        <div className="flex flex-col">
-          <label className="text-xs text-gray-500 mb-1">Fecha toma</label>
-          <input type="date" className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.fecha_toma} onChange={e => setFormEdit(fe => ({ ...fe, fecha_toma: e.target.value }))} />
-        </div>
-        <div className="flex flex-col">
-          <label className="text-xs text-gray-500 mb-1">Código</label>
-          <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" value={formEdit.codigo} onChange={e => setFormEdit(fe => ({ ...fe, codigo: e.target.value }))} />
-        </div>
-        <div className="flex items-center gap-2 mt-3">
-          <input type="checkbox" checked={formEdit.entregado} onChange={e => setFormEdit(fe => ({ ...fe, entregado: e.target.checked }))} className="w-4 h-4 accent-green-700" />
-          <label className="text-sm text-gray-600">Entregado</label>
-        </div>
-      </div>
-      <div className="flex gap-2">
-        <button onClick={() => guardarEdit(f.id)} className="bg-green-700 text-white px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-green-800">Guardar</button>
-        <button onClick={() => setEditandoId(null)} className="bg-gray-200 text-gray-700 px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-300">Cancelar</button>
-      </div>
-    </div>
-  )
 
   return (
     <div>
@@ -257,7 +260,7 @@ export default function Flujos() {
                 {editandoId === f.id && (
                   <tr key={`edit-${f.id}`} className="bg-green-50">
                     <td colSpan="8" className="px-4 py-4">
-                      <FormEdit f={f} />
+                      <FormEdit f={f} formEdit={formEdit} setFormEdit={setFormEdit} guardarEdit={guardarEdit} setEditandoId={setEditandoId} pacientes={pacientes} profesionales={profesionales} />
                     </td>
                   </tr>
                 )}
@@ -296,7 +299,7 @@ export default function Flujos() {
               <button onClick={() => iniciarEdit(f)} className="text-blue-600 text-sm font-medium">Editar</button>
               <button onClick={() => eliminar(f.id)} className="text-red-500 text-sm font-medium">Eliminar</button>
             </div>
-            {editandoId === f.id && <FormEdit f={f} />}
+            {editandoId === f.id && <FormEdit f={f} formEdit={formEdit} setFormEdit={setFormEdit} guardarEdit={guardarEdit} setEditandoId={setEditandoId} pacientes={pacientes} profesionales={profesionales} />}
           </div>
         ))}
         {filtrados.length === 0 && <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">No hay flujos registrados</div>}
