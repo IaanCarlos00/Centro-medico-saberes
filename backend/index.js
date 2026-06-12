@@ -52,7 +52,7 @@ app.use('/flujos', auth, flujosRouter);
 app.use('/archivos', auth, archivosRouter);
 app.use('/logs', auth, logsRouter);
 app.use('/reportes', auth, reportesRouter);
-app.use('/asistente', auth, asistente);
+app.use('/asistente', asistente);
 
 
 // Ruta de prueba
