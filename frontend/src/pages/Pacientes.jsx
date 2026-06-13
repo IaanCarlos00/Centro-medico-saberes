@@ -34,40 +34,39 @@ function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={onCerrar}>
-      <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-        <div className="flex items-center gap-3 mb-2">
-          <span className="text-3xl">📋</span>
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4" onClick={onCerrar}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="px-6 py-5 flex items-center gap-3" style={{ background: 'linear-gradient(135deg, #166534, #15803d)' }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: 'rgba(255,255,255,0.15)' }}>📋</div>
           <div>
-            <h3 className="text-lg font-bold text-green-800">Completar datos del paciente</h3>
-            <p className="text-sm text-gray-500">{paciente.nombre} {paciente.apellido}</p>
+            <h3 className="text-lg font-bold text-white">Completar datos</h3>
+            <p className="text-green-200 text-xs">{paciente.nombre} {paciente.apellido}</p>
           </div>
         </div>
-        <p className="text-sm text-yellow-700 bg-yellow-50 rounded-lg px-3 py-2 mb-4">Completa los datos del paciente.</p>
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-600 mb-1">RUT *</label>
-            <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.rut ? 'border-red-400' : 'border-gray-300'}`} name="rut" placeholder="12.345.678-9" value={form.rut} onChange={handleChange} />
-            {errores.rut && <span className="text-red-500 text-xs mt-1">{errores.rut}</span>}
+        <div className="p-6 flex flex-col gap-4">
+          {[
+            { label: 'RUT *', name: 'rut', placeholder: '12.345.678-9', error: errores.rut },
+            { label: 'Teléfono *', name: 'telefono', placeholder: '+56 9 1234 5678', error: errores.telefono },
+          ].map(f => (
+            <div key={f.name} className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-700">{f.label}</label>
+              <input className={`border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 ${f.error ? 'border-red-400 bg-red-50' : 'border-gray-200'}`} name={f.name} placeholder={f.placeholder} value={form[f.name]} onChange={handleChange} />
+              {f.error && <span className="text-red-500 text-xs">{f.error}</span>}
+            </div>
+          ))}
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-gray-700">Fecha de nacimiento *</label>
+            <input type="date" className={`border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.fecha_nacimiento ? 'border-red-400 bg-red-50' : 'border-gray-200'}`} name="fecha_nacimiento" value={form.fecha_nacimiento} onChange={handleChange} />
+            {errores.fecha_nacimiento && <span className="text-red-500 text-xs">{errores.fecha_nacimiento}</span>}
           </div>
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-600 mb-1">Fecha de nacimiento *</label>
-            <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.fecha_nacimiento ? 'border-red-400' : 'border-gray-300'}`} name="fecha_nacimiento" type="date" value={form.fecha_nacimiento} onChange={handleChange} />
-            {errores.fecha_nacimiento && <span className="text-red-500 text-xs mt-1">{errores.fecha_nacimiento}</span>}
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-600 mb-1">Teléfono *</label>
-            <input className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.telefono ? 'border-red-400' : 'border-gray-300'}`} name="telefono" placeholder="+56 9 1234 5678" value={form.telefono} onChange={handleChange} />
-            {errores.telefono && <span className="text-red-500 text-xs mt-1">{errores.telefono}</span>}
-          </div>
-          <div className="flex flex-col">
-            <label className="text-sm text-gray-600 mb-1">Email (opcional)</label>
-            <input className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="email" type="email" placeholder="correo@ejemplo.cl" value={form.email || ''} onChange={handleChange} />
+          <div className="flex flex-col gap-1">
+            <label className="text-sm font-semibold text-gray-700">Email <span className="text-gray-400 font-normal">(opcional)</span></label>
+            <input type="email" className="border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400" name="email" placeholder="correo@ejemplo.cl" value={form.email} onChange={handleChange} />
           </div>
         </div>
-        <div className="flex gap-3 mt-6">
-          <button onClick={guardar} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">Guardar</button>
-          <button onClick={onCerrar} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancelar</button>
+        <div className="px-6 pb-6 flex gap-3">
+          <button onClick={onCerrar} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 font-medium">Cancelar</button>
+          <button onClick={guardar} className="flex-1 text-white py-3 rounded-xl font-semibold" style={{ background: 'linear-gradient(135deg, #166534, #15803d)' }}>Guardar</button>
         </div>
       </div>
     </div>
@@ -90,78 +89,48 @@ function formatFecha(fecha) {
 
 function ModalPaciente({ editando, form, errores, handleChange, guardar, onCerrar }) {
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={onCerrar}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden" onClick={e => e.stopPropagation()}>
-        {/* Header */}
-        <div className="bg-gradient-to-r from-green-700 to-green-600 px-6 py-5 flex items-center justify-between">
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4" onClick={onCerrar}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="px-6 py-5 flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #052e16, #166534)' }}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
-              <span className="text-xl">{editando ? '✏️' : '👤'}</span>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: 'rgba(255,255,255,0.15)' }}>
+              {editando ? '✏️' : '👤'}
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white">{editando ? 'Editar paciente' : 'Registrar paciente'}</h3>
-              <p className="text-green-200 text-xs">{editando ? 'Modifica los datos de la paciente' : 'Solo nombre y apellido son obligatorios'}</p>
+              <h3 className="text-lg font-bold text-white">{editando ? 'Editar paciente' : 'Nueva paciente'}</h3>
+              <p className="text-green-300 text-xs">{editando ? 'Modifica los datos' : 'Solo nombre y apellido son obligatorios'}</p>
             </div>
           </div>
           <button onClick={onCerrar} className="text-white hover:text-green-200 text-2xl leading-none">✕</button>
         </div>
-
-        {/* Body */}
         <div className="p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">Nombre *</label>
-              <input
-                className={`border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors ${errores.nombre ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-gray-300'}`}
-                name="nombre" placeholder="Ej: María" value={form.nombre} onChange={handleChange}
-              />
-              {errores.nombre && <span className="text-red-500 text-xs mt-1">{errores.nombre}</span>}
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">Apellido *</label>
-              <input
-                className={`border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors ${errores.apellido ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-gray-300'}`}
-                name="apellido" placeholder="Ej: González" value={form.apellido} onChange={handleChange}
-              />
-              {errores.apellido && <span className="text-red-500 text-xs mt-1">{errores.apellido}</span>}
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">RUT <span className="text-gray-400 font-normal">(opcional)</span></label>
-              <input
-                className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors"
-                name="rut" placeholder="12.345.678-9" value={form.rut} onChange={handleChange}
-              />
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">Teléfono <span className="text-gray-400 font-normal">(opcional)</span></label>
-              <input
-                className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors"
-                name="telefono" placeholder="+56 9 1234 5678" value={form.telefono} onChange={handleChange}
-              />
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">Fecha de nacimiento <span className="text-gray-400 font-normal">(opcional)</span></label>
-              <input
-                className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors"
-                name="fecha_nacimiento" type="date" value={form.fecha_nacimiento} onChange={handleChange}
-              />
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm font-medium text-gray-700 mb-1">Email <span className="text-gray-400 font-normal">(opcional)</span></label>
-              <input
-                className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors"
-                name="email" type="email" placeholder="correo@ejemplo.cl" value={form.email} onChange={handleChange}
-              />
+            {[
+              { label: 'Nombre *', name: 'nombre', placeholder: 'Ej: María', error: errores.nombre },
+              { label: 'Apellido *', name: 'apellido', placeholder: 'Ej: González', error: errores.apellido },
+              { label: 'RUT', name: 'rut', placeholder: '12.345.678-9' },
+              { label: 'Teléfono', name: 'telefono', placeholder: '+56 9 1234 5678' },
+              { label: 'Email', name: 'email', placeholder: 'correo@ejemplo.cl', type: 'email' },
+            ].map(f => (
+              <div key={f.name} className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-gray-700">{f.label}</label>
+                <input
+                  type={f.type || 'text'}
+                  className={`border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors ${f.error ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-gray-300'}`}
+                  name={f.name} placeholder={f.placeholder} value={form[f.name]} onChange={handleChange}
+                />
+                {f.error && <span className="text-red-500 text-xs">{f.error}</span>}
+              </div>
+            ))}
+            <div className="flex flex-col gap-1">
+              <label className="text-sm font-semibold text-gray-700">Fecha de nacimiento</label>
+              <input type="date" className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400" name="fecha_nacimiento" value={form.fecha_nacimiento} onChange={handleChange} />
             </div>
           </div>
         </div>
-
-        {/* Footer */}
         <div className="px-6 pb-6 flex gap-3">
-          <button onClick={onCerrar} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 font-medium transition-colors">
-            Cancelar
-          </button>
-          <button onClick={guardar} className="flex-1 bg-green-700 text-white py-3 rounded-xl hover:bg-green-800 font-semibold transition-colors">
+          <button onClick={onCerrar} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 font-medium transition-colors">Cancelar</button>
+          <button onClick={guardar} className="flex-1 text-white py-3 rounded-xl font-bold transition-all hover:opacity-90" style={{ background: 'linear-gradient(135deg, #166534, #15803d)' }}>
             {editando ? '✓ Actualizar' : '+ Registrar'}
           </button>
         </div>
@@ -189,7 +158,6 @@ export default function Pacientes() {
   const [toast, setToast] = useState(null)
 
   const rol = localStorage.getItem('rol')
-
 
   const cargar = async () => {
     const [p, pg] = await Promise.all([axios.get(API), axios.get(API_PAGOS)])
@@ -288,8 +256,7 @@ export default function Pacientes() {
     const nombreCompleto = `${p.nombre} ${p.apellido}`.toLowerCase()
     const nombreInverso = `${p.apellido} ${p.nombre}`.toLowerCase()
     return (
-      nombreCompleto.includes(q) ||
-      nombreInverso.includes(q) ||
+      nombreCompleto.includes(q) || nombreInverso.includes(q) ||
       (p.rut && p.rut.toLowerCase().includes(q)) ||
       (p.telefono && p.telefono.includes(q)) ||
       (p.email && p.email.toLowerCase().includes(q))
@@ -330,59 +297,33 @@ export default function Pacientes() {
   ].filter(Boolean) : []
 
   return (
-    <div>
-      {/* Modal registrar/editar */}
-      {modalForm && (
-        <ModalPaciente
-          editando={editando}
-          form={form}
-          errores={errores}
-          handleChange={handleChange}
-          guardar={guardar}
-          onCerrar={cerrarModal}
-        />
-      )}
-
-      {modalCompletar && (
-        <ModalCompletarPaciente
-          paciente={modalCompletar}
-          onConfirmar={() => { setModalCompletar(null); cargar() }}
-          onCerrar={() => setModalCompletar(null)}
-        />
-      )}
-
+    <div className="min-h-screen bg-white">
+      {modalForm && <ModalPaciente editando={editando} form={form} errores={errores} handleChange={handleChange} guardar={guardar} onCerrar={cerrarModal} />}
+      {modalCompletar && <ModalCompletarPaciente paciente={modalCompletar} onConfirmar={() => { setModalCompletar(null); cargar() }} onCerrar={() => setModalCompletar(null)} />}
       {toast && <Toast mensaje={toast.mensaje} tipo={toast.tipo} onCerrar={() => setToast(null)} />}
-
       {modalEliminar && resumenEliminar && (
-        <ModalConfirmar
-          titulo={`¿Eliminar a ${modalEliminar.nombre} ${modalEliminar.apellido}?`}
-          mensaje="Esta acción no se puede deshacer."
-          detalle={detalleEliminar}
-          textoConfirmar="Eliminar todo"
-          onConfirmar={confirmarEliminar}
-          onCancelar={() => { setModalEliminar(null); setResumenEliminar(null) }}
-        />
+        <ModalConfirmar titulo={`¿Eliminar a ${modalEliminar.nombre} ${modalEliminar.apellido}?`} mensaje="Esta acción no se puede deshacer." detalle={detalleEliminar} textoConfirmar="Eliminar todo" onConfirmar={confirmarEliminar} onCancelar={() => { setModalEliminar(null); setResumenEliminar(null) }} />
       )}
 
       {modalNombreDuplicado && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={() => setModalNombreDuplicado(null)}>
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4" onClick={() => setModalNombreDuplicado(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
-              <span className="text-3xl">⚠️</span>
+              <div className="w-12 h-12 bg-yellow-100 rounded-2xl flex items-center justify-center text-2xl">⚠️</div>
               <div>
-                <h3 className="text-lg font-bold text-yellow-800">Posible duplicado</h3>
-                <p className="text-sm text-gray-500">Ya existe una paciente con ese nombre</p>
+                <h3 className="text-lg font-bold text-gray-800">Posible duplicado</h3>
+                <p className="text-sm text-gray-400">Ya existe una paciente con ese nombre</p>
               </div>
             </div>
             <div className="flex flex-col gap-2 mb-5">
               {modalNombreDuplicado.map((p, i) => (
-                <div key={i} className="p-3 bg-yellow-50 rounded-lg text-sm">
-                  <p className="font-medium text-gray-800">{p.nombre} {p.apellido}</p>
-                  <p className="text-xs text-gray-500">{p.rut || 'Sin RUT'}</p>
+                <div key={i} className="p-3 bg-yellow-50 rounded-xl border border-yellow-100 text-sm">
+                  <p className="font-semibold text-gray-800">{p.nombre} {p.apellido}</p>
+                  <p className="text-xs text-gray-400">{p.rut || 'Sin RUT'}</p>
                 </div>
               ))}
             </div>
-            <p className="text-sm text-gray-600 mb-5">¿Deseas registrarla de todas formas?</p>
+            <p className="text-sm text-gray-500 mb-5">¿Deseas registrarla de todas formas?</p>
             <div className="flex gap-3">
               <button onClick={async () => {
                 setModalNombreDuplicado(null)
@@ -392,189 +333,147 @@ export default function Pacientes() {
                 setErrores({})
                 setModalForm(false)
                 cargar()
-              }} className="flex-1 bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 font-medium">
-                Sí, registrar igual
-              </button>
-              <button onClick={() => setModalNombreDuplicado(null)} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">
-                Cancelar
-              </button>
+              }} className="flex-1 bg-yellow-500 text-white py-3 rounded-xl hover:bg-yellow-600 font-semibold">Sí, registrar igual</button>
+              <button onClick={() => setModalNombreDuplicado(null)} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 font-medium">Cancelar</button>
             </div>
           </div>
         </div>
       )}
 
       {modalHistorial && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={() => setModalHistorial(null)}>
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
+        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 px-4" onClick={() => setModalHistorial(null)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="px-6 py-5 flex items-center justify-between shrink-0" style={{ background: 'linear-gradient(135deg, #052e16, #166534)' }}>
               <div>
-                <h3 className="text-lg font-bold text-green-800">Historial — {modalHistorial.nombre} {modalHistorial.apellido}</h3>
-                <p className="text-xs text-gray-400">{modalHistorial.rut} · {modalHistorial.telefono}</p>
+                <h3 className="text-lg font-bold text-white">{modalHistorial.nombre} {modalHistorial.apellido}</h3>
+                <p className="text-green-300 text-xs">{modalHistorial.rut || 'Sin RUT'} {modalHistorial.telefono ? `· ${modalHistorial.telefono}` : ''}</p>
               </div>
-              <button onClick={() => setModalHistorial(null)} className="text-gray-400 hover:text-gray-600 text-xl">✕</button>
+              <button onClick={() => setModalHistorial(null)} className="text-white hover:text-green-200 text-2xl">✕</button>
             </div>
-            {cargandoHistorial ? (
-              <p className="text-center text-gray-400 py-8">Cargando historial...</p>
-            ) : (
-              <div className="flex flex-col gap-5">
-                <div>
-                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">📅 Últimas citas ({historial.citas.length})</p>
-                  {historial.citas.length === 0 ? <p className="text-sm text-gray-400">Sin citas</p> : (
-                    <div className="flex flex-col gap-1">
-                      {historial.citas.map(c => (
-                        <div key={c.id} className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-lg">
-                          <span className="text-gray-700">{c.fecha_hora?.slice(0,16).replace('T',' ')}</span>
-                          <span className="text-gray-500 text-xs">{c.profesional_nombre} {c.profesional_apellido}</span>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.estado === 'realizada' ? 'bg-green-100 text-green-700' : c.estado === 'cancelada' ? 'bg-red-100 text-red-600' : c.estado === 'confirmada' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'}`}>{c.estado}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+            <div className="overflow-y-auto p-6 flex flex-col gap-5">
+              {cargandoHistorial ? (
+                <div className="text-center py-12">
+                  <div className="w-10 h-10 border-4 border-green-200 border-t-green-700 rounded-full animate-spin mx-auto mb-3" />
+                  <p className="text-gray-400 text-sm">Cargando historial...</p>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">🔬 Procedimientos ({historial.procedimientos.length})</p>
-                  {historial.procedimientos.length === 0 ? <p className="text-sm text-gray-400">Sin procedimientos</p> : (
-                    <div className="flex flex-col gap-1">
-                      {historial.procedimientos.map(p => (
-                        <div key={p.id} className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-lg">
-                          <span className="text-gray-700">{p.nombre}</span>
-                          <span className="text-gray-500 text-xs">${Number(p.monto).toLocaleString('es-CL')}</span>
-                          <span className="text-xs text-gray-400">{p.fecha?.slice(0,10)}</span>
-                        </div>
-                      ))}
+              ) : (
+                [
+                  { label: '📅 Citas', items: historial.citas, render: c => (<><span className="text-gray-700">{c.fecha_hora?.slice(0,16).replace('T',' ')}</span><span className="text-gray-400 text-xs">{c.profesional_nombre}</span><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${c.estado === 'realizada' ? 'bg-green-100 text-green-700' : c.estado === 'cancelada' ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-700'}`}>{c.estado}</span></>) },
+                  { label: '🔬 Procedimientos', items: historial.procedimientos, render: p => (<><span className="text-gray-700">{p.nombre}</span><span className="text-gray-400 text-xs">${Number(p.monto).toLocaleString('es-CL')}</span><span className="text-xs text-gray-400">{p.fecha?.slice(0,10)}</span></>) },
+                  { label: '🧪 PAP', items: historial.pap, render: p => (<><span className="text-gray-700">{p.nombre}</span><span className="text-xs text-gray-400">{p.fecha_toma?.slice(0,10)}</span><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${p.estado_envio === 'enviado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_envio}</span></>) },
+                  { label: '🔬 Flujos', items: historial.flujos, render: f => (<><span className="text-gray-700">{f.nombre}</span><span className="text-xs text-gray-400">{f.fecha_toma?.slice(0,10)}</span><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${f.entregado ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{f.entregado ? 'Entregado' : 'Pendiente'}</span></>) },
+                  { label: '💰 Pagos', items: historial.pagos, render: pg => (<><span className="text-gray-700 font-semibold">${Number(pg.monto).toLocaleString('es-CL')}</span><span className="text-xs text-gray-400">{pg.metodo}</span><span className={`text-xs px-2 py-0.5 rounded-full font-medium ${pg.estado === 'pagado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>{pg.estado}</span></>) },
+                ].map(({ label, items, render }) => (
+                  <div key={label}>
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">{label}</p>
+                      <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">{items.length}</span>
                     </div>
-                  )}
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">🧪 PAP ({historial.pap.length})</p>
-                  {historial.pap.length === 0 ? <p className="text-sm text-gray-400">Sin PAP</p> : (
-                    <div className="flex flex-col gap-1">
-                      {historial.pap.map(p => (
-                        <div key={p.id} className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-lg">
-                          <span className="text-gray-700">{p.nombre}</span>
-                          <span className="text-xs text-gray-400">{p.fecha_toma?.slice(0,10)}</span>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${p.estado_envio === 'enviado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado_envio}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">🔬 Flujos ({historial.flujos.length})</p>
-                  {historial.flujos.length === 0 ? <p className="text-sm text-gray-400">Sin flujos</p> : (
-                    <div className="flex flex-col gap-1">
-                      {historial.flujos.map(f => (
-                        <div key={f.id} className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-lg">
-                          <span className="text-gray-700">{f.nombre}</span>
-                          <span className="text-xs text-gray-400">{f.fecha_toma?.slice(0,10)}</span>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${f.entregado ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{f.entregado ? 'Entregado' : 'Pendiente'}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-gray-500 uppercase mb-2">💰 Pagos ({historial.pagos.length})</p>
-                  {historial.pagos.length === 0 ? <p className="text-sm text-gray-400">Sin pagos</p> : (
-                    <div className="flex flex-col gap-1">
-                      {historial.pagos.map(pg => (
-                        <div key={pg.id} className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded-lg">
-                          <span className="text-gray-700">${Number(pg.monto).toLocaleString('es-CL')}</span>
-                          <span className="text-xs text-gray-400">{pg.metodo}</span>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${pg.estado === 'pagado' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>{pg.estado}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+                    {items.length === 0 ? (
+                      <p className="text-sm text-gray-300 pl-1">Sin registros</p>
+                    ) : (
+                      <div className="flex flex-col gap-1">
+                        {items.map((item, i) => (
+                          <div key={i} className="flex justify-between items-center text-sm p-2.5 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+                            {render(item)}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-green-800">Pacientes</h2>
-        <button
-          onClick={() => { cerrarModal(); setModalForm(true) }}
-          className="flex items-center gap-2 bg-green-700 text-white px-5 py-2.5 rounded-xl hover:bg-green-800 font-medium transition-colors shadow-sm"
-        >
+      <div className="relative overflow-hidden rounded-3xl mb-8 p-6 flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #052e16 0%, #166534 60%, #15803d 100%)' }}>
+        <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #86efac, transparent)', transform: 'translate(30%, -30%)' }} />
+        <div className="relative z-10">
+          <p className="text-green-300 text-xs font-semibold uppercase tracking-widest mb-1">Gestión</p>
+          <h2 className="text-3xl font-black text-white">Pacientes</h2>
+          <p className="text-green-200 text-sm mt-1">{pacientes.length} paciente{pacientes.length !== 1 ? 's' : ''} registrada{pacientes.length !== 1 ? 's' : ''}</p>
+        </div>
+        <button onClick={() => { cerrarModal(); setModalForm(true) }} className="relative z-10 flex items-center gap-2 text-sm font-bold px-5 py-3 rounded-2xl transition-all hover:scale-105 hover:shadow-lg shrink-0" style={{ background: 'rgba(255,255,255,0.15)', color: 'white', border: '1px solid rgba(255,255,255,0.25)' }}>
           <span className="text-lg">+</span> Nueva paciente
         </button>
       </div>
 
       {/* Buscador */}
-      <div className="mb-4 relative">
+      <div className="mb-6 relative">
+        <span className="absolute left-4 top-3.5 text-gray-400">🔍</span>
         <input
-          className="w-full border border-gray-200 rounded-xl px-4 py-3 pl-11 focus:outline-none focus:ring-2 focus:ring-green-400 bg-white shadow-sm"
-          placeholder="Buscar por nombre, apellido, RUT, teléfono o email..."
+          className="w-full border border-gray-200 rounded-2xl px-4 py-3 pl-11 focus:outline-none focus:ring-2 focus:ring-green-400 shadow-sm hover:border-gray-300 transition-colors"
+          placeholder="Buscar por nombre, RUT, teléfono o email..."
           value={busqueda} onChange={e => setBusqueda(e.target.value)}
         />
-        <span className="absolute left-4 top-3.5 text-gray-400">🔍</span>
         {busqueda && <button onClick={() => setBusqueda('')} className="absolute right-4 top-3.5 text-gray-400 hover:text-gray-600">✕</button>}
       </div>
-      {busqueda && <p className="text-sm text-gray-500 mb-3">{filtrados.length} resultado{filtrados.length !== 1 ? 's' : ''} encontrado{filtrados.length !== 1 ? 's' : ''}</p>}
+      {busqueda && <p className="text-sm text-gray-400 mb-4 pl-1">{filtrados.length} resultado{filtrados.length !== 1 ? 's' : ''}</p>}
 
       {/* Tabla desktop */}
-      <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
+      <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-green-50 text-green-800 uppercase text-xs">
-            <tr>
-              <th className="px-4 py-3 text-left">Nombre</th>
-              <th className="px-4 py-3 text-left">Apellido</th>
-              <th className="px-4 py-3 text-left">RUT</th>
-              <th className="px-4 py-3 text-left">Teléfono</th>
-              <th className="px-4 py-3 text-left">Email</th>
-              <th className="px-4 py-3 text-left">Estado</th>
-              <th className="px-4 py-3 text-left">Próx. control</th>
-              <th className="px-4 py-3 text-left">Acciones</th>
+          <thead>
+            <tr style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)' }}>
+              {['Paciente', 'RUT', 'Teléfono', 'Email', 'Estado', 'Próx. control', 'Acciones'].map(h => (
+                <th key={h} className="px-4 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">{h}</th>
+              ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-gray-50">
             {filtrados.map(p => (
-              <tr key={p.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-4 py-3 font-medium text-gray-800">{p.nombre}</td>
-                <td className="px-4 py-3 text-gray-800">{p.apellido}</td>
-                <td className="px-4 py-3 text-gray-600">{p.rut || <span className="text-yellow-600 text-xs">Pendiente</span>}</td>
-                <td className="px-4 py-3 text-gray-600">{p.telefono || <span className="text-yellow-600 text-xs">Pendiente</span>}</td>
-                <td className="px-4 py-3 text-gray-600">{p.email || <span className="text-gray-400 text-xs">—</span>}</td>
+              <tr key={p.id} className="hover:bg-gray-50 transition-colors group">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-black text-white shrink-0" style={{ background: 'linear-gradient(135deg, #166534, #15803d)' }}>
+                      {p.nombre?.charAt(0)}{p.apellido?.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-800">{p.nombre} {p.apellido}</p>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-gray-600 text-sm">{p.rut || <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">Pendiente</span>}</td>
+                <td className="px-4 py-3 text-gray-600 text-sm">{p.telefono || <span className="text-gray-300">—</span>}</td>
+                <td className="px-4 py-3 text-gray-600 text-sm">{p.email || <span className="text-gray-300">—</span>}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-col gap-1">
                     {necesitaCompletar(p)
-                      ? <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full">Datos incompletos</span>
-                      : <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Completo</span>
+                      ? <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium w-fit">Incompleto</span>
+                      : <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium w-fit">Completo</span>
                     }
-                    {deudores.includes(p.id) && (
-                      <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">💰 Pago pendiente</span>
-                    )}
+                    {deudores.includes(p.id) && <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium w-fit">💰 Deuda</span>}
                   </div>
                 </td>
                 <td className="px-4 py-3">
                   {p.proximo_control ? (
-                    <div className="flex flex-col gap-0.5">
-                      <span className="text-xs font-bold text-teal-700">{formatFecha(p.proximo_control)}</span>
-                      <span className="text-xs text-teal-500">{p.tipo_control}</span>
+                    <div>
+                      <p className="text-xs font-bold text-teal-700">{formatFecha(p.proximo_control)}</p>
+                      <p className="text-xs text-teal-400">{p.tipo_control}</p>
                     </div>
-                  ) : (
-                    <span className="text-gray-300 text-xs">—</span>
-                  )}
+                  ) : <span className="text-gray-200 text-sm">—</span>}
                 </td>
-                <td className="px-4 py-3 flex gap-2 flex-wrap">
-                  {rol !== 'secretaria' && (
-                    <button onClick={() => setPacienteSeleccionado(p)} className="text-blue-600 hover:underline text-sm font-medium">Fichas</button>
-                  )}
-                  <button onClick={() => verHistorial(p)} className="text-purple-600 hover:underline text-sm font-medium">Historial</button>
-                  {necesitaCompletar(p) && (
-                    <button onClick={() => setModalCompletar(p)} className="text-yellow-600 hover:underline text-sm font-medium">Completar</button>
-                  )}
-                  <button onClick={() => abrirEditar(p)} className="text-gray-500 hover:underline text-sm font-medium">Editar</button>
-                  <button onClick={() => eliminar(p.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
+                <td className="px-4 py-3">
+                  <div className="flex gap-1 flex-wrap">
+                    {rol !== 'secretaria' && (
+                      <button onClick={() => setPacienteSeleccionado(p)} className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors">Fichas</button>
+                    )}
+                    <button onClick={() => verHistorial(p)} className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-purple-50 text-purple-700 hover:bg-purple-100 transition-colors">Historial</button>
+                    {necesitaCompletar(p) && <button onClick={() => setModalCompletar(p)} className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-yellow-50 text-yellow-700 hover:bg-yellow-100 transition-colors">Completar</button>}
+                    <button onClick={() => abrirEditar(p)} className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">Editar</button>
+                    <button onClick={() => eliminar(p.id)} className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Eliminar</button>
+                  </div>
                 </td>
               </tr>
             ))}
             {filtrados.length === 0 && (
-              <tr><td colSpan="8" className="px-4 py-6 text-center text-gray-400">{busqueda ? 'No se encontraron resultados' : 'No hay pacientes registradas'}</td></tr>
+              <tr><td colSpan="7" className="px-4 py-12 text-center">
+                <p className="text-4xl mb-2">🔍</p>
+                <p className="text-gray-400 text-sm">{busqueda ? 'No se encontraron resultados' : 'No hay pacientes registradas'}</p>
+              </td></tr>
             )}
           </tbody>
         </table>
@@ -583,37 +482,40 @@ export default function Pacientes() {
       {/* Tarjetas móvil */}
       <div className="md:hidden flex flex-col gap-3">
         {filtrados.map(p => (
-          <div key={p.id} className="bg-white rounded-xl shadow p-4">
-            <div className="flex justify-between items-start mb-2">
-              <div>
-                <p className="font-semibold text-gray-800">{p.nombre} {p.apellido}</p>
-                <p className="text-sm text-gray-500">{p.rut || <span className="text-yellow-600">RUT pendiente</span>}</p>
-                {necesitaCompletar(p) && <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full mt-1 inline-block">Datos incompletos</span>}
-                {deudores.includes(p.id) && <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full mt-1 ml-1 inline-block">💰 Pago pendiente</span>}
+          <div key={p.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow">
+            <div className="flex items-start gap-3 mb-3">
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-black text-white shrink-0" style={{ background: 'linear-gradient(135deg, #166534, #15803d)' }}>
+                {p.nombre?.charAt(0)}{p.apellido?.charAt(0)}
               </div>
-              <div className="flex gap-2 flex-wrap justify-end">
-                {rol !== 'secretaria' && (
-                  <button onClick={() => setPacienteSeleccionado(p)} className="text-blue-600 text-sm font-medium">Fichas</button>
-                )}
-                <button onClick={() => verHistorial(p)} className="text-purple-600 text-sm font-medium">Historial</button>
-                {necesitaCompletar(p) && (
-                  <button onClick={() => setModalCompletar(p)} className="text-yellow-600 text-sm font-medium">Completar</button>
-                )}
-                <button onClick={() => abrirEditar(p)} className="text-gray-500 text-sm font-medium">Editar</button>
-                <button onClick={() => eliminar(p.id)} className="text-red-500 text-sm font-medium">Eliminar</button>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-gray-800">{p.nombre} {p.apellido}</p>
+                <p className="text-sm text-gray-400">{p.rut || 'Sin RUT'}</p>
+                <div className="flex flex-wrap gap-1 mt-1">
+                  {necesitaCompletar(p) && <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">Incompleto</span>}
+                  {deudores.includes(p.id) && <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">💰 Deuda</span>}
+                </div>
               </div>
             </div>
-            {p.telefono && <p className="text-sm text-gray-500">📞 {p.telefono}</p>}
+            {p.telefono && <p className="text-sm text-gray-500 mb-1">📞 {p.telefono}</p>}
             {p.proximo_control && (
-              <div className="mt-2 inline-flex items-center gap-1.5 bg-teal-50 border border-teal-200 text-teal-700 px-3 py-1 rounded-full text-xs font-semibold">
-                📅 {formatFecha(p.proximo_control)}
-                <span className="text-teal-400">· {p.tipo_control}</span>
+              <div className="inline-flex items-center gap-1.5 bg-teal-50 border border-teal-100 text-teal-700 px-3 py-1 rounded-full text-xs font-semibold mb-3">
+                📅 {formatFecha(p.proximo_control)} · {p.tipo_control}
               </div>
             )}
+            <div className="flex gap-2 flex-wrap pt-2 border-t border-gray-50">
+              {rol !== 'secretaria' && <button onClick={() => setPacienteSeleccionado(p)} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700">Fichas</button>}
+              <button onClick={() => verHistorial(p)} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-purple-50 text-purple-700">Historial</button>
+              {necesitaCompletar(p) && <button onClick={() => setModalCompletar(p)} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-yellow-50 text-yellow-700">Completar</button>}
+              <button onClick={() => abrirEditar(p)} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600">Editar</button>
+              <button onClick={() => eliminar(p.id)} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-red-50 text-red-600">Eliminar</button>
+            </div>
           </div>
         ))}
         {filtrados.length === 0 && (
-          <div className="bg-white rounded-xl shadow p-6 text-center text-gray-400">{busqueda ? 'No se encontraron resultados' : 'No hay pacientes registradas'}</div>
+          <div className="bg-white rounded-2xl shadow-sm p-10 text-center">
+            <p className="text-4xl mb-2">🔍</p>
+            <p className="text-gray-400 text-sm">{busqueda ? 'No se encontraron resultados' : 'No hay pacientes registradas'}</p>
+          </div>
         )}
       </div>
     </div>
