@@ -54,9 +54,9 @@ export default function Login({ onLogin }) {
                   { icon: '📋', text: 'Fichas clínicas digitales' },
                   { icon: '💚', text: 'Cuidado con propósito' },
                 ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3 bg-white bg-opacity-20 rounded-2xl px-5 py-3 border border-white border-opacity-20">
+                  <div key={i} className="flex items-center gap-3 rounded-2xl px-5 py-3" style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)' }}>
                     <span className="text-2xl">{item.icon}</span>
-                    <span className="text-white text-sm font-semibold drop-shadow">{item.text}</span>
+                    <span className="text-sm font-semibold" style={{ color: '#ffffff' }}>{item.text}</span>
                   </div>
                 ))}
               </div>
