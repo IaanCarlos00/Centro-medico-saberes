@@ -262,13 +262,14 @@ export default function InicioMatrona({ usuario }) {
       )}
 
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="rounded-2xl mb-6 p-6 flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #166534 0%, #15803d 60%, #059669 100%)' }}>
         <div>
-          <h2 className="text-2xl font-bold text-green-800">Mi Agenda — {usuario.nombre}</h2>
-          <p className="text-gray-400 capitalize mt-1">{hoy}</p>
-          <p className="text-green-700 text-sm italic mt-2">✨ {getFrase()}</p>
+          <p className="text-green-200 text-sm font-medium capitalize mb-1">{hoy}</p>
+          <h2 className="text-2xl font-bold text-white">Mi Agenda 🩺</h2>
+          <p className="text-green-100 font-semibold text-lg">{usuario.nombre}</p>
+          <p className="text-green-200 text-sm italic mt-1">✨ {getFrase()}</p>
         </div>
-        <img src="/logo.png" alt="Saberes" className="h-14 w-14 rounded-full object-cover shadow hidden md:block" />
+        <img src="/logo.png" alt="Saberes" className="h-16 w-16 rounded-full object-cover shadow-xl border-2 border-white border-opacity-30 hidden md:block" />
       </div>
 
       {cargando ? (
@@ -302,22 +303,20 @@ export default function InicioMatrona({ usuario }) {
           )}
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-2xl shadow-sm p-4 border-l-4 border-blue-500">
-              <p className="text-3xl font-bold text-gray-800">{citas.length}</p>
-              <p className="text-gray-500 text-sm mt-1">Citas hoy</p>
-            </div>
-            <div className="bg-white rounded-2xl shadow-sm p-4 border-l-4 border-yellow-500">
-              <p className="text-3xl font-bold text-gray-800">{citas.filter(c => c.estado === 'pendiente').length}</p>
-              <p className="text-gray-500 text-sm mt-1">Pendientes</p>
-            </div>
-            <div className="bg-white rounded-2xl shadow-sm p-4 border-l-4 border-green-500">
-              <p className="text-3xl font-bold text-gray-800">{citas.filter(c => c.estado === 'confirmada').length}</p>
-              <p className="text-gray-500 text-sm mt-1">Confirmadas</p>
-            </div>
-            <div className="bg-white rounded-2xl shadow-sm p-4 border-l-4 border-purple-500">
-              <p className="text-3xl font-bold text-gray-800">{citas.filter(c => c.estado === 'realizada').length}</p>
-              <p className="text-gray-500 text-sm mt-1">Realizadas</p>
-            </div>
+            {[
+              { icon: '📅', label: 'Citas hoy', value: citas.length, color: '#1d4ed8', bg: '#eff6ff' },
+              { icon: '🕐', label: 'Pendientes', value: citas.filter(c => c.estado === 'pendiente').length, color: '#b45309', bg: '#fffbeb' },
+              { icon: '✅', label: 'Confirmadas', value: citas.filter(c => c.estado === 'confirmada').length, color: '#166534', bg: '#f0fdf4' },
+              { icon: '🏥', label: 'Realizadas', value: citas.filter(c => c.estado === 'realizada').length, color: '#6d28d9', bg: '#f5f3ff' },
+            ].map((card, i) => (
+              <div key={i} className="bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition-shadow" style={{ borderTop: `3px solid ${card.color}` }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xl">{card.icon}</span>
+                  <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ color: card.color, background: card.bg }}>{card.label}</span>
+                </div>
+                <p className="text-3xl font-bold text-gray-800">{card.value}</p>
+              </div>
+            ))}
           </div>
 
           <div className="bg-white rounded-2xl shadow-sm p-5">

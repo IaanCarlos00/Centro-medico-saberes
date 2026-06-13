@@ -69,13 +69,13 @@ useEffect(() => { cargarAtencionesProf() }, [filtroFecha, fechaDia, fechaDesde, 
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
+      <div className="rounded-2xl mb-8 p-6 flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #166534 0%, #15803d 60%, #059669 100%)' }}>
         <div>
-          <h2 className="text-2xl md:text-3xl font-bold text-green-800">Bienvenido, {nombre} 👋</h2>
-          <p className="text-gray-400 capitalize mt-1">{hoy}</p>
-          <p className="text-green-700 text-sm italic mt-2">✨ {getFrase()}</p>
+          <p className="text-green-200 text-sm font-medium capitalize mb-1">{hoy}</p>
+          <h2 className="text-2xl md:text-3xl font-bold text-white">Bienvenido, {nombre} 👋</h2>
+          <p className="text-green-200 text-sm italic mt-2">✨ {getFrase()}</p>
         </div>
-        <img src="/logo.png" alt="Saberes" className="h-14 w-14 rounded-full object-cover shadow hidden md:block" />
+        <img src="/logo.png" alt="Saberes" className="h-16 w-16 rounded-full object-cover shadow-xl border-2 border-white border-opacity-30 hidden md:block" />
       </div>
 
       {cargando ? (
@@ -88,39 +88,21 @@ useEffect(() => { cargarAtencionesProf() }, [filtroFecha, fechaDia, fechaDesde, 
       ) : (
         <>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-green-600">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-2xl">👤</span>
-                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium">Total</span>
+            {[
+              { icon: '👤', label: 'Pacientes', value: datos.totalPacientes, sub: 'Total registradas', color: '#166534', bg: '#f0fdf4' },
+              { icon: '📅', label: 'Citas hoy', value: datos.citasHoy, sub: 'Programadas', color: '#1d4ed8', bg: '#eff6ff' },
+              { icon: '🏥', label: 'Atenciones', value: datos.atencionesMes, sub: `${datos.atencionesTotal} histórico`, color: '#0f766e', bg: '#f0fdfa' },
+              { icon: '⚠️', label: 'Con deuda', value: datos.pacientesDeuda.length, sub: 'Pago pendiente', color: '#b91c1c', bg: '#fef2f2' },
+            ].map((card, i) => (
+              <div key={i} className="bg-white rounded-2xl shadow-sm p-5 hover:shadow-md transition-shadow" style={{ borderTop: `3px solid ${card.color}` }}>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-2xl">{card.icon}</span>
+                  <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ color: card.color, background: card.bg }}>{card.label}</span>
+                </div>
+                <p className="text-4xl font-bold text-gray-800">{card.value}</p>
+                <p className="text-gray-400 text-xs mt-1">{card.sub}</p>
               </div>
-              <p className="text-4xl font-bold text-gray-800">{datos.totalPacientes}</p>
-              <p className="text-gray-500 text-sm mt-1">Pacientes</p>
-            </div>
-            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-blue-500">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-2xl">📅</span>
-                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium">Hoy</span>
-              </div>
-              <p className="text-4xl font-bold text-gray-800">{datos.citasHoy}</p>
-              <p className="text-gray-500 text-sm mt-1">Citas programadas</p>
-            </div>
-            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-teal-500">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-2xl">🏥</span>
-                <span className="text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded-full font-medium">Este mes</span>
-              </div>
-              <p className="text-4xl font-bold text-gray-800">{datos.atencionesMes}</p>
-              <p className="text-gray-500 text-sm mt-1">Atenciones del mes</p>
-              <p className="text-xs text-gray-400 mt-1">Total histórico: {datos.atencionesTotal}</p>
-            </div>
-            <div className="bg-white rounded-2xl shadow-sm p-5 border-l-4 border-red-400">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-2xl">💰</span>
-                <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-medium">Deuda</span>
-              </div>
-              <p className="text-4xl font-bold text-gray-800">{datos.pacientesDeuda.length}</p>
-              <p className="text-gray-500 text-sm mt-1">Con pago pendiente</p>
-            </div>
+            ))}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
