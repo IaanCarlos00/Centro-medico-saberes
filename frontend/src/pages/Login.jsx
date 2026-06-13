@@ -48,18 +48,18 @@ export default function Login({ onLogin }) {
           <h1 className="text-5xl font-bold text-white mb-3">Saberes</h1>
           <p className="text-green-200 text-xl mb-10">Espacio de Salud Integral</p>
           <div className="flex flex-col gap-4 text-left">
-            {[
-              { icon: '🌿', text: 'Gestión integral de pacientes' },
-              { icon: '📅', text: 'Agenda y citas en tiempo real' },
-              { icon: '📋', text: 'Fichas clínicas digitales' },
-              { icon: '💚', text: 'Cuidado con propósito' },
-            ].map((item, i) => (
-              <div key={i} className="flex items-center gap-3 bg-white bg-opacity-10 rounded-2xl px-5 py-3">
-                <span className="text-2xl">{item.icon}</span>
-                <span className="text-white text-sm font-medium">{item.text}</span>
+                {[
+                  { icon: '🌿', text: 'Gestión integral de pacientes' },
+                  { icon: '📅', text: 'Agenda y citas en tiempo real' },
+                  { icon: '📋', text: 'Fichas clínicas digitales' },
+                  { icon: '💚', text: 'Cuidado con propósito' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3 bg-white bg-opacity-20 rounded-2xl px-5 py-3 border border-white border-opacity-20">
+                    <span className="text-2xl">{item.icon}</span>
+                    <span className="text-white text-sm font-semibold drop-shadow">{item.text}</span>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
         </div>
       </div>
 
