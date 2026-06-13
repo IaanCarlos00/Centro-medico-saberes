@@ -224,7 +224,7 @@ export default function InicioMatrona({ usuario }) {
   )}
 
   return (
-    <div>
+    <div className="min-h-screen bg-white">
       {modalCompletar && (
         <ModalCompletarPaciente
           paciente={modalCompletar.paciente}
@@ -261,40 +261,39 @@ export default function InicioMatrona({ usuario }) {
         </div>
       )}
 
-
-      <div className="rounded-2xl mb-6 p-6 flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #166534 0%, #15803d 60%, #059669 100%)' }}>
-        <div>
-          <p className="text-green-200 text-sm font-medium capitalize mb-1">{hoy}</p>
-          <h2 className="text-2xl font-bold text-white">Mi Agenda 🩺</h2>
-          <p className="text-green-100 font-semibold text-lg">{usuario.nombre}</p>
-          <p className="text-green-200 text-sm italic mt-1">✨ {getFrase()}</p>
+      {/* Hero */}
+      <div className="relative overflow-hidden rounded-3xl mb-8 p-8" style={{ background: 'linear-gradient(135deg, #052e16 0%, #166534 50%, #15803d 100%)' }}>
+        <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #86efac, transparent)', transform: 'translate(30%, -30%)' }} />
+        <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #4ade80, transparent)', transform: 'translate(-30%, 30%)' }} />
+        <div className="relative z-10 flex items-center justify-between">
+          <div>
+            <p className="text-green-300 text-sm font-medium capitalize mb-2">{hoy}</p>
+            <h1 className="text-3xl md:text-4xl font-bold text-white mb-1">Mi Agenda 🩺</h1>
+            <p className="text-green-100 text-xl font-semibold mb-2">{usuario.nombre}</p>
+            <p className="text-green-200 text-sm italic">✨ {getFrase()}</p>
+          </div>
+          <img src="/logo.png" alt="Saberes" className="h-20 w-20 rounded-full object-cover hidden md:block" style={{ boxShadow: '0 0 0 4px rgba(255,255,255,0.15), 0 8px 32px rgba(0,0,0,0.3)' }} />
         </div>
-        <img src="/logo.png" alt="Saberes" className="h-16 w-16 rounded-full object-cover shadow-xl border-2 border-white border-opacity-30 hidden md:block" />
       </div>
 
       {cargando ? (
-        <div className="text-center py-20 text-gray-400">Cargando agenda...</div>
+        <div className="flex items-center justify-center py-32">
+          <div className="w-16 h-16 border-4 border-green-200 border-t-green-700 rounded-full animate-spin mx-auto" />
+        </div>
       ) : (
         <>
           {citasSinFinalizar.length > 0 && (
-            <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-5 flex items-center justify-between gap-3">
+            <div className="rounded-2xl p-4 mb-6 flex items-center justify-between gap-3 border border-orange-200" style={{ background: 'linear-gradient(135deg, #fff7ed, #ffedd5)' }}>
               <div className="flex items-center gap-3">
-                <span className="text-2xl">⏰</span>
+                <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center text-xl shrink-0">⏰</div>
                 <div>
-                  <p className="text-sm font-semibold text-orange-800">
-                    {citasSinFinalizar.length} cita{citasSinFinalizar.length !== 1 ? 's' : ''} sin finalizar
-                  </p>
-                  <p className="text-xs text-orange-600">
-                    {citasSinFinalizar.map(c => `${c.paciente_nombre} ${c.paciente_apellido} (${c.fecha_hora?.slice(11,16)})`).join(', ')}
-                  </p>
+                  <p className="text-sm font-bold text-orange-800">{citasSinFinalizar.length} cita{citasSinFinalizar.length !== 1 ? 's' : ''} sin finalizar</p>
+                  <p className="text-xs text-orange-600">{citasSinFinalizar.map(c => `${c.paciente_nombre} ${c.paciente_apellido} (${c.fecha_hora?.slice(11,16)})`).join(', ')}</p>
                 </div>
               </div>
               <div className="flex gap-2 shrink-0 flex-wrap">
                 {citasSinFinalizar.map(c => (
-                  <button key={c.id} onClick={async () => {
-                    await axios.put(`${API_CITAS}/${c.id}`, { ...c, estado: 'realizada' })
-                    cargar()
-                  }} className="text-xs bg-orange-500 text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 font-medium whitespace-nowrap">
+                  <button key={c.id} onClick={async () => { await axios.put(`${API_CITAS}/${c.id}`, { ...c, estado: 'realizada' }); cargar() }} className="text-xs bg-orange-500 text-white px-3 py-1.5 rounded-lg hover:bg-orange-600 font-semibold whitespace-nowrap">
                     ✅ {c.paciente_nombre?.split(' ')[0]}
                   </button>
                 ))}
@@ -302,28 +301,33 @@ export default function InicioMatrona({ usuario }) {
             </div>
           )}
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
-              { icon: '📅', label: 'Citas hoy', value: citas.length, color: '#1d4ed8', bg: '#eff6ff' },
-              { icon: '🕐', label: 'Pendientes', value: citas.filter(c => c.estado === 'pendiente').length, color: '#b45309', bg: '#fffbeb' },
-              { icon: '✅', label: 'Confirmadas', value: citas.filter(c => c.estado === 'confirmada').length, color: '#166534', bg: '#f0fdf4' },
-              { icon: '🏥', label: 'Realizadas', value: citas.filter(c => c.estado === 'realizada').length, color: '#6d28d9', bg: '#f5f3ff' },
+              { icon: '📅', label: 'Citas hoy', value: citas.length, gradient: 'linear-gradient(135deg, #eff6ff, #dbeafe)', border: '#3b82f6', text: '#1d4ed8' },
+              { icon: '🕐', label: 'Pendientes', value: citas.filter(c => c.estado === 'pendiente').length, gradient: 'linear-gradient(135deg, #fffbeb, #fef3c7)', border: '#f59e0b', text: '#b45309' },
+              { icon: '✅', label: 'Confirmadas', value: citas.filter(c => c.estado === 'confirmada').length, gradient: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '#22c55e', text: '#166534' },
+              { icon: '🏥', label: 'Realizadas', value: citas.filter(c => c.estado === 'realizada').length, gradient: 'linear-gradient(135deg, #f5f3ff, #ede9fe)', border: '#8b5cf6', text: '#6d28d9' },
             ].map((card, i) => (
-              <div key={i} className="bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition-shadow" style={{ borderTop: `3px solid ${card.color}` }}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xl">{card.icon}</span>
-                  <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{ color: card.color, background: card.bg }}>{card.label}</span>
+              <div key={i} className="rounded-2xl p-5 transition-all hover:scale-105 hover:shadow-lg cursor-default" style={{ background: card.gradient, border: `1px solid ${card.border}33` }}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: `${card.border}22` }}>{card.icon}</div>
+                  <span className="text-xs font-bold uppercase tracking-wider" style={{ color: card.text }}>{card.label}</span>
                 </div>
-                <p className="text-3xl font-bold text-gray-800">{card.value}</p>
+                <p className="text-4xl font-black" style={{ color: card.text }}>{card.value}</p>
               </div>
             ))}
           </div>
 
-          <div className="bg-white rounded-2xl shadow-sm p-5">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Citas de hoy</h3>
+          {/* Citas */}
+          <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+            <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
+              <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-base">📋</span>
+              Citas de hoy
+            </h3>
             {citas.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-4xl mb-3">📭</p>
+                <p className="text-5xl mb-3">📭</p>
                 <p className="text-gray-400">No hay citas programadas para hoy</p>
               </div>
             ) : (
@@ -331,33 +335,29 @@ export default function InicioMatrona({ usuario }) {
                 {citas.map(c => {
                   const paciente = getPaciente(c.paciente_id)
                   const incompleto = necesitaCompletar(paciente)
+                  const bgMap = { en_atencion: 'linear-gradient(135deg, #f5f3ff, #ede9fe)', realizada: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', cancelada: 'linear-gradient(135deg, #fef2f2, #fee2e2)' }
                   return (
-                    <div key={c.id} className={`flex items-center gap-4 p-4 rounded-xl border ${
-                      c.estado === 'en_atencion' ? 'border-purple-300 bg-purple-50' :
-                      c.estado === 'realizada' ? 'border-green-200 bg-green-50' :
-                      c.estado === 'cancelada' ? 'border-red-200 bg-red-50' :
-                      'border-gray-100 bg-gray-50'
-                    }`}>
-                      <div className="bg-green-700 text-white rounded-xl px-3 py-2 text-center min-w-[60px]">
-                        <p className="text-lg font-bold leading-none">{c.fecha_hora?.slice(11,16)}</p>
+                    <div key={c.id} className="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-green-200 transition-all hover:shadow-sm" style={{ background: bgMap[c.estado] || 'white' }}>
+                      <div className="text-white rounded-xl px-3 py-2.5 text-center min-w-[64px] shrink-0" style={{ background: 'linear-gradient(135deg, #166534, #15803d)' }}>
+                        <p className="text-lg font-black leading-none">{c.fecha_hora?.slice(11,16)}</p>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</p>
-                        {c.procedimiento_nombre && <p className="text-xs text-blue-600 mt-0.5 font-medium">📋 {c.procedimiento_nombre}</p>}
-                        {c.observaciones && <p className="text-xs text-gray-500 mt-0.5">{c.observaciones}</p>}
-                        {incompleto && <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full mt-1 inline-block">Datos incompletos</span>}
+                        <p className="font-bold text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</p>
+                        {c.procedimiento_nombre && <p className="text-xs text-blue-600 mt-0.5 font-semibold">📋 {c.procedimiento_nombre}</p>}
+                        {c.observaciones && <p className="text-xs text-gray-400 mt-0.5">{c.observaciones}</p>}
+                        {incompleto && <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full mt-1 inline-block font-medium">Datos incompletos</span>}
                       </div>
-                      <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
-                        <span className={`text-xs px-2 py-1 rounded-full font-medium ${estadoColor[c.estado] || 'bg-gray-100 text-gray-600'}`}>
+                      <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
+                        <span className={`text-xs px-3 py-1 rounded-full font-bold ${estadoColor[c.estado] || 'bg-gray-100 text-gray-600'}`}>
                           {c.estado === 'en_atencion' ? 'En atención' : c.estado}
                         </span>
                         {(c.estado === 'confirmada' || c.estado === 'pendiente') && (
-                          <button onClick={() => iniciarAtencion(c)} className="bg-purple-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-purple-700 transition-colors whitespace-nowrap">
+                          <button onClick={() => iniciarAtencion(c)} className="text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-90 transition-opacity whitespace-nowrap" style={{ background: 'linear-gradient(135deg, #7c3aed, #8b5cf6)' }}>
                             Iniciar atención
                           </button>
                         )}
                         {c.estado === 'en_atencion' && (
-                          <button onClick={() => { setPacienteAtendiendo(paciente || { id: c.paciente_id, nombre: c.paciente_nombre, apellido: c.paciente_apellido }); setCitaAtendiendo(c) }} className="bg-purple-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-purple-700 transition-colors whitespace-nowrap">
+                          <button onClick={() => { setPacienteAtendiendo(paciente || { id: c.paciente_id, nombre: c.paciente_nombre, apellido: c.paciente_apellido }); setCitaAtendiendo(c) }} className="text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:opacity-90 transition-opacity whitespace-nowrap" style={{ background: 'linear-gradient(135deg, #7c3aed, #8b5cf6)' }}>
                             Continuar
                           </button>
                         )}
@@ -367,23 +367,27 @@ export default function InicioMatrona({ usuario }) {
                 })}
               </div>
             )}
-         </div>
+          </div>
 
+          {/* Atenciones por profesional */}
           {atencionesProf.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-sm p-5 mt-5">
-              <h3 className="text-lg font-bold text-gray-800 mb-3">🩺 Atenciones e ingresos este mes</h3>
-              <div className="flex flex-col gap-2">
+            <div className="rounded-2xl p-6 border border-gray-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+              <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center text-base">🩺</span>
+                Atenciones e ingresos este mes
+              </h3>
+              <div className="flex flex-col gap-3">
                 {atencionesProf.map((p, i) => (
-                  <div key={i} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
-                    <p className="font-medium text-gray-800 text-sm">{p.nombre} {p.apellido}</p>
-                    <div className="flex gap-4 text-xs">
+                  <div key={i} className="flex justify-between items-center p-4 rounded-xl bg-gray-50 border border-gray-100 hover:border-teal-200 transition-colors">
+                    <p className="font-bold text-gray-800">{p.nombre} {p.apellido}</p>
+                    <div className="flex gap-6 text-sm">
                       <div className="text-center">
-                        <p className="font-bold text-teal-700">{p.atenciones}</p>
-                        <p className="text-gray-400">atenciones</p>
+                        <p className="font-black text-teal-600 text-lg">{p.atenciones}</p>
+                        <p className="text-xs text-gray-400">atenciones</p>
                       </div>
                       <div className="text-center">
-                        <p className="font-bold text-green-700">{new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(p.ingresos || 0)}</p>
-                        <p className="text-gray-400">ingresos</p>
+                        <p className="font-black text-green-700">{new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(p.ingresos || 0)}</p>
+                        <p className="text-xs text-gray-400">ingresos</p>
                       </div>
                     </div>
                   </div>
