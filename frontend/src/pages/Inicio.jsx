@@ -296,15 +296,22 @@ useEffect(() => { cargarAtencionesProf() }, [filtroFecha, fechaDia, fechaDesde, 
           {datos.atencionesPorMes && datos.atencionesPorMes.length > 0 && (
             <div className="bg-white rounded-2xl shadow-sm p-5 mb-6">
               <h3 className="text-lg font-bold text-gray-800 mb-4">📊 Atenciones realizadas (últimos 6 meses)</h3>
-              <div className="flex items-end gap-3 h-40">
+              <div className="flex flex-col gap-3">
                 {datos.atencionesPorMes.map((m, i) => {
                   const max = Math.max(...datos.atencionesPorMes.map(x => parseInt(x.total)))
-                  const altura = max > 0 ? (parseInt(m.total) / max) * 100 : 0
+                  const pct = max > 0 ? (parseInt(m.total) / max) * 100 : 0
+                  const colores = ['bg-green-600', 'bg-teal-500', 'bg-blue-500', 'bg-green-500', 'bg-emerald-600', 'bg-cyan-500']
                   return (
-                    <div key={i} className="flex flex-col items-center flex-1 gap-1">
-                      <span className="text-xs font-bold text-green-800">{m.total}</span>
-                      <div className="w-full bg-green-700 rounded-t-lg transition-all" style={{ height: `${altura}%`, minHeight: altura > 0 ? '4px' : '0' }}></div>
-                      <span className="text-xs text-gray-500">{m.mes_nombre}</span>
+                    <div key={i} className="flex items-center gap-3">
+                      <span className="text-xs text-gray-500 w-8 text-right">{m.mes_nombre}</span>
+                      <div className="flex-1 bg-gray-100 rounded-full h-7 relative">
+                        <div
+                          className={`h-7 rounded-full ${colores[i % colores.length]} transition-all flex items-center justify-end pr-3`}
+                          style={{ width: `${Math.max(pct, 5)}%` }}
+                        >
+                          <span className="text-white text-xs font-bold">{m.total}</span>
+                        </div>
+                      </div>
                     </div>
                   )
                 })}
