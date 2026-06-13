@@ -336,30 +336,6 @@ useEffect(() => { cargarAtencionesProf() }, [filtroFecha, fechaDia, fechaDesde, 
               />
             </div>
           )}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Link to="/pacientes" className="bg-green-700 text-white rounded-2xl p-5 hover:bg-green-800 transition-colors flex items-center gap-4 shadow-sm">
-              <span className="text-4xl">👤</span>
-              <div>
-                <p className="font-bold text-lg">Pacientes</p>
-                <p className="text-green-200 text-sm">Registrar o buscar</p>
-              </div>
-            </Link>
-            <Link to="/citas" className="bg-blue-600 text-white rounded-2xl p-5 hover:bg-blue-700 transition-colors flex items-center gap-4 shadow-sm">
-              <span className="text-4xl">📅</span>
-              <div>
-                <p className="font-bold text-lg">Agenda</p>
-                <p className="text-blue-100 text-sm">Ver o agendar citas</p>
-              </div>
-            </Link>
-            <Link to="/pagos" className="bg-teal-600 text-white rounded-2xl p-5 hover:bg-teal-700 transition-colors flex items-center gap-4 shadow-sm">
-              <span className="text-4xl">💰</span>
-              <div>
-                <p className="font-bold text-lg">Pagos</p>
-                <p className="text-teal-100 text-sm">Registrar o revisar</p>
-              </div>
-            </Link>
-          </div>
         </>
       )}
     </div>
