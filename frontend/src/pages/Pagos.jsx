@@ -435,7 +435,7 @@ export default function Pagos() {
           return (
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-gray-600 text-sm">{pagosDia.length} paciente{pagosDia.length !== 1 ? 's' : ''} atendida{pagosDia.length !== 1 ? 's' : ''} · {pagosDia.filter(p => p.estado === 'pagado').length} pago{pagosDia.filter(p => p.estado === 'pagado').length !== 1 ? 's' : ''} confirmado{pagosDia.filter(p => p.estado === 'pagado').length !== 1 ? 's' : ''}</span>
+                <span className="text-gray-600 text-sm">{new Set(pagosDia.map(p => p.paciente_id)).size} paciente{new Set(pagosDia.map(p => p.paciente_id)).size !== 1 ? 's' : ''} atendida{new Set(pagosDia.map(p => p.paciente_id)).size !== 1 ? 's' : ''} · {pagosDia.filter(p => p.estado === 'pagado').length} pago{pagosDia.filter(p => p.estado === 'pagado').length !== 1 ? 's' : ''} confirmado{pagosDia.filter(p => p.estado === 'pagado').length !== 1 ? 's' : ''}</span>
                 <span className="text-2xl font-bold text-green-800">{formatCLP(totalDia)}</span>
               </div>
               {pagosDia.length > 0 ? (
