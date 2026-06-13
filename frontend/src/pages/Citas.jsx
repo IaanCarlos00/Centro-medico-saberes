@@ -488,8 +488,20 @@ export default function Agenda() {
 
     {modalAgendar && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={() => setModalAgendar(null)}>
-    <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md" onClick={e => e.stopPropagation()}>
-      <h3 className="text-lg font-bold text-green-800 mb-4">{editando ? '✏️ Editar cita' : '🗓️ Agendar cita'}</h3>
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div className="px-6 py-5 flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #052e16, #166534)' }}>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: 'rgba(255,255,255,0.15)' }}>
+            {editando ? '✏️' : '🗓️'}
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-white">{editando ? 'Editar cita' : 'Nueva cita'}</h3>
+            <p className="text-green-300 text-xs">{editando ? 'Modifica los datos' : 'Agenda una nueva cita'}</p>
+          </div>
+        </div>
+        <button onClick={() => { setModalAgendar(null); setBusquedaPaciente(''); setErrores({}); setEditando(null) }} className="text-white hover:text-green-200 text-2xl">✕</button>
+      </div>
+      <div className="p-6">
       <div className="flex gap-2 mb-4">
         <button onClick={() => setTipoAgendamiento('confirmado')} className={`flex-1 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${tipoAgendamiento === 'confirmado' ? 'border-green-600 bg-green-50 text-green-800' : 'border-gray-200 text-gray-500'}`}>✅ Confirmada</button>
         <button onClick={() => setTipoAgendamiento('tentativo')} className={`flex-1 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${tipoAgendamiento === 'tentativo' ? 'border-yellow-500 bg-yellow-50 text-yellow-800' : 'border-gray-200 text-gray-500'}`}>⏳ Tentativa</button>
@@ -628,7 +640,8 @@ export default function Agenda() {
   </div>
 )}
 
-<div className="flex gap-3 mt-6">
+</div>
+      <div className="px-6 pb-6 flex gap-3">
         <button onClick={async () => {
           // CASO EDITAR
           if (editando) {
@@ -700,8 +713,8 @@ export default function Agenda() {
           setNumeroBono('')
           setModalAgendar(null)
           cargar()
-        }} className="flex-1 bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 font-medium">
-          {editando ? '✓ Actualizar cita' : tipoAgendamiento === 'tentativo' ? '⏳ Reservar tentativa' : 'Agendar'}
+        }} className="flex-1 text-white py-2.5 rounded-xl font-bold hover:opacity-90 transition-all" style={{ background: 'linear-gradient(135deg, #166534, #15803d)' }}>
+          {editando ? '✓ Actualizar cita' : tipoAgendamiento === 'tentativo' ? '⏳ Reservar tentativa' : '+ Agendar'}
         </button>
         {editando && form.estado !== 'realizada' && (
           <button onClick={async () => {
@@ -717,7 +730,7 @@ export default function Agenda() {
             ✅ Finalizar atención
           </button>
         )}
-        <button onClick={() => { setModalAgendar(null); setBusquedaPaciente(''); setErrores({}); setEditando(null) }} className="flex-1 bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium">Cancelar</button>
+        <button onClick={() => { setModalAgendar(null); setBusquedaPaciente(''); setErrores({}); setEditando(null) }} className="flex-1 bg-gray-100 text-gray-700 py-2.5 rounded-xl font-medium hover:bg-gray-200 transition-colors">Cancelar</button>
       </div>
     </div>
   </div>
@@ -819,27 +832,32 @@ export default function Agenda() {
   </div>
 )}
 
-    <div className="flex items-center justify-between mb-6">
-      <h2 className="text-2xl font-bold text-green-800">Agenda</h2>
-      <div className="flex gap-2">
-        <button onClick={() => setVistaActiva('agenda')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${vistaActiva === 'agenda' ? 'bg-green-700 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>📅 Agenda</button>
-        <button onClick={() => setVistaActiva('historial')} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${vistaActiva === 'historial' ? 'bg-green-700 text-white' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}>📋 Historial</button>
+    <div className="relative overflow-hidden rounded-3xl mb-8 p-6 flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #052e16 0%, #166534 60%, #15803d 100%)' }}>
+        <div className="absolute top-0 right-0 w-64 h-64 rounded-full opacity-10" style={{ background: 'radial-gradient(circle, #86efac, transparent)', transform: 'translate(30%, -30%)' }} />
+        <div className="relative z-10">
+          <p className="text-green-300 text-xs font-semibold uppercase tracking-widest mb-1">Gestión</p>
+          <h2 className="text-3xl font-black text-white">Agenda</h2>
+          <p className="text-green-200 text-sm mt-1">{citas.length} cita{citas.length !== 1 ? 's' : ''} registrada{citas.length !== 1 ? 's' : ''}</p>
+        </div>
+        <div className="relative z-10 flex gap-2">
+          <button onClick={() => setVistaActiva('agenda')} className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${vistaActiva === 'agenda' ? 'bg-white text-green-800' : 'text-white hover:bg-white hover:bg-opacity-10'}`} style={vistaActiva !== 'agenda' ? { border: '1px solid rgba(255,255,255,0.25)' } : {}}>📅 Agenda</button>
+          <button onClick={() => setVistaActiva('historial')} className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${vistaActiva === 'historial' ? 'bg-white text-green-800' : 'text-white hover:bg-white hover:bg-opacity-10'}`} style={vistaActiva !== 'historial' ? { border: '1px solid rgba(255,255,255,0.25)' } : {}}>📋 Historial</button>
+        </div>
       </div>
-    </div>
 
       {/* VISTA AGENDA */}
       {vistaActiva === 'agenda' && (
         <>
-          <div className="flex justify-end gap-3 mb-4">
+          <div className="flex justify-end gap-3 mb-5">
             <button
               onClick={() => { setModoMover(!modoMover); setCitaParaMover(null) }}
-              className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors border-2 ${
+              className={`px-4 py-2.5 rounded-xl font-semibold text-sm transition-all border-2 ${
                 modoMover
-                  ? 'border-orange-400 bg-orange-50 text-orange-700'
-                  : 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50'
+                  ? 'border-orange-400 bg-orange-50 text-orange-700 shadow-sm'
+                  : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:shadow-sm'
               }`}
             >
-              {modoMover ? (citaParaMover ? `📌 ${citaParaMover.paciente_nombre} — click en destino` : '🔓 Selecciona una cita') : '🔒 Agenda bloqueada'}
+              {modoMover ? (citaParaMover ? `📌 ${citaParaMover.paciente_nombre} — click destino` : '🔓 Selecciona una cita') : '🔒 Mover cita'}
             </button>
             <button
               onClick={() => {
@@ -849,7 +867,8 @@ export default function Agenda() {
                 setTipoAgendamiento('confirmado')
                 setModalAgendar(true)
               }}
-              className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 font-medium transition-colors"
+              className="text-white px-5 py-2.5 rounded-xl font-bold transition-all hover:opacity-90 hover:shadow-lg shadow-sm"
+              style={{ background: 'linear-gradient(135deg, #166534, #15803d)' }}
             >
               + Nueva cita
             </button>
@@ -1177,16 +1196,13 @@ export default function Agenda() {
           </div>
           {(busqueda || filtroEstado) && <p className="text-sm text-gray-500 mb-3">{filtradas.length} cita{filtradas.length !== 1 ? 's' : ''} encontrada{filtradas.length !== 1 ? 's' : ''}</p>}
 
-          <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
+          <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-green-50 text-green-800 uppercase text-xs">
-                <tr>
-                  <th className="px-4 py-3 text-left">Paciente</th>
-                  <th className="px-4 py-3 text-left">Profesional</th>
-                  <th className="px-4 py-3 text-left">Fecha y hora</th>
-                  <th className="px-4 py-3 text-left">Estado</th>
-                  <th className="px-4 py-3 text-left">Observaciones</th>
-                  <th className="px-4 py-3 text-left">Acciones</th>
+              <thead>
+                <tr style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)' }}>
+                  {['Paciente', 'Profesional', 'Fecha y hora', 'Estado', 'Observaciones', 'Acciones'].map(h => (
+                    <th key={h} className="px-4 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">{h}</th>
+                  ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -1197,9 +1213,11 @@ export default function Agenda() {
                     <td className="px-4 py-3 text-gray-600">{c.fecha_hora?.slice(0,16).replace('T',' ')}</td>
                     <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-semibold ${estadoColor[c.estado]?.badge}`}>{c.estado}</span></td>
                     <td className="px-4 py-3 text-gray-500">{c.observaciones}</td>
-                    <td className="px-4 py-3 flex gap-2">
-                      <button onClick={() => editar(c)} className="text-green-700 hover:underline text-sm font-medium">Editar</button>
-                      <button onClick={() => eliminar(c.id)} className="text-red-500 hover:underline text-sm font-medium">Eliminar</button>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        <button onClick={() => editar(c)} className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-green-50 text-green-700 hover:bg-green-100 transition-colors">Editar</button>
+                        <button onClick={() => eliminar(c.id)} className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors">Eliminar</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
