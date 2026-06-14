@@ -17,20 +17,26 @@ export default function Procedimientos() {
   const [usoProcedimientos, setUsoProcedimientos] = useState([])
 
   const cargar = async () => {
-    const [cat, uso] = await Promise.all([
-      axios.get(`${API}/catalogo`),
-      axios.get(`${API}/paciente/todos`).catch(() => ({ data: [] }))
-    ])
-    setCatalogo(cat.data)
-    const conteo = {}
-    cat.data.forEach(p => {
-      const usos = parseInt(p.usos || p.total_usos || 0)
-      if (usos > 0) conteo[p.nombre] = usos
-    })
-    const ordenado = Object.entries(conteo)
-      .map(([nombre, total]) => ({ nombre, total }))
-      .sort((a, b) => b.total - a.total)
-    setUsoProcedimientos(ordenado)
+    try {
+      const res = await axios.get(`${API}/catalogo`)
+      setCatalogo(res.data)
+
+      // Traer todos los procedimientos aplicados a pacientes para contar uso
+      const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
+      const pagos = await axios.get(API_PAGOS)
+      const conteo = {}
+      pagos.data.forEach(p => {
+        const nombre = p.procedimiento_nombre || p.notas
+        if (!nombre) return
+        conteo[nombre] = (conteo[nombre] || 0) + 1
+      })
+      const ordenado = Object.entries(conteo)
+        .map(([nombre, total]) => ({ nombre, total }))
+        .sort((a, b) => b.total - a.total)
+      setUsoProcedimientos(ordenado)
+    } catch (err) {
+      console.error('Error cargando procedimientos:', err)
+    }
   }
 
   useEffect(() => { cargar() }, [])
