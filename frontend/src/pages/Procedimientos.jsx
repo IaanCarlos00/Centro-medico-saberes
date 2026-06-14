@@ -14,10 +14,24 @@ export default function Procedimientos() {
   const [errores, setErrores] = useState({})
   const [modalForm, setModalForm] = useState(false)
   const [busqueda, setBusqueda] = useState('')
+  const [usoProcedimientos, setUsoProcedimientos] = useState([])
 
   const cargar = async () => {
-    const res = await axios.get(`${API}/catalogo`)
-    setCatalogo(res.data)
+    const [cat, uso] = await Promise.all([
+      axios.get(`${API}/catalogo`),
+      axios.get(API)
+    ])
+    setCatalogo(cat.data)
+    // Agrupar por nombre de procedimiento y contar
+    const conteo = {}
+    uso.data.forEach(p => {
+      if (!p.nombre) return
+      conteo[p.nombre] = (conteo[p.nombre] || 0) + 1
+    })
+    const ordenado = Object.entries(conteo)
+      .map(([nombre, total]) => ({ nombre, total }))
+      .sort((a, b) => b.total - a.total)
+    setUsoProcedimientos(ordenado)
   }
 
   useEffect(() => { cargar() }, [])
@@ -140,7 +154,7 @@ export default function Procedimientos() {
 
       {/* Stats */}
       {catalogo.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div className="rounded-2xl p-5 hover:shadow-md transition-shadow" style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', border: '1px solid #16a34a22' }}>
             <div className="flex items-center justify-between mb-3">
               <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg" style={{ background: '#16a34a22' }}>📊</div>
@@ -167,6 +181,32 @@ export default function Procedimientos() {
               </div>
               <p className="text-2xl font-black text-teal-800">{formatCLP(masBarato.monto)}</p>
               <p className="text-xs text-teal-600 mt-1 truncate">{masBarato.nombre}</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Uso de procedimientos */}
+      {usoProcedimientos.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          <div className="rounded-2xl p-5 hover:shadow-md transition-shadow" style={{ background: 'linear-gradient(135deg, #f5f3ff, #ede9fe)', border: '1px solid #8b5cf622' }}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg" style={{ background: '#8b5cf622' }}>🏆</div>
+              <span className="text-xs font-bold uppercase tracking-wider text-purple-700">Más usado</span>
+            </div>
+            <p className="text-3xl font-black text-purple-800 mb-1">{usoProcedimientos[0].total}</p>
+            <p className="text-sm font-bold text-purple-700 truncate">{usoProcedimientos[0].nombre}</p>
+            <p className="text-xs text-purple-500 mt-1">{usoProcedimientos[0].total} vez{usoProcedimientos[0].total !== 1 ? 'es' : ''} realizado</p>
+          </div>
+          {usoProcedimientos.length > 1 && (
+            <div className="rounded-2xl p-5 hover:shadow-md transition-shadow" style={{ background: 'linear-gradient(135deg, #fff7ed, #ffedd5)', border: '1px solid #f9741622' }}>
+              <div className="flex items-center justify-between mb-3">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-lg" style={{ background: '#f9741622' }}>📉</div>
+                <span className="text-xs font-bold uppercase tracking-wider text-orange-700">Menos usado</span>
+              </div>
+              <p className="text-3xl font-black text-orange-800 mb-1">{usoProcedimientos[usoProcedimientos.length - 1].total}</p>
+              <p className="text-sm font-bold text-orange-700 truncate">{usoProcedimientos[usoProcedimientos.length - 1].nombre}</p>
+              <p className="text-xs text-orange-500 mt-1">{usoProcedimientos[usoProcedimientos.length - 1].total} vez{usoProcedimientos[usoProcedimientos.length - 1].total !== 1 ? 'es' : ''} realizado</p>
             </div>
           )}
         </div>
