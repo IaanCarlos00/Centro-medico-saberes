@@ -328,9 +328,7 @@ export default function Pap() {
                   <tr key={p.id} className={`hover:bg-gray-50 transition-colors ${critico ? 'bg-red-50' : ''}`}>
                     <td className="px-4 py-3">
                       <p className="font-semibold text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
-                      {pacientes.find(pac => pac.id === p.paciente_id)?.email && (
-                        <a href={`mailto:${pacientes.find(pac => pac.id === p.paciente_id).email}`} className="text-xs text-blue-500 hover:underline">✉️ email</a>
-                      )}
+                      {(() => { const pac = pacientes.find(pac => pac.id === p.paciente_id); return pac?.email ? <a href={`mailto:${pac.email}`} className="text-xs text-blue-500 hover:underline">✉️ {pac.email}</a> : null })()}
                     </td>
                     <td className="px-4 py-3 text-gray-500 text-xs">{p.nombre || '—'}</td>
                     <td className="px-4 py-3 text-gray-500 text-xs">{p.profesional_nombre ? `${p.profesional_nombre} ${p.profesional_apellido}` : '—'}</td>
@@ -393,6 +391,7 @@ export default function Pap() {
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <p className="font-bold text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
+                  {(() => { const pac = pacientes.find(pac => pac.id === p.paciente_id); return pac?.email ? <a href={`mailto:${pac.email}`} className="text-xs text-blue-500 hover:underline">✉️ {pac.email}</a> : null })()}
                   {p.nombre && <p className="text-xs text-gray-400 mt-0.5">📋 {p.nombre}</p>}
                 </div>
                 <button onClick={() => cambiarEstado(p.id, p.estado_envio === 'pendiente' ? 'enviado' : 'pendiente')} className={`px-2.5 py-1 rounded-full text-xs font-bold shrink-0 ${p.estado_envio === 'enviado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>

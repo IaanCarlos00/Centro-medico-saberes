@@ -477,6 +477,7 @@ export default function Pagos() {
               <div>
                 <p className="text-sm font-semibold text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
                 <p className="text-xs text-gray-400">🏥 Bono: {p.numero_bono} · {formatFecha(p.fecha_cita || p.fecha)}</p>
+                {p.paciente_rut && <p className="text-xs text-gray-400">🪪 {p.paciente_rut}</p>}
                 {p.profesional_nombre && <p className="text-xs text-teal-600">👩‍⚕️ {p.profesional_nombre} {p.profesional_apellido}</p>}
               </div>
               <div className="flex gap-2">

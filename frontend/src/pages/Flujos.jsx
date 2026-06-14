@@ -279,9 +279,7 @@ export default function Flujos() {
                 <tr key={f.id} className="hover:bg-gray-50 transition-colors">
                   <td className="px-4 py-3">
                     <p className="font-semibold text-gray-800">{f.paciente_nombre} {f.paciente_apellido}</p>
-                    {pacientes.find(pac => pac.id === f.paciente_id)?.email && (
-                      <a href={`mailto:${pacientes.find(pac => pac.id === f.paciente_id).email}`} className="text-xs text-blue-500 hover:underline">✉️ email</a>
-                    )}
+                    {(() => { const pac = pacientes.find(pac => pac.id === f.paciente_id); return pac?.email ? <a href={`mailto:${pac.email}`} className="text-xs text-blue-500 hover:underline">✉️ {pac.email}</a> : null })()}
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs">{f.tipo_examen || '—'}</td>
                   <td className="px-4 py-3 text-gray-500 text-xs">{f.nombre || '—'}</td>
@@ -326,6 +324,7 @@ export default function Flujos() {
             <div className="flex items-start justify-between mb-2">
               <div>
                 <p className="font-bold text-gray-800">{f.paciente_nombre} {f.paciente_apellido}</p>
+                {(() => { const pac = pacientes.find(pac => pac.id === f.paciente_id); return pac?.email ? <a href={`mailto:${pac.email}`} className="text-xs text-blue-500 hover:underline">✉️ {pac.email}</a> : null })()}
                 {f.tipo_examen && <p className="text-xs text-gray-400 mt-0.5">🔬 {f.tipo_examen}</p>}
               </div>
               <button onClick={() => cambiarEntregado(f.id, !f.entregado)} className={`px-2.5 py-1 rounded-full text-xs font-bold shrink-0 ${f.entregado ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
