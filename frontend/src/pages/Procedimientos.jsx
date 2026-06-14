@@ -19,14 +19,13 @@ export default function Procedimientos() {
   const cargar = async () => {
     const [cat, uso] = await Promise.all([
       axios.get(`${API}/catalogo`),
-      axios.get(API)
+      axios.get(`${API}/paciente/todos`).catch(() => ({ data: [] }))
     ])
     setCatalogo(cat.data)
-    // Agrupar por nombre de procedimiento y contar
     const conteo = {}
-    uso.data.forEach(p => {
-      if (!p.nombre) return
-      conteo[p.nombre] = (conteo[p.nombre] || 0) + 1
+    cat.data.forEach(p => {
+      const usos = parseInt(p.usos || p.total_usos || 0)
+      if (usos > 0) conteo[p.nombre] = usos
     })
     const ordenado = Object.entries(conteo)
       .map(([nombre, total]) => ({ nombre, total }))
