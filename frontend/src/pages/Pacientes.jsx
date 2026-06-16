@@ -418,7 +418,7 @@ export default function Pacientes() {
         <table className="w-full text-sm">
           <thead>
             <tr style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)' }}>
-              {['Paciente', 'RUT', 'Teléfono', 'Email', 'Estado', 'Próx. control', 'Acciones'].map(h => (
+              {['Paciente', 'RUT','Fecha Nac.', 'Teléfono', 'Email', 'Estado', 'Próx. control', 'Acciones'].map(h => (
                 <th key={h} className="px-4 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">{h}</th>
               ))}
             </tr>
@@ -439,6 +439,7 @@ export default function Pacientes() {
                 <td className="px-4 py-3 text-gray-600 text-sm">{p.rut || <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">Pendiente</span>}</td>
                 <td className="px-4 py-3 text-gray-600 text-sm">{p.telefono || <span className="text-gray-300">—</span>}</td>
                 <td className="px-4 py-3 text-gray-600 text-sm">{p.email || <span className="text-gray-300">—</span>}</td>
+                <td className="px-4 py-3 text-gray-600 text-sm">{p.fecha_nacimiento ? new Date(p.fecha_nacimiento).toLocaleDateString('es-CL') : <span className="text-gray-300">—</span>}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-col gap-1">
                     {necesitaCompletar(p)
