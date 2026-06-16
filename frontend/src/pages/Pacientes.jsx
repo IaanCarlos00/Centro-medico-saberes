@@ -437,9 +437,9 @@ export default function Pacientes() {
                   </div>
                 </td>
                 <td className="px-4 py-3 text-gray-600 text-sm">{p.rut || <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full">Pendiente</span>}</td>
+                <td className="px-4 py-3 text-gray-600 text-sm">{p.fecha_nacimiento ? new Date(p.fecha_nacimiento).toLocaleDateString('es-CL') : <span className="text-gray-300">—</span>}</td>
                 <td className="px-4 py-3 text-gray-600 text-sm">{p.telefono || <span className="text-gray-300">—</span>}</td>
                 <td className="px-4 py-3 text-gray-600 text-sm">{p.email || <span className="text-gray-300">—</span>}</td>
-                <td className="px-4 py-3 text-gray-600 text-sm">{p.fecha_nacimiento ? new Date(p.fecha_nacimiento).toLocaleDateString('es-CL') : <span className="text-gray-300">—</span>}</td>
                 <td className="px-4 py-3">
                   <div className="flex flex-col gap-1">
                     {necesitaCompletar(p)
