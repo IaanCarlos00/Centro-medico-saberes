@@ -28,7 +28,8 @@ app.use(cors({
   origin: [
     'https://centro-medico-saberes.vercel.app',
     'https://saberes.cl',
-    'https://www.saberes.cl'
+    'https://www.saberes.cl',
+    'http://centro.saberes.cl',
   ]
 }));
 app.use(express.json());
