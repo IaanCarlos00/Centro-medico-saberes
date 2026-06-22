@@ -82,21 +82,17 @@ export default function FichaIngreso2({ paciente, onVolver }) {
   useEffect(() => {
     cargar()
     // Recuperar borrador guardado
-    try {
-  const borrador = localStorage.getItem(`borrador_fi2_${paciente.id}`)
-  if (borrador) {
-    const datos = JSON.parse(borrador)
-    setForm(datos)
-  }
-} catch (e) {
-  localStorage.removeItem(`borrador_fi2_${paciente.id}`)
-}
+    const borrador = localStorage.getItem(`borrador_fi1_${paciente.id}`)
+    if (borrador) {
+      const datos = JSON.parse(borrador)
+      setForm(datos)
+    }
   }, [])
 
   const handleChange = e => {
     const nuevoForm = { ...form, [e.target.name]: e.target.value }
     setForm(nuevoForm)
-    localStorage.setItem(`borrador_fi2_${paciente.id}`, JSON.stringify(nuevoForm))
+    localStorage.setItem(`borrador_fi1_${paciente.id}`, JSON.stringify(nuevoForm))
   }
 
   const guardar = async () => {
@@ -108,7 +104,7 @@ export default function FichaIngreso2({ paciente, onVolver }) {
       await axios.post(`${API}/2`, { ...form, paciente_id: paciente.id })
     }
     setForm(campoVacio)
-    localStorage.removeItem(`borrador_fi2_${paciente.id}`)
+    localStorage.removeItem(`borrador_fi1_${paciente.id}`)
     cargar()
   }
 

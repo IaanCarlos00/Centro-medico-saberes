@@ -86,15 +86,11 @@ export default function FichaIngreso1({ paciente, onVolver }) {
   useEffect(() => {
     cargar()
     // Recuperar borrador guardado
-    try {
-  const borrador = localStorage.getItem(`borrador_fi1_${paciente.id}`)
-  if (borrador) {
-    const datos = JSON.parse(borrador)
-    setForm(datos)
-  }
-} catch (e) {
-  localStorage.removeItem(`borrador_fi1_${paciente.id}`)
-}
+    const borrador = localStorage.getItem(`borrador_fi1_${paciente.id}`)
+    if (borrador) {
+      const datos = JSON.parse(borrador)
+      setForm(datos)
+    }
   }, [])
 
   const handleChange = e => {
