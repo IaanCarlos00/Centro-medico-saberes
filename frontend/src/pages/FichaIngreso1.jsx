@@ -83,9 +83,21 @@ export default function FichaIngreso1({ paciente, onVolver }) {
     setProfesionales(pr.data)
   }
 
-  useEffect(() => { cargar() }, [])
+  useEffect(() => {
+    cargar()
+    // Recuperar borrador guardado
+    const borrador = localStorage.getItem(`borrador_fi1_${paciente.id}`)
+    if (borrador) {
+      const datos = JSON.parse(borrador)
+      setForm(datos)
+    }
+  }, [])
 
-  const handleChange = e => setForm({ ...form, [e.target.name]: e.target.value })
+  const handleChange = e => {
+    const nuevoForm = { ...form, [e.target.name]: e.target.value }
+    setForm(nuevoForm)
+    localStorage.setItem(`borrador_fi1_${paciente.id}`, JSON.stringify(nuevoForm))
+  }
 
   const guardar = async () => {
     if (!form.profesional_id || !form.motivo_consulta) return alert('Completa el profesional y motivo de consulta')
@@ -96,7 +108,8 @@ export default function FichaIngreso1({ paciente, onVolver }) {
       await axios.post(`${API}/1`, { ...form, paciente_id: paciente.id })
     }
     setForm(campoVacio)
-    cargar()
+      localStorage.removeItem(`borrador_fi1_${paciente.id}`)
+      cargar()
   }
 
   const editar = f => {

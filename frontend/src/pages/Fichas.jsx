@@ -88,7 +88,15 @@ export default function Fichas({ paciente, onVolver }) {
     setArchivos(arch.data)
   }
 
-  useEffect(() => { cargar() }, [])
+  useEffect(() => {
+    cargar()
+    const borrador = localStorage.getItem(`borrador_control_${paciente.id}`)
+    if (borrador) {
+      const datos = JSON.parse(borrador)
+      setForm(datos)
+      setMostrarForm(true)
+    }
+  }, [])
 
   useEffect(() => {
     const tieneCambios = vista === 'control' && mostrarForm && (form.motivo_consulta.trim() !== '' || form.diagnostico.trim() !== '' || form.tratamiento.trim() !== '')
@@ -98,8 +106,10 @@ export default function Fichas({ paciente, onVolver }) {
   }, [vista, form, mostrarForm])
 
   const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value })
+    const nuevoForm = { ...form, [e.target.name]: e.target.value }
+    setForm(nuevoForm)
     setErrores({ ...errores, [e.target.name]: '' })
+    localStorage.setItem(`borrador_control_${paciente.id}`, JSON.stringify(nuevoForm))
   }
 
   const validar = () => {
@@ -121,9 +131,10 @@ export default function Fichas({ paciente, onVolver }) {
     setForm({ motivo_consulta: '', diagnostico: '', tratamiento: '', observaciones: '', profesional_id: '', fecha: hoyStr, proximo_control: '' })
     setErrores({})
     setMostrarForm(false)
+    localStorage.removeItem(`borrador_control_${paciente.id}`)
     cargar()
   }
-
+s
   const editar = f => {
     setForm({ motivo_consulta: f.motivo_consulta, diagnostico: f.diagnostico || '', tratamiento: f.tratamiento || '', observaciones: f.observaciones || '', profesional_id: f.profesional_id, fecha: f.fecha?.slice(0, 10) || hoyStr, proximo_control: f.proximo_control?.slice(0, 10) || '' })
     setEditando(f.id)
