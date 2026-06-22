@@ -138,7 +138,6 @@ export default function Fichas({ paciente, onVolver }) {
     localStorage.removeItem(`borrador_control_${paciente.id}`)
     cargar()
   }
-s
   const editar = f => {
     setForm({ motivo_consulta: f.motivo_consulta, diagnostico: f.diagnostico || '', tratamiento: f.tratamiento || '', observaciones: f.observaciones || '', profesional_id: f.profesional_id, fecha: f.fecha?.slice(0, 10) || hoyStr, proximo_control: f.proximo_control?.slice(0, 10) || '' })
     setEditando(f.id)
