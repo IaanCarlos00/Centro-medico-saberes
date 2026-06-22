@@ -90,12 +90,16 @@ export default function Fichas({ paciente, onVolver }) {
 
   useEffect(() => {
     cargar()
-    const borrador = localStorage.getItem(`borrador_control_${paciente.id}`)
-    if (borrador) {
-      const datos = JSON.parse(borrador)
-      setForm(datos)
-      setMostrarForm(true)
-    }
+    try {
+  const borrador = localStorage.getItem(`borrador_control_${paciente.id}`)
+  if (borrador) {
+    const datos = JSON.parse(borrador)
+    setForm(datos)
+    setMostrarForm(true)
+  }
+} catch (e) {
+  localStorage.removeItem(`borrador_control_${paciente.id}`)
+}
   }, [])
 
   useEffect(() => {
