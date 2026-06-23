@@ -79,7 +79,7 @@ router.get('/', async (req, res) => {
         JOIN paciente p ON f.paciente_id = p.id
         JOIN profesional pr ON f.profesional_id = pr.id
         WHERE f.proximo_control IS NOT NULL
-          AND f.proximo_control >= CURRENT_DATE
+          AND f.proximo_control >= CURRENT_DATE - INTERVAL '6 months'
           AND f.proximo_control <= CURRENT_DATE + INTERVAL '60 days'
 
         UNION ALL
@@ -92,7 +92,7 @@ router.get('/', async (req, res) => {
         JOIN paciente p ON fi1.paciente_id = p.id
         JOIN profesional pr ON fi1.profesional_id = pr.id
         WHERE fi1.proximo_control IS NOT NULL
-          AND fi1.proximo_control >= CURRENT_DATE
+          AND fi1.proximo_control >= CURRENT_DATE - INTERVAL '6 months'
           AND fi1.proximo_control <= CURRENT_DATE + INTERVAL '60 days'
 
         UNION ALL
@@ -105,11 +105,11 @@ router.get('/', async (req, res) => {
         JOIN paciente p ON fi2.paciente_id = p.id
         JOIN profesional pr ON fi2.profesional_id = pr.id
         WHERE fi2.proximo_control IS NOT NULL
-          AND fi2.proximo_control >= CURRENT_DATE
+          AND fi2.proximo_control >= CURRENT_DATE - INTERVAL '6 months'
           AND fi2.proximo_control <= CURRENT_DATE + INTERVAL '60 days'
 
         ORDER BY proximo_control ASC
-        LIMIT 20
+        LIMIT 100
       `),
       pool.query(`
         SELECT 
