@@ -114,8 +114,8 @@ router.get('/', async (req, res) => {
       pool.query(`
         SELECT 
           pr.nombre, pr.apellido,
-          COUNT(*) FILTER (WHERE DATE_TRUNC('month', c.fecha_hora) = DATE_TRUNC('month', NOW())) AS mes,
-          COUNT(*) AS total,
+          COUNT(DISTINCT c.id) FILTER (WHERE DATE_TRUNC('month', c.fecha_hora) = DATE_TRUNC('month', NOW())) AS mes,
+          COUNT(DISTINCT c.id) AS total,
           COALESCE(SUM(pg.monto) FILTER (WHERE DATE_TRUNC('month', c.fecha_hora) = DATE_TRUNC('month', NOW()) AND pg.estado = 'pagado'), 0) AS ingresos_mes,
           COALESCE(SUM(pg.monto) FILTER (WHERE pg.estado = 'pagado'), 0) AS ingresos_total
         FROM cita c
@@ -192,7 +192,7 @@ router.get('/atenciones-profesional', async (req, res) => {
     const result = await pool.query(`
       SELECT 
         pr.id, pr.nombre, pr.apellido,
-        COUNT(*) AS atenciones,
+        COUNT(DISTINCT c.id) AS atenciones,
         COALESCE(SUM(pg.monto), 0) AS ingresos
       FROM cita c
       JOIN profesional pr ON c.profesional_id = pr.id
