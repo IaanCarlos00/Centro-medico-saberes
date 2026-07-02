@@ -1,6 +1,36 @@
 @import "tailwindcss";
 @variant dark (&:where(.dark, .dark *));
 
+.dark .bg-white {
+  background-color: #1f2937 !important;
+}
+.dark .bg-gray-50 {
+  background-color: #111827 !important;
+}
+.dark .bg-gray-100 {
+  background-color: #1f2937 !important;
+}
+.dark .text-gray-800 {
+  color: #f3f4f6 !important;
+}
+.dark .text-gray-700 {
+  color: #e5e7eb !important;
+}
+.dark .text-gray-600 {
+  color: #d1d5db !important;
+}
+.dark .text-gray-500 {
+  color: #9ca3af !important;
+}
+.dark .border-gray-100,
+.dark .border-gray-200 {
+  border-color: #374151 !important;
+}
+.dark .shadow-sm,
+.dark .shadow {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important;
+}
+
 .rbc-time-content {
   overflow-y: visible !important;
 }
