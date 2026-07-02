@@ -31,7 +31,7 @@ function NavLink({ to, children, onClick }) {
   )
 }
 
-function BottomNav({ links, onLogout }) {
+function BottomNav({ links, onLogout, darkMode, setDarkMode }) {
   const location = useLocation()
   const navigate = useNavigate()
   const [mostrarMas, setMostrarMas] = useState(false)
@@ -79,6 +79,12 @@ function BottomNav({ links, onLogout }) {
                 <span className="text-2xl">🔑</span>
                 <span className="text-xs font-medium">Contraseña</span>
               </Link>
+              <button onClick={() => { setDarkMode(d => !d) }}
+                className="flex flex-col items-center gap-1 p-3 rounded-xl text-center text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700"
+              >
+                <span className="text-2xl">{darkMode ? '☀️' : '🌙'}</span>
+                <span className="text-xs font-medium">{darkMode ? 'Claro' : 'Oscuro'}</span>
+              </button>
               <button onClick={() => { setMostrarMas(false); onLogout() }}
                 className="flex flex-col items-center gap-1 p-3 rounded-xl text-center text-red-500 hover:bg-red-50"
               >
@@ -90,7 +96,7 @@ function BottomNav({ links, onLogout }) {
         </div>
       )}
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 shadow-lg">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-30 shadow-lg">
         <div className="flex items-center justify-around px-2 py-2">
           {principales.map(l => {
             const active = location.pathname === l.to
@@ -117,7 +123,7 @@ function BottomNav({ links, onLogout }) {
   )
 }
 
-function Layout({ usuario, onLogout }) {
+function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
   const [menuAbierto, setMenuAbierto] = useState(false)
   const rol = usuario.rol
 
@@ -162,8 +168,8 @@ function Layout({ usuario, onLogout }) {
   const links = rol === 'admin' ? linksAdmin : rol === 'secretaria' ? linksSecretaria : linksMatrona
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-green-800 shadow-md px-4 py-3">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+      <nav className="bg-green-800 dark:bg-gray-800 shadow-md px-4 py-3">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3" onClick={() => setMenuAbierto(false)}>
             <img src="/logo.png" alt="Saberes" className="h-10 w-10 rounded-full object-cover" />
@@ -186,6 +192,9 @@ function Layout({ usuario, onLogout }) {
             <div className="ml-4 flex items-center gap-3 border-l border-green-600 pl-4">
               <span className="text-green-200 text-sm">Hola, {usuario.nombre}</span>
               <Link to="/cambiar-password" className="text-green-200 hover:text-white text-sm">🔑</Link>
+              <button onClick={() => setDarkMode(!darkMode)} className="text-green-200 hover:text-white text-lg transition-colors" title={darkMode ? 'Modo claro' : 'Modo oscuro'}>
+                {darkMode ? '☀️' : '🌙'}
+              </button>
               <button onClick={onLogout} className="text-white bg-green-600 hover:bg-green-500 px-3 py-1 rounded-lg text-sm font-medium transition-colors">Salir</button>
             </div>
           </div>
@@ -203,7 +212,7 @@ function Layout({ usuario, onLogout }) {
         )}
       </nav>
 
-      <main className="max-w-6xl mx-auto p-4 md:p-6 pb-40 md:pb-6">
+      <main className="max-w-6xl mx-auto p-4 md:p-6 pb-40 md:pb-6 dark:text-gray-100">
         <Routes>
           {rol === 'admin' && <>
             <Route index element={<Inicio />} />
@@ -251,13 +260,14 @@ function Layout({ usuario, onLogout }) {
       
       <AsistenteIA />
 
-      <BottomNav links={links} onLogout={onLogout} usuario={usuario} />
+     <BottomNav links={links} onLogout={onLogout} usuario={usuario} darkMode={darkMode} setDarkMode={setDarkMode} />
     </div>
   )
 }
 
 function App() {
   const [usuario, setUsuario] = useState(null)
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('darkMode') === 'true')
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -265,6 +275,15 @@ function App() {
     const rol = localStorage.getItem('rol')
     if (token && nombre) setUsuario({ token, nombre, rol })
   }, [])
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark')
+    } else {
+      document.documentElement.classList.remove('dark')
+    }
+    localStorage.setItem('darkMode', darkMode)
+  }, [darkMode])
 
   const handleLogin = data => setUsuario(data)
 
@@ -280,7 +299,9 @@ function App() {
       <Routes>
         <Route path="/encuesta/:token" element={<Encuesta />} />
         <Route path="/*" element={
-          usuario ? <Layout usuario={usuario} onLogout={handleLogout} /> : <Login onLogin={handleLogin} />
+          usuario
+            ? <Layout usuario={usuario} onLogout={handleLogout} darkMode={darkMode} setDarkMode={setDarkMode} />
+            : <Login onLogin={handleLogin} />
         } />
       </Routes>
     </BrowserRouter>
