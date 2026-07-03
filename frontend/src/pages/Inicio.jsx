@@ -115,7 +115,7 @@ export default function Inicio() {
 
           {/* Ingresos + Atenciones por profesional */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+            <div className="rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow card-surface">
               <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
                 <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-base">💵</span>
                 Ingresos
@@ -138,7 +138,7 @@ export default function Inicio() {
               </div>
             </div>
 
-            <div className="rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+            <div className="rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow card-surface">
               <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <span className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center text-base">🩺</span>
                 Atenciones por profesional
@@ -184,7 +184,7 @@ export default function Inicio() {
 
           {/* Citas de hoy + Estado */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="md:col-span-2 rounded-2xl p-6 border border-gray-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+            <div className="md:col-span-2 rounded-2xl p-6 border border-gray-100 shadow-sm card-surface">
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                   <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-base">📋</span>
@@ -215,7 +215,7 @@ export default function Inicio() {
               )}
             </div>
 
-            <div className="rounded-2xl p-6 border border-gray-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+            <div className="rounded-2xl p-6 border border-gray-100 shadow-sm card-surface">
               <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
                 <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-base">📊</span>
                 Estado general
@@ -299,7 +299,7 @@ export default function Inicio() {
 
           {/* Gráfico atenciones */}
           {datos.atencionesPorMes && datos.atencionesPorMes.length > 0 && (
-            <div className="rounded-2xl p-6 mb-8 border border-gray-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+            <div className="rounded-2xl p-6 mb-8 border border-gray-100 shadow-sm card-surface">
               <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
                 <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-base">📊</span>
                 Atenciones realizadas (últimos 6 meses)
@@ -333,7 +333,7 @@ export default function Inicio() {
 
           {/* Actividad reciente */}
           {datos.logsRecientes && datos.logsRecientes.length > 0 && (
-            <div className="rounded-2xl p-6 mb-8 border border-gray-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+            <div className="rounded-2xl p-6 mb-8 border border-gray-100 shadow-sm card-surface">
               <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
                 <span className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center text-base">📋</span>
                 Actividad reciente

@@ -320,7 +320,7 @@ export default function InicioMatrona({ usuario }) {
           </div>
 
           {/* Citas */}
-          <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+          <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm card-surface">
             <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
               <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-base">📋</span>
               Citas de hoy
@@ -371,7 +371,7 @@ export default function InicioMatrona({ usuario }) {
 
           {/* Atenciones por profesional */}
           {atencionesProf.length > 0 && (
-            <div className="rounded-2xl p-6 border border-gray-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+            <div className="rounded-2xl p-6 border border-gray-100 shadow-sm card-surface">
               <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                 <span className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center text-base">🩺</span>
                 Atenciones e ingresos este mes

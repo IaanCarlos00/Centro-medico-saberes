@@ -30,6 +30,23 @@
 .dark .shadow {
   box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important;
 }
+.dark .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+.card-surface {
+  background: linear-gradient(145deg, #ffffff, #f9fafb);
+}
+.dark .card-surface {
+  background: linear-gradient(145deg, #1f2937, #111827) !important;
+}
+
+.card-surface-alert {
+  background: linear-gradient(145deg, #ffffff, #fef2f2);
+}
+.dark .card-surface-alert {
+  background: linear-gradient(145deg, #3f1d1d, #1f1315) !important;
+}
 
 .rbc-time-content {
   overflow-y: visible !important;

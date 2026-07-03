@@ -500,7 +500,7 @@ export default function Reportes() {
       </div>
 
       {/* Gráfico ingresos */}
-      <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+      <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm card-surface">
         <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
           <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-base">📈</span>
           Ingresos últimos 6 meses
@@ -513,7 +513,7 @@ export default function Reportes() {
 
       {/* Pie + Estados */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div className="rounded-2xl p-6 border border-gray-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+        <div className="rounded-2xl p-6 border border-gray-100 shadow-sm card-surface">
           <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
             <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-base">💳</span>
             Ingresos por método
@@ -521,7 +521,7 @@ export default function Reportes() {
           <GraficoPie data={pieData} />
         </div>
 
-        <div className="rounded-2xl p-6 border border-gray-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+        <div className="rounded-2xl p-6 border border-gray-100 shadow-sm card-surface">
           <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
             <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-base">📅</span>
             Citas por estado
@@ -557,7 +557,7 @@ export default function Reportes() {
 
       {/* Ingresos por profesional */}
       {datos.ingresosPorProfesional?.length > 0 && (
-        <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+        <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm card-surface">
           <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
             <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-base">💰</span>
             Ingresos por profesional
@@ -591,7 +591,7 @@ export default function Reportes() {
 
       {/* Rango de edades */}
       {datos.rangoEdades?.length > 0 && (
-        <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+        <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm card-surface">
           <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
             <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-base">👥</span>
             Distribución por edad de pacientes
@@ -635,7 +635,7 @@ export default function Reportes() {
 
       {/* Frecuentes + Deuda */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div className="rounded-2xl p-6 border border-gray-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+        <div className="rounded-2xl p-6 border border-gray-100 shadow-sm card-surface">
           <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
             <span className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center text-base">⭐</span>
             Pacientes más frecuentes
@@ -655,7 +655,7 @@ export default function Reportes() {
           ) : <p className="text-gray-300 text-sm text-center py-6">Sin atenciones este mes</p>}
         </div>
 
-        <div className="rounded-2xl p-6 border border-red-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #fef2f2)' }}>
+        <div className="rounded-2xl p-6 border border-red-100 shadow-sm card-surface-alert">
           <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
             <span className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center text-base">⚠️</span>
             Pacientes con deuda
