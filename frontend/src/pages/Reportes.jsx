@@ -505,6 +505,50 @@ export default function Reportes() {
         </div>
       )}
 
+      {/* Rango de edades */}
+      {datos.rangoEdades?.length > 0 && (
+        <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>
+          <h3 className="text-lg font-bold text-gray-800 mb-5 flex items-center gap-2">
+            <span className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center text-base">👥</span>
+            Distribución por edad de pacientes
+          </h3>
+          <div className="flex flex-col gap-3">
+            {(() => {
+              const maxEdad = Math.max(...datos.rangoEdades.map(r => parseInt(r.total)), 1)
+              const totalEdad = datos.rangoEdades.reduce((s, r) => s + parseInt(r.total), 0)
+              const gradients = [
+                'linear-gradient(90deg, #7c3aed, #a78bfa)',
+                'linear-gradient(90deg, #1d4ed8, #60a5fa)',
+                'linear-gradient(90deg, #166534, #22c55e)',
+                'linear-gradient(90deg, #0f766e, #2dd4bf)',
+                'linear-gradient(90deg, #b45309, #fbbf24)',
+                'linear-gradient(90deg, #be185d, #f472b6)',
+                'linear-gradient(90deg, #c2410c, #fb923c)',
+              ]
+              return datos.rangoEdades.map((r, i) => {
+                const pct = Math.round((parseInt(r.total) / maxEdad) * 100)
+                const pctTotal = Math.round((parseInt(r.total) / totalEdad) * 100)
+                return (
+                  <div key={i} className="flex items-center gap-3">
+                    <span className="text-sm font-semibold text-gray-600 w-28 shrink-0">{r.rango}</span>
+                    <div className="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
+                      <div className="h-4 rounded-full transition-all" style={{ width: `${pct}%`, background: gradients[i % gradients.length] }} />
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-sm font-black text-gray-800 w-6 text-right">{r.total}</span>
+                      <span className="text-xs text-gray-400 w-8">({pctTotal}%)</span>
+                    </div>
+                  </div>
+                )
+              })
+            })()}
+          </div>
+          <p className="text-xs text-gray-400 mt-4 text-right">
+            {datos.rangoEdades.reduce((s, r) => s + parseInt(r.total), 0)} pacientes con fecha de nacimiento registrada
+          </p>
+        </div>
+      )}
+
       {/* Frecuentes + Deuda */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="rounded-2xl p-6 border border-gray-100 shadow-sm" style={{ background: 'linear-gradient(145deg, #ffffff, #f9fafb)' }}>

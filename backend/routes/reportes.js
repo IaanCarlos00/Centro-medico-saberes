@@ -18,7 +18,7 @@ router.get('/', async (req, res) => {
       ingresosMes, ingresosAnterior, ingresosPorMetodo, ingresosPorProfesional,
       citasMes, citasAnterior, citasPorProfesional, citasPorEstado,
       pacientesNuevos, pacientesDeuda, pacientesFrecuentes,
-      ingresosPorDia, pendientesMes
+      ingresosPorDia, pendientesMes, rangoEdades
     ] = await Promise.all([
       pool.query(`SELECT COALESCE(SUM(monto),0) AS total FROM pago WHERE estado='pagado' AND fecha >= $1 AND fecha <= $2`, [inicio, fin]),
       pool.query(`SELECT COALESCE(SUM(monto),0) AS total FROM pago WHERE estado='pagado' AND fecha >= $1 AND fecha <= $2`, [inicioAnterior, finAnterior]),
@@ -33,6 +33,23 @@ router.get('/', async (req, res) => {
       pool.query(`SELECT p.nombre, p.apellido, COUNT(*) AS visitas FROM paciente p JOIN cita c ON c.paciente_id = p.id WHERE c.estado='realizada' AND c.fecha_hora >= $1 AND c.fecha_hora <= $2 GROUP BY p.id, p.nombre, p.apellido ORDER BY visitas DESC`, [inicio, fin + ' 23:59:59']),
       pool.query(`SELECT TO_CHAR(fecha, 'DD') AS dia, COALESCE(SUM(monto),0) AS total FROM pago WHERE estado='pagado' AND fecha >= $1 AND fecha <= $2 GROUP BY dia ORDER BY dia`, [inicio, fin]),
       pool.query(`SELECT COALESCE(SUM(monto),0) AS total, COUNT(*) AS cantidad FROM pago WHERE estado='pendiente' AND fecha >= $1 AND fecha <= $2`, [inicio, fin]),
+      pool.query(`
+        SELECT
+          CASE
+            WHEN EXTRACT(YEAR FROM AGE(fecha_nacimiento)) < 18 THEN 'Menor de 18'
+            WHEN EXTRACT(YEAR FROM AGE(fecha_nacimiento)) BETWEEN 18 AND 25 THEN '18 - 25'
+            WHEN EXTRACT(YEAR FROM AGE(fecha_nacimiento)) BETWEEN 26 AND 35 THEN '26 - 35'
+            WHEN EXTRACT(YEAR FROM AGE(fecha_nacimiento)) BETWEEN 36 AND 45 THEN '36 - 45'
+            WHEN EXTRACT(YEAR FROM AGE(fecha_nacimiento)) BETWEEN 46 AND 55 THEN '46 - 55'
+            WHEN EXTRACT(YEAR FROM AGE(fecha_nacimiento)) BETWEEN 56 AND 65 THEN '56 - 65'
+            ELSE 'Mayor de 65'
+          END AS rango,
+          COUNT(*) AS total
+        FROM paciente
+        WHERE fecha_nacimiento IS NOT NULL
+        GROUP BY rango
+        ORDER BY MIN(EXTRACT(YEAR FROM AGE(fecha_nacimiento)))
+      `),
     ])
 
     // Ingresos últimos 6 meses
@@ -75,6 +92,7 @@ router.get('/', async (req, res) => {
         cantidad: parseInt(pendientesMes.rows[0].cantidad)
       },
       ultimos6meses: ultimos6.rows,
+      rangoEdades: rangoEdades.rows,
     })
   } catch (error) {
     console.error('Error reportes:', error.message)
