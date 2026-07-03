@@ -42,6 +42,7 @@ export default function Encuestas() {
   const [generando, setGenerando] = useState(null)
   const [filtroEstado, setFiltroEstado] = useState('')
   const [expandida, setExpandida] = useState(null)
+  const [visibles, setVisibles] = useState(10)
 
   const cargar = async () => {
     const [e, p] = await Promise.all([axios.get(API), axios.get(API_PAC)])
@@ -50,6 +51,7 @@ export default function Encuestas() {
   }
 
   useEffect(() => { cargar() }, [])
+  useEffect(() => { setVisibles(10) }, [busqueda, filtroEstado])
 
   const enviarEncuesta = async (paciente_id) => {
     setEnviando(paciente_id)
@@ -204,7 +206,7 @@ export default function Encuestas() {
 
       {/* Lista encuestas */}
       <div className="flex flex-col gap-3">
-        {filtradas.map(e => (
+        {filtradas.slice(0, visibles).map(e => (
           <div key={e.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
             <div className="h-1 w-full" style={{ background: e.estado === 'respondida' ? 'linear-gradient(90deg, #166534, #15803d)' : e.estado === 'enviada' ? 'linear-gradient(90deg, #1d4ed8, #3b82f6)' : 'linear-gradient(90deg, #f59e0b, #fbbf24)' }} />
             <div className="p-5">
@@ -272,6 +274,16 @@ export default function Encuestas() {
             <p className="text-5xl mb-3">⭐</p>
             <p className="text-gray-400">No hay encuestas registradas</p>
           </div>
+        )}
+        {filtradas.length > visibles && (
+          <button onClick={() => setVisibles(v => v + 10)} className="w-full text-sm font-semibold text-green-700 bg-green-50 hover:bg-green-100 transition-colors rounded-xl py-3 mt-1">
+            Ver más ({filtradas.length - visibles} restantes) ▼
+          </button>
+        )}
+        {visibles > 10 && filtradas.length <= visibles && filtradas.length > 10 && (
+          <button onClick={() => setVisibles(10)} className="w-full text-sm font-semibold text-gray-500 bg-gray-50 hover:bg-gray-100 transition-colors rounded-xl py-3 mt-1">
+            Ver menos ▲
+          </button>
         )}
       </div>
     </div>
