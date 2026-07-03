@@ -42,29 +42,114 @@ function BarraHorizontal({ label, valor, max, color = '#22c55e' }) {
 }
 
 function GraficoBarras({ data }) {
-  const max = Math.max(...data.map(d => parseFloat(d.total)), 1)
-  const gradients = [
-    'linear-gradient(180deg, #166534, #22c55e)',
-    'linear-gradient(180deg, #0f766e, #2dd4bf)',
-    'linear-gradient(180deg, #1d4ed8, #60a5fa)',
-    'linear-gradient(180deg, #7c3aed, #a78bfa)',
-    'linear-gradient(180deg, #166534, #4ade80)',
-    'linear-gradient(180deg, #0e7490, #22d3ee)',
-  ]
+  const [hover, setHover] = useState(null)
+  const valores = data.map(d => parseFloat(d.total))
+  const max = Math.max(...valores, 1)
+  const total = valores.reduce((s, v) => s + v, 0)
+  const promedio = total / (valores.filter(v => v > 0).length || 1)
+  const mejor = valores.indexOf(Math.max(...valores))
+  const peor = valores.indexOf(Math.min(...valores.filter(v => v > 0)))
+
   return (
-    <div className="flex items-end gap-3 h-48 px-2">
-      {data.map((d, i) => {
-        const pct = Math.round((parseFloat(d.total) / max) * 100)
+    <div className="flex flex-col gap-6">
+      {/* Stats rápidas */}
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: 'Total 6 meses', value: formatCLP(total), icon: '💰', color: '#166534', bg: '#f0fdf4' },
+          { label: 'Promedio mensual', value: formatCLP(promedio), icon: '📊', color: '#1d4ed8', bg: '#eff6ff' },
+          { label: 'Mejor mes', value: data[mejor]?.mes_nombre || '—', icon: '🏆', color: '#7c3aed', bg: '#f5f3ff' },
+        ].map((s, i) => (
+          <div key={i} className="rounded-2xl p-4 text-center" style={{ background: s.bg, border: `1px solid ${s.color}22` }}>
+            <span className="text-xl">{s.icon}</span>
+            <p className="text-xs font-bold uppercase tracking-wider mt-1" style={{ color: s.color }}>{s.label}</p>
+            <p className="text-base font-black mt-1" style={{ color: s.color }}>{s.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Gráfico premium */}
+      <div className="relative">
+        {/* Líneas de referencia */}
+        <div className="absolute inset-0 flex flex-col justify-between pointer-events-none" style={{ bottom: '28px', top: '8px' }}>
+          {[100, 75, 50, 25, 0].map(pct => (
+            <div key={pct} className="flex items-center gap-2">
+              <span className="text-xs text-gray-300 w-12 text-right shrink-0">{formatCLP(max * pct / 100).replace('CLP','').trim()}</span>
+              <div className="flex-1 border-t border-dashed border-gray-100" />
+            </div>
+          ))}
+        </div>
+
+        {/* Barras */}
+        <div className="flex items-end gap-2 h-56 pl-16 pr-2 pb-7 pt-2 relative">
+          {data.map((d, i) => {
+            const val = parseFloat(d.total)
+            const pct = max > 0 ? (val / max) * 100 : 0
+            const esMejor = i === mejor
+            const esHover = hover === i
+            const gradient = esMejor
+              ? 'linear-gradient(180deg, #7c3aed, #a78bfa)'
+              : `linear-gradient(180deg, #166534, #22c55e)`
+
+            return (
+              <div key={i} className="flex flex-col items-center flex-1 gap-1 relative"
+                onMouseEnter={() => setHover(i)}
+                onMouseLeave={() => setHover(null)}
+              >
+                {/* Tooltip */}
+                {esHover && val > 0 && (
+                  <div className="absolute bottom-full mb-2 z-10 pointer-events-none" style={{ left: '50%', transform: 'translateX(-50%)' }}>
+                    <div className="bg-gray-900 text-white text-xs rounded-xl px-3 py-2 whitespace-nowrap shadow-xl">
+                      <p className="font-bold">{d.mes_nombre}</p>
+                      <p>{formatCLP(val)}</p>
+                      <p className="text-gray-400">{Math.round(pct)}% del máximo</p>
+                    </div>
+                    <div className="w-2 h-2 bg-gray-900 rotate-45 mx-auto -mt-1" />
+                  </div>
+                )}
+
+                {/* Valor encima */}
+                <span className="text-xs font-black whitespace-nowrap transition-all" style={{ color: esMejor ? '#7c3aed' : '#166534', opacity: val > 0 ? 1 : 0 }}>
+                  ${(val/1000).toFixed(0)}k
+                </span>
+
+                {/* Barra */}
+                <div className="w-full relative rounded-t-xl overflow-hidden transition-all duration-300" style={{ height: `${Math.max(pct, val > 0 ? 4 : 0)}%`, background: gradient, opacity: esHover ? 1 : 0.85, transform: esHover ? 'scaleX(1.05)' : 'scaleX(1)', transformOrigin: 'bottom' }}>
+                  {esMejor && (
+                    <div className="absolute top-2 left-0 right-0 flex justify-center">
+                      <span className="text-white text-xs">🏆</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Mes */}
+                <span className="text-xs font-semibold absolute bottom-0" style={{ color: esMejor ? '#7c3aed' : '#6b7280' }}>{d.mes_nombre}</span>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Tendencia */}
+      {data.length >= 2 && (() => {
+        const ultimo = parseFloat(data[data.length - 1]?.total || 0)
+        const penultimo = parseFloat(data[data.length - 2]?.total || 0)
+        const diff = ultimo - penultimo
+        const pctCambio = penultimo > 0 ? ((diff / penultimo) * 100).toFixed(1) : null
+        const subio = diff >= 0
         return (
-          <div key={i} className="flex flex-col items-center flex-1 gap-1">
-            <span className="text-xs font-black text-gray-600 whitespace-nowrap">
-              {parseFloat(d.total) > 0 ? `$${(parseFloat(d.total)/1000).toFixed(0)}k` : ''}
-            </span>
-            <div className="w-full rounded-t-xl transition-all" style={{ height: `${Math.max(pct, parseFloat(d.total) > 0 ? 4 : 0)}%`, background: gradients[i % gradients.length] }} />
-            <span className="text-xs text-gray-400 font-medium">{d.mes_nombre}</span>
+          <div className="flex items-center gap-3 p-4 rounded-2xl" style={{ background: subio ? 'linear-gradient(135deg, #f0fdf4, #dcfce7)' : 'linear-gradient(135deg, #fef2f2, #fee2e2)', border: `1px solid ${subio ? '#16a34a' : '#ef4444'}22` }}>
+            <span className="text-2xl">{subio ? '📈' : '📉'}</span>
+            <div>
+              <p className="text-sm font-bold" style={{ color: subio ? '#166534' : '#dc2626' }}>
+                {subio ? 'Tendencia al alza' : 'Tendencia a la baja'} respecto al mes anterior
+              </p>
+              <p className="text-xs" style={{ color: subio ? '#15803d' : '#b91c1c' }}>
+                {pctCambio ? `${subio ? '+' : ''}${pctCambio}% (${formatCLP(Math.abs(diff))})` : 'Sin datos comparativos'}
+              </p>
+            </div>
           </div>
         )
-      })}
+      })()}
     </div>
   )
 }
