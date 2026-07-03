@@ -163,6 +163,7 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
     { to: '/pap', label: 'PAP' },
     { to: '/flujos', label: 'Flujos' },
     { to: '/encuestas', label: 'Encuestas' },
+    { to: '/reportes', label: 'Reportes' },
   ]
 
   const links = rol === 'admin' ? linksAdmin : rol === 'secretaria' ? linksSecretaria : linksMatrona
@@ -253,6 +254,7 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
             <Route path="pap" element={<Pap />} />
             <Route path="flujos" element={<Flujos />} />
             <Route path="encuestas" element={<Encuestas />} />
+            <Route path="reportes" element={<Reportes />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}
         </Routes>
