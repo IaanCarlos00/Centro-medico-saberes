@@ -48,7 +48,6 @@ function GraficoBarras({ data }) {
   const total = valores.reduce((s, v) => s + v, 0)
   const promedio = total / (valores.filter(v => v > 0).length || 1)
   const mejor = valores.indexOf(Math.max(...valores))
-  const peor = valores.indexOf(Math.min(...valores.filter(v => v > 0)))
 
   return (
     <div className="flex flex-col gap-6">
@@ -80,7 +79,7 @@ function GraficoBarras({ data }) {
         </div>
 
         {/* Barras */}
-        <div className="flex items-end gap-2 h-56 pl-16 pr-2 pb-7 pt-2 relative">
+        <div className="flex gap-2 h-56 pl-16 pr-2 pb-7 pt-2 relative">
           {data.map((d, i) => {
             const val = parseFloat(d.total)
             const pct = max > 0 ? (val / max) * 100 : 0
@@ -91,7 +90,7 @@ function GraficoBarras({ data }) {
               : `linear-gradient(180deg, #166534, #22c55e)`
 
             return (
-              <div key={i} className="flex flex-col items-center flex-1 gap-1 relative"
+              <div key={i} className="flex flex-col items-center justify-end flex-1 gap-1 relative"
                 onMouseEnter={() => setHover(i)}
                 onMouseLeave={() => setHover(null)}
               >
