@@ -228,12 +228,12 @@ router.get('/atenciones-profesional', async (req, res) => {
           pp.id, pp.monto,
           COALESCE(pp.profesional_id, cr.profesional_id) AS profesional_id
         FROM pagos_periodo pp
-        JOIN cita cr ON cr.paciente_id = pp.paciente_id AND cr.estado = 'realizada'
+        LEFT JOIN cita cr ON cr.paciente_id = pp.paciente_id AND cr.estado = 'realizada'
           AND (
             pp.profesional_id = cr.profesional_id
             OR (pp.profesional_id IS NULL AND DATE(pp.fecha) = DATE(cr.fecha_hora))
           )
-        ORDER BY pp.id, (pp.profesional_id IS NOT NULL) DESC
+        ORDER BY pp.id, (cr.id IS NOT NULL) DESC
       ),
       ingresos_por_profesional AS (
         SELECT profesional_id, SUM(monto) AS ingresos
@@ -253,6 +253,13 @@ router.get('/atenciones-profesional', async (req, res) => {
       LEFT JOIN atenciones_por_profesional ap ON ap.profesional_id = pr.id
       LEFT JOIN ingresos_por_profesional ip ON ip.profesional_id = pr.id
       WHERE ap.atenciones IS NOT NULL OR ip.ingresos IS NOT NULL
+
+      UNION ALL
+
+      SELECT NULL, 'Sin profesional asignado', '', 0, ip.ingresos
+      FROM ingresos_por_profesional ip
+      WHERE ip.profesional_id IS NULL
+
       ORDER BY atenciones DESC NULLS LAST
     `, params)
 
