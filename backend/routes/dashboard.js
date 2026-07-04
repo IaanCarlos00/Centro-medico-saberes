@@ -112,22 +112,42 @@ router.get('/', async (req, res) => {
         LIMIT 100
       `),
       pool.query(`
+        WITH citas_realizadas AS (
+          SELECT c.id, c.profesional_id, c.paciente_id, c.fecha_hora
+          FROM cita c
+          WHERE c.estado = 'realizada'
+        ),
+        pagos_deduplicados AS (
+          SELECT DISTINCT ON (pg.id)
+            pg.id, pg.monto,
+            COALESCE(pg.profesional_id, cr.profesional_id) AS profesional_id,
+            cr.fecha_hora
+          FROM pago pg
+          JOIN citas_realizadas cr ON cr.paciente_id = pg.paciente_id
+            AND (
+              pg.profesional_id = cr.profesional_id
+              OR (pg.profesional_id IS NULL AND DATE(pg.fecha) = DATE(cr.fecha_hora))
+            )
+          WHERE pg.estado = 'pagado'
+          ORDER BY pg.id, (pg.profesional_id IS NOT NULL) DESC
+        ),
+        ingresos_prof AS (
+          SELECT profesional_id,
+            SUM(monto) FILTER (WHERE DATE_TRUNC('month', fecha_hora) = DATE_TRUNC('month', NOW())) AS ingresos_mes,
+            SUM(monto) AS ingresos_total
+          FROM pagos_deduplicados
+          GROUP BY profesional_id
+        )
         SELECT 
           pr.nombre, pr.apellido,
-          COUNT(DISTINCT c.id) FILTER (WHERE DATE_TRUNC('month', c.fecha_hora) = DATE_TRUNC('month', NOW())) AS mes,
-          COUNT(DISTINCT c.id) AS total,
-          COALESCE(SUM(pg.monto) FILTER (WHERE DATE_TRUNC('month', c.fecha_hora) = DATE_TRUNC('month', NOW()) AND pg.estado = 'pagado'), 0) AS ingresos_mes,
-          COALESCE(SUM(pg.monto) FILTER (WHERE pg.estado = 'pagado'), 0) AS ingresos_total
-        FROM cita c
-        JOIN profesional pr ON c.profesional_id = pr.id
-        LEFT JOIN pago pg ON pg.paciente_id = c.paciente_id
-          AND pg.estado = 'pagado'
-          AND (
-            pg.profesional_id = pr.id
-            OR (pg.profesional_id IS NULL AND DATE(pg.fecha) = DATE(c.fecha_hora))
-          )
-        WHERE c.estado = 'realizada'
-        GROUP BY pr.id, pr.nombre, pr.apellido
+          COUNT(DISTINCT cr.id) FILTER (WHERE DATE_TRUNC('month', cr.fecha_hora) = DATE_TRUNC('month', NOW())) AS mes,
+          COUNT(DISTINCT cr.id) AS total,
+          COALESCE(ip.ingresos_mes, 0) AS ingresos_mes,
+          COALESCE(ip.ingresos_total, 0) AS ingresos_total
+        FROM citas_realizadas cr
+        JOIN profesional pr ON cr.profesional_id = pr.id
+        LEFT JOIN ingresos_prof ip ON ip.profesional_id = pr.id
+        GROUP BY pr.id, pr.nombre, pr.apellido, ip.ingresos_mes, ip.ingresos_total
         ORDER BY total DESC
       `),
       pool.query(`
