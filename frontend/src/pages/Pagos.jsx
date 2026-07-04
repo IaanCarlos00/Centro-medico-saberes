@@ -55,6 +55,7 @@ export default function Pagos() {
   const [vistaPagos, setVistaPagos] = useState('cronologica')
   const [expandidoPaciente, setExpandidoPaciente] = useState(null)
   const [filtroBonosProfesional, setFiltroBonosProfesional] = useState('')
+  const [filtroProfesionalVista, setFiltroProfesionalVista] = useState('')
   const [fechaDia, setFechaDia] = useState(new Date().toISOString().slice(0, 10))
   const [modalForm, setModalForm] = useState(false)
   const [editando, setEditando] = useState(null)
@@ -217,6 +218,14 @@ export default function Pagos() {
   }, {})
 
   const gruposPaciente = Object.values(pagosAgrupadosPorPaciente).sort((a, b) => new Date(fechaOrden(b.pagos[0])) - new Date(fechaOrden(a.pagos[0])))
+
+  const pagosProfesionalSeleccionada = filtroProfesionalVista
+    ? filtrados.filter(p => String(p.profesional_id) === String(filtroProfesionalVista)).sort((a, b) => new Date(fechaOrden(b)) - new Date(fechaOrden(a)))
+    : []
+  const totalProfesionalSeleccionada = pagosProfesionalSeleccionada.reduce((s, p) => s + parseFloat(p.monto), 0)
+  const pagadosProfesionalSeleccionada = pagosProfesionalSeleccionada.filter(p => p.estado === 'pagado')
+  const totalPagadoProfesionalSeleccionada = pagadosProfesionalSeleccionada.reduce((s, p) => s + parseFloat(p.monto), 0)
+  const profesionalSeleccionada = profesionales.find(p => String(p.id) === String(filtroProfesionalVista))
 
   return (
     <div className="min-h-screen bg-white">
@@ -512,6 +521,7 @@ export default function Pagos() {
         {[
           { key: 'cronologica', label: '📅 Cronológica' },
           { key: 'paciente', label: '👤 Por paciente' },
+          { key: 'profesional', label: '👩‍⚕️ Por matrona' },
         ].map(v => (
           <button key={v.key} onClick={() => setVistaPagos(v.key)} className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${vistaPagos === v.key ? 'text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'}`} style={vistaPagos === v.key ? { background: 'linear-gradient(135deg, #166534, #15803d)' } : {}}>
             {v.label}
@@ -612,6 +622,68 @@ export default function Pagos() {
               )}
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Vista por matrona */}
+      {vistaPagos === 'profesional' && (
+        <div className="flex flex-col gap-4 mb-6">
+          <select className="border border-gray-200 rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 shadow-sm w-full sm:w-80" value={filtroProfesionalVista} onChange={e => setFiltroProfesionalVista(e.target.value)}>
+            <option value="">Selecciona una matrona…</option>
+            {profesionales.map(p => <option key={p.id} value={p.id}>{p.nombre} {p.apellido}</option>)}
+          </select>
+
+          {!filtroProfesionalVista && (
+            <div className="rounded-2xl border border-gray-100 p-12 text-center bg-white">
+              <p className="text-4xl mb-2">👩‍⚕️</p>
+              <p className="text-gray-400">Selecciona una matrona para ver cuánto lleva y qué ha hecho en el período filtrado arriba.</p>
+            </div>
+          )}
+
+          {filtroProfesionalVista && (
+            <>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="rounded-2xl p-5 border border-green-100 card-surface">
+                  <p className="text-xs font-semibold text-gray-400 mb-1">Total generado</p>
+                  <p className="text-2xl font-black text-gray-800">{formatCLP(totalProfesionalSeleccionada)}</p>
+                </div>
+                <div className="rounded-2xl p-5 border border-gray-100 card-surface">
+                  <p className="text-xs font-semibold text-gray-400 mb-1">Ya cobrado</p>
+                  <p className="text-2xl font-black text-green-700">{formatCLP(totalPagadoProfesionalSeleccionada)}</p>
+                </div>
+                <div className="rounded-2xl p-5 border border-gray-100 card-surface">
+                  <p className="text-xs font-semibold text-gray-400 mb-1">Atenciones registradas</p>
+                  <p className="text-2xl font-black text-gray-800">{pagosProfesionalSeleccionada.length}</p>
+                </div>
+              </div>
+
+              {pagosProfesionalSeleccionada.length === 0 ? (
+                <div className="rounded-2xl border border-gray-100 p-12 text-center bg-white">
+                  <p className="text-4xl mb-2">💰</p>
+                  <p className="text-gray-400">{profesionalSeleccionada?.nombre} no tiene pagos en el período filtrado.</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  <ListaConVerMas items={pagosProfesionalSeleccionada} limite={10} renderItem={(p, i) => (
+                    <div key={p.id} className={`flex items-center justify-between px-4 py-3 text-sm ${i % 2 === 0 ? 'bg-gray-50' : 'bg-white'} ${p.estado === 'pendiente' ? 'border-l-4 border-yellow-400' : ''}`}>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-gray-700 font-semibold">{p.paciente_nombre} {p.paciente_apellido}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
+                        </div>
+                        <div className="flex gap-3 mt-0.5 flex-wrap">
+                          <span className="text-xs text-gray-400">{formatFecha(p.fecha_cita || p.fecha)}</span>
+                          {p.notas && <span className="text-xs text-gray-400">{p.notas}</span>}
+                        </div>
+                      </div>
+                      <span className="font-black text-gray-800 ml-3 shrink-0">{formatCLP(p.monto)}</span>
+                    </div>
+                  )} />
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
 
