@@ -117,11 +117,10 @@ router.get('/', async (req, res) => {
           FROM cita c
           WHERE c.estado = 'realizada'
         ),
-        pagos_deduplicados AS (
+        pagos_atribuidos AS (
           SELECT DISTINCT ON (pg.id)
-            pg.id, pg.monto,
-            COALESCE(pg.profesional_id, cr.profesional_id) AS profesional_id,
-            cr.fecha_hora
+            pg.id, pg.monto, pg.fecha,
+            COALESCE(pg.profesional_id, cr.profesional_id) AS profesional_id
           FROM pago pg
           JOIN citas_realizadas cr ON cr.paciente_id = pg.paciente_id
             AND (
@@ -133,9 +132,9 @@ router.get('/', async (req, res) => {
         ),
         ingresos_prof AS (
           SELECT profesional_id,
-            SUM(monto) FILTER (WHERE DATE_TRUNC('month', fecha_hora) = DATE_TRUNC('month', NOW())) AS ingresos_mes,
+            SUM(monto) FILTER (WHERE DATE_TRUNC('month', fecha) = DATE_TRUNC('month', NOW())) AS ingresos_mes,
             SUM(monto) AS ingresos_total
-          FROM pagos_deduplicados
+          FROM pagos_atribuidos
           GROUP BY profesional_id
         )
         SELECT 
@@ -195,54 +194,66 @@ router.get('/', async (req, res) => {
 router.get('/atenciones-profesional', async (req, res) => {
   try {
     const { fecha, desde, hasta } = req.query
-    
-    let whereClause = "c.estado = 'realizada'"
+
+    let citaClause = "c.estado = 'realizada'"
+    let pagoClause = "pg.estado = 'pagado'"
     let params = []
 
     if (fecha) {
-      whereClause += ` AND DATE(c.fecha_hora) = $1`
+      citaClause += ` AND DATE(c.fecha_hora) = $1`
+      pagoClause += ` AND DATE(pg.fecha) = $1`
       params = [fecha]
     } else if (desde && hasta) {
-      whereClause += ` AND DATE(c.fecha_hora) >= $1 AND DATE(c.fecha_hora) <= $2`
+      citaClause += ` AND DATE(c.fecha_hora) >= $1 AND DATE(c.fecha_hora) <= $2`
+      pagoClause += ` AND DATE(pg.fecha) >= $1 AND DATE(pg.fecha) <= $2`
       params = [desde, hasta]
     } else {
-      whereClause += ` AND DATE_TRUNC('month', c.fecha_hora) = DATE_TRUNC('month', NOW())`
+      citaClause += ` AND DATE_TRUNC('month', c.fecha_hora) = DATE_TRUNC('month', NOW())`
+      pagoClause += ` AND DATE_TRUNC('month', pg.fecha) = DATE_TRUNC('month', NOW())`
     }
 
     const result = await pool.query(`
       WITH citas_periodo AS (
         SELECT c.id, c.profesional_id, c.paciente_id, c.fecha_hora
         FROM cita c
-        WHERE ${whereClause}
+        WHERE ${citaClause}
       ),
-      pagos_deduplicados AS (
-        SELECT DISTINCT ON (pg.id)
-          pg.id,
-          pg.monto,
-          COALESCE(pg.profesional_id, cp.profesional_id) AS profesional_id
+      pagos_periodo AS (
+        SELECT pg.id, pg.monto, pg.paciente_id, pg.profesional_id, pg.fecha
         FROM pago pg
-        JOIN citas_periodo cp ON cp.paciente_id = pg.paciente_id
+        WHERE ${pagoClause}
+      ),
+      pagos_atribuidos AS (
+        SELECT DISTINCT ON (pp.id)
+          pp.id, pp.monto,
+          COALESCE(pp.profesional_id, cr.profesional_id) AS profesional_id
+        FROM pagos_periodo pp
+        JOIN cita cr ON cr.paciente_id = pp.paciente_id AND cr.estado = 'realizada'
           AND (
-            pg.profesional_id = cp.profesional_id
-            OR (pg.profesional_id IS NULL AND DATE(pg.fecha) = DATE(cp.fecha_hora))
+            pp.profesional_id = cr.profesional_id
+            OR (pp.profesional_id IS NULL AND DATE(pp.fecha) = DATE(cr.fecha_hora))
           )
-        WHERE pg.estado = 'pagado'
-        ORDER BY pg.id, (pg.profesional_id IS NOT NULL) DESC
+        ORDER BY pp.id, (pp.profesional_id IS NOT NULL) DESC
       ),
       ingresos_por_profesional AS (
         SELECT profesional_id, SUM(monto) AS ingresos
-        FROM pagos_deduplicados
+        FROM pagos_atribuidos
+        GROUP BY profesional_id
+      ),
+      atenciones_por_profesional AS (
+        SELECT profesional_id, COUNT(DISTINCT id) AS atenciones
+        FROM citas_periodo
         GROUP BY profesional_id
       )
       SELECT
         pr.id, pr.nombre, pr.apellido,
-        COUNT(DISTINCT cp.id) AS atenciones,
+        COALESCE(ap.atenciones, 0) AS atenciones,
         COALESCE(ip.ingresos, 0) AS ingresos
-      FROM citas_periodo cp
-      JOIN profesional pr ON cp.profesional_id = pr.id
+      FROM profesional pr
+      LEFT JOIN atenciones_por_profesional ap ON ap.profesional_id = pr.id
       LEFT JOIN ingresos_por_profesional ip ON ip.profesional_id = pr.id
-      GROUP BY pr.id, pr.nombre, pr.apellido, ip.ingresos
-      ORDER BY atenciones DESC
+      WHERE ap.atenciones IS NOT NULL OR ip.ingresos IS NOT NULL
+      ORDER BY atenciones DESC NULLS LAST
     `, params)
 
     res.json(result.rows)
