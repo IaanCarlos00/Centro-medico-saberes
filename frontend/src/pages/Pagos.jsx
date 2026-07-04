@@ -181,7 +181,7 @@ export default function Pagos() {
 
   const pendientes = pagos.filter(p => p.estado === 'pendiente').sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
   const bonosPendientesTodos = pagos.filter(p => p.metodo === 'fonasa' && p.estado_bono === 'pendiente' && p.numero_bono).sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
-  const bonosPendientes = bonosPendientesTodos.filter(p => !filtroBonosProfesional || String(p.profesional_id) === String(filtroBonosProfesional))
+  const bonosPendientes = bonosPendientesTodos.filter(p => !filtroBonosProfesional || String(p.profesional_efectivo_id) === String(filtroBonosProfesional))
   const boletasPendientes = pagos.filter(p => (p.metodo === 'efectivo' || p.metodo === 'transferencia') && p.estado_boleta === 'pendiente').sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
 
   const filtrados = pagos.filter(p => {
@@ -192,7 +192,7 @@ export default function Pagos() {
       (p.notas && p.notas.toLowerCase().includes(q))
     const coincideEstado = !filtroEstado || p.estado === filtroEstado
     const coincideMetodo = !filtroMetodo || p.metodo === filtroMetodo
-    const fecha = new Date(String(p.fecha_cita || p.fecha).slice(0, 10) + 'T12:00:00')
+    const fecha = new Date(String(p.fecha || p.fecha_cita).slice(0, 10) + 'T12:00:00')
     const hoy = new Date()
     let coincidePeriodo = true
     if (filtroPeriodo === 'hoy') coincidePeriodo = fecha.toDateString() === hoy.toDateString()
@@ -220,7 +220,7 @@ export default function Pagos() {
   const gruposPaciente = Object.values(pagosAgrupadosPorPaciente).sort((a, b) => new Date(fechaOrden(b.pagos[0])) - new Date(fechaOrden(a.pagos[0])))
 
   const pagosProfesionalSeleccionada = filtroProfesionalVista
-    ? filtrados.filter(p => String(p.profesional_id) === String(filtroProfesionalVista)).sort((a, b) => new Date(fechaOrden(b)) - new Date(fechaOrden(a)))
+    ? filtrados.filter(p => String(p.profesional_efectivo_id) === String(filtroProfesionalVista)).sort((a, b) => new Date(fechaOrden(b)) - new Date(fechaOrden(a)))
     : []
   const totalProfesionalSeleccionada = pagosProfesionalSeleccionada.reduce((s, p) => s + parseFloat(p.monto), 0)
   const pagadosProfesionalSeleccionada = pagosProfesionalSeleccionada.filter(p => p.estado === 'pagado')

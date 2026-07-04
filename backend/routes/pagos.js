@@ -8,10 +8,24 @@ router.get('/', async (req, res) => {
       SELECT p.*, 
              pa.nombre AS paciente_nombre, pa.apellido AS paciente_apellido,
              pa.rut AS paciente_rut,
-             c.fecha_hora AS fecha_cita
+             c.fecha_hora AS fecha_cita,
+             COALESCE(pr_directo.id, pr_cita.id, pr_heuristica.id) AS profesional_efectivo_id,
+             COALESCE(pr_directo.nombre, pr_cita.nombre, pr_heuristica.nombre) AS profesional_nombre,
+             COALESCE(pr_directo.apellido, pr_cita.apellido, pr_heuristica.apellido) AS profesional_apellido
       FROM pago p
       JOIN paciente pa ON p.paciente_id = pa.id
       LEFT JOIN cita c ON p.cita_id = c.id
+      LEFT JOIN profesional pr_directo ON p.profesional_id = pr_directo.id
+      LEFT JOIN profesional pr_cita ON c.profesional_id = pr_cita.id
+      LEFT JOIN LATERAL (
+        SELECT pr.id, pr.nombre, pr.apellido
+        FROM cita ch
+        JOIN profesional pr ON ch.profesional_id = pr.id
+        WHERE ch.paciente_id = p.paciente_id
+          AND ch.estado = 'realizada'
+          AND DATE(ch.fecha_hora) = DATE(p.fecha)
+        LIMIT 1
+      ) pr_heuristica ON p.profesional_id IS NULL AND p.cita_id IS NULL
       ORDER BY p.fecha DESC
     `)
     res.json(result.rows)
