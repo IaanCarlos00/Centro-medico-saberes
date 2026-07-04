@@ -190,20 +190,38 @@ router.get('/atenciones-profesional', async (req, res) => {
     }
 
     const result = await pool.query(`
-      SELECT 
+      WITH citas_periodo AS (
+        SELECT c.id, c.profesional_id, c.paciente_id, c.fecha_hora
+        FROM cita c
+        WHERE ${whereClause}
+      ),
+      pagos_deduplicados AS (
+        SELECT DISTINCT ON (pg.id)
+          pg.id,
+          pg.monto,
+          COALESCE(pg.profesional_id, cp.profesional_id) AS profesional_id
+        FROM pago pg
+        JOIN citas_periodo cp ON cp.paciente_id = pg.paciente_id
+          AND (
+            pg.profesional_id = cp.profesional_id
+            OR (pg.profesional_id IS NULL AND DATE(pg.fecha) = DATE(cp.fecha_hora))
+          )
+        WHERE pg.estado = 'pagado'
+        ORDER BY pg.id, (pg.profesional_id IS NOT NULL) DESC
+      ),
+      ingresos_por_profesional AS (
+        SELECT profesional_id, SUM(monto) AS ingresos
+        FROM pagos_deduplicados
+        GROUP BY profesional_id
+      )
+      SELECT
         pr.id, pr.nombre, pr.apellido,
-        COUNT(DISTINCT c.id) AS atenciones,
-        COALESCE(SUM(pg.monto), 0) AS ingresos
-      FROM cita c
-      JOIN profesional pr ON c.profesional_id = pr.id
-      LEFT JOIN pago pg ON pg.paciente_id = c.paciente_id
-        AND pg.estado = 'pagado'
-        AND (
-          pg.profesional_id = pr.id
-          OR (pg.profesional_id IS NULL AND DATE(pg.fecha) = DATE(c.fecha_hora))
-        )
-      WHERE ${whereClause}
-      GROUP BY pr.id, pr.nombre, pr.apellido
+        COUNT(DISTINCT cp.id) AS atenciones,
+        COALESCE(ip.ingresos, 0) AS ingresos
+      FROM citas_periodo cp
+      JOIN profesional pr ON cp.profesional_id = pr.id
+      LEFT JOIN ingresos_por_profesional ip ON ip.profesional_id = pr.id
+      GROUP BY pr.id, pr.nombre, pr.apellido, ip.ingresos
       ORDER BY atenciones DESC
     `, params)
 
