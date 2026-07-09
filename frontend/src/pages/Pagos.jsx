@@ -66,6 +66,8 @@ export default function Pagos() {
   const dropdownRef = useRef(null)
   const [catalogo, setCatalogo] = useState([])
   const [profesionales, setProfesionales] = useState([])
+  const [notaEditando, setNotaEditando] = useState(null)
+  const [notaTemp, setNotaTemp] = useState('')
 
   const cargar = async () => {
     const [p, pa, r, cat, pro] = await Promise.all([
@@ -177,6 +179,13 @@ export default function Pagos() {
     cargar()
   }
 
+  const guardarNota = async p => {
+    await axios.put(`${API}/${p.id}`, { ...p, notas: notaTemp })
+    setNotaEditando(null)
+    setNotaTemp('')
+    cargar()
+  }
+
   const fechaOrden = p => p.fecha_cita || p.fecha
 
   const pendientes = pagos.filter(p => p.estado === 'pendiente').sort((a, b) => new Date(fechaOrden(a)) - new Date(fechaOrden(b)))
@@ -226,6 +235,32 @@ export default function Pagos() {
   const pagadosProfesionalSeleccionada = pagosProfesionalSeleccionada.filter(p => p.estado === 'pagado')
   const totalPagadoProfesionalSeleccionada = pagadosProfesionalSeleccionada.reduce((s, p) => s + parseFloat(p.monto), 0)
   const profesionalSeleccionada = profesionales.find(p => String(p.id) === String(filtroProfesionalVista))
+
+  // Componente nota inline reutilizable
+  const NotaInline = ({ p }) => (
+    notaEditando === p.id ? (
+      <div className="flex items-center gap-1 mt-1" onClick={e => e.stopPropagation()}>
+        <input
+          autoFocus
+          className="border border-purple-300 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 flex-1 min-w-0"
+          value={notaTemp}
+          onChange={e => setNotaTemp(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') guardarNota(p); if (e.key === 'Escape') { setNotaEditando(null); setNotaTemp('') } }}
+          placeholder="Ej: Abonó $10.000, resta $15.000..."
+        />
+        <button onClick={() => guardarNota(p)} className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-lg hover:bg-purple-200 font-bold shrink-0">✓</button>
+        <button onClick={() => { setNotaEditando(null); setNotaTemp('') }} className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-lg hover:bg-gray-200 shrink-0">✕</button>
+      </div>
+    ) : (
+      <div className="flex items-center gap-1 mt-1 group cursor-pointer" onClick={e => { e.stopPropagation(); setNotaEditando(p.id); setNotaTemp(p.notas || '') }}>
+        {p.notas
+          ? <p className="text-xs text-purple-600 font-medium">📝 {p.notas}</p>
+          : <p className="text-xs text-gray-300 group-hover:text-purple-400 transition-colors">+ agregar nota de abono</p>
+        }
+        <span className="text-xs text-gray-200 group-hover:text-purple-300 transition-colors ml-1 opacity-0 group-hover:opacity-100">✏️</span>
+      </div>
+    )
+  )
 
   return (
     <div className="min-h-screen bg-white">
@@ -411,7 +446,7 @@ export default function Pagos() {
       )}
 
       {/* Resumen por día */}
-      <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm card-surface">
+      <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm">
         <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
           <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-base">📆</span>
           Resumen por día
@@ -445,7 +480,7 @@ export default function Pagos() {
         })()}
       </div>
 
-      {/* Alertas */}
+      {/* Alertas pendientes */}
       {pendientes.length > 0 && (
         <div className="rounded-2xl p-5 mb-6 border border-yellow-200" style={{ background: 'linear-gradient(135deg, #fffbeb, #fef3c7)' }}>
           <h3 className="text-sm font-bold text-yellow-800 mb-3 flex items-center gap-2">
@@ -454,12 +489,12 @@ export default function Pagos() {
           </h3>
           <ListaConVerMas items={pendientes} limite={5} renderItem={(p, i) => (
             <div key={i} className="flex items-center justify-between bg-white rounded-xl p-3 border border-yellow-100">
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
                 <p className="text-xs text-gray-400">{metodoIcono[p.metodo]} {p.metodo} · {formatFecha(p.fecha_cita || p.fecha)}</p>
-                {p.notas && <p className="text-xs text-gray-400 mt-0.5">{p.notas}</p>}
+                <NotaInline p={p} />
               </div>
-              <div className="flex items-center gap-2 ml-3">
+              <div className="flex items-center gap-2 ml-3 shrink-0">
                 <span className="font-bold text-gray-800 text-sm">{formatCLP(p.monto)}</span>
                 <button onClick={() => marcarPagado(p)} className="text-xs bg-green-100 text-green-700 px-2.5 py-1.5 rounded-lg hover:bg-green-200 font-semibold whitespace-nowrap">✅ Realizada</button>
                 <button onClick={() => abrirEditar(p)} className="text-xs bg-blue-50 text-blue-600 px-2.5 py-1.5 rounded-lg hover:bg-blue-100 font-semibold">Editar</button>
@@ -483,13 +518,14 @@ export default function Pagos() {
           </div>
           <ListaConVerMas items={bonosPendientes} limite={5} renderItem={(p, i) => (
             <div key={i} className="flex items-center justify-between bg-white rounded-xl p-3 border border-teal-100">
-              <div>
+              <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
                 <p className="text-xs text-gray-400">🏥 Bono: {p.numero_bono} · {formatFecha(p.fecha_cita || p.fecha)}</p>
                 {p.paciente_rut && <p className="text-xs text-gray-400">🪪 {p.paciente_rut}</p>}
                 {p.profesional_nombre && <p className="text-xs text-teal-600">👩‍⚕️ {p.profesional_nombre} {p.profesional_apellido}</p>}
+                <NotaInline p={p} />
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 shrink-0 ml-3">
                 <button onClick={async () => { await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'verificado' }); cargar() }} className="text-xs bg-green-100 text-green-700 px-2.5 py-1.5 rounded-lg hover:bg-green-200 font-semibold">✅ Verificado</button>
                 <button onClick={async () => { await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'rechazado' }); cargar() }} className="text-xs bg-red-100 text-red-600 px-2.5 py-1.5 rounded-lg hover:bg-red-200 font-semibold">❌ Rechazado</button>
               </div>
@@ -591,25 +627,28 @@ export default function Pagos() {
               {expandidoPaciente === grupo.paciente_id && (
                 <div className="border-t border-gray-100">
                   {grupo.pagos.map((p, i) => (
-                    <div key={p.id} className={`flex items-center justify-between px-4 py-3 text-sm ${i % 2 === 0 ? 'bg-gray-50' : 'bg-white'} ${p.estado === 'pendiente' ? 'border-l-4 border-yellow-400' : ''}`}>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-gray-700 font-semibold">{p.notas || 'Pago'}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
+                    <div key={p.id} className={`px-4 py-3 text-sm ${i % 2 === 0 ? 'bg-gray-50' : 'bg-white'} ${p.estado === 'pendiente' ? 'border-l-4 border-yellow-400' : ''}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-gray-700 font-semibold">{p.procedimiento_nombre || 'Pago'}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
+                          </div>
+                          <div className="flex gap-3 mt-0.5 flex-wrap">
+                            <span className="text-xs text-gray-400">{formatFecha(p.fecha_cita || p.fecha)}</span>
+                            {p.profesional_nombre && <span className="text-xs text-teal-600">👩‍⚕️ {p.profesional_nombre} {p.profesional_apellido}</span>}
+                            {p.numero_bono && <span className="text-xs text-blue-600">🏥 {p.numero_bono}</span>}
+                          </div>
+                          <NotaInline p={p} />
                         </div>
-                        <div className="flex gap-3 mt-0.5 flex-wrap">
-                          <span className="text-xs text-gray-400">{formatFecha(p.fecha_cita || p.fecha)}</span>
-                          {p.profesional_nombre && <span className="text-xs text-teal-600">👩‍⚕️ {p.profesional_nombre} {p.profesional_apellido}</span>}
-                          {p.numero_bono && <span className="text-xs text-blue-600">🏥 {p.numero_bono}</span>}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3 ml-3 shrink-0">
-                        <span className="font-black text-gray-800">{formatCLP(p.monto)}</span>
-                        <div className="flex gap-1">
-                          {p.estado === 'pendiente' && <button onClick={() => marcarPagado(p)} className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-lg hover:bg-green-100 font-semibold">✅</button>}
-                          <button onClick={() => abrirEditar(p)} className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-lg hover:bg-blue-100 font-semibold">Editar</button>
-                          <button onClick={() => eliminar(p.id)} className="text-xs bg-red-50 text-red-600 px-2 py-1 rounded-lg hover:bg-red-100 font-semibold">Eliminar</button>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="font-black text-gray-800">{formatCLP(p.monto)}</span>
+                          <div className="flex gap-1">
+                            {p.estado === 'pendiente' && <button onClick={() => marcarPagado(p)} className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-lg hover:bg-green-100 font-semibold">✅</button>}
+                            <button onClick={() => abrirEditar(p)} className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-lg hover:bg-blue-100 font-semibold">Editar</button>
+                            <button onClick={() => eliminar(p.id)} className="text-xs bg-red-50 text-red-600 px-2 py-1 rounded-lg hover:bg-red-100 font-semibold">Eliminar</button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -643,15 +682,15 @@ export default function Pagos() {
           {filtroProfesionalVista && (
             <>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="rounded-2xl p-5 border border-green-100 card-surface">
+                <div className="rounded-2xl p-5 border border-green-100">
                   <p className="text-xs font-semibold text-gray-400 mb-1">Total generado</p>
                   <p className="text-2xl font-black text-gray-800">{formatCLP(totalProfesionalSeleccionada)}</p>
                 </div>
-                <div className="rounded-2xl p-5 border border-gray-100 card-surface">
+                <div className="rounded-2xl p-5 border border-gray-100">
                   <p className="text-xs font-semibold text-gray-400 mb-1">Ya cobrado</p>
                   <p className="text-2xl font-black text-green-700">{formatCLP(totalPagadoProfesionalSeleccionada)}</p>
                 </div>
-                <div className="rounded-2xl p-5 border border-gray-100 card-surface">
+                <div className="rounded-2xl p-5 border border-gray-100">
                   <p className="text-xs font-semibold text-gray-400 mb-1">Atenciones registradas</p>
                   <p className="text-2xl font-black text-gray-800">{pagosProfesionalSeleccionada.length}</p>
                 </div>
@@ -665,19 +704,19 @@ export default function Pagos() {
               ) : (
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                   <ListaConVerMas items={pagosProfesionalSeleccionada} limite={10} renderItem={(p, i) => (
-                    <div key={p.id} className={`flex items-center justify-between px-4 py-3 text-sm ${i % 2 === 0 ? 'bg-gray-50' : 'bg-white'} ${p.estado === 'pendiente' ? 'border-l-4 border-yellow-400' : ''}`}>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-gray-700 font-semibold">{p.paciente_nombre} {p.paciente_apellido}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
-                        </div>
-                        <div className="flex gap-3 mt-0.5 flex-wrap">
+                    <div key={p.id} className={`px-4 py-3 text-sm ${i % 2 === 0 ? 'bg-gray-50' : 'bg-white'} ${p.estado === 'pendiente' ? 'border-l-4 border-yellow-400' : ''}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-gray-700 font-semibold">{p.paciente_nombre} {p.paciente_apellido}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
+                          </div>
                           <span className="text-xs text-gray-400">{formatFecha(p.fecha_cita || p.fecha)}</span>
-                          {p.notas && <span className="text-xs text-gray-400">{p.notas}</span>}
+                          <NotaInline p={p} />
                         </div>
+                        <span className="font-black text-gray-800 shrink-0">{formatCLP(p.monto)}</span>
                       </div>
-                      <span className="font-black text-gray-800 ml-3 shrink-0">{formatCLP(p.monto)}</span>
                     </div>
                   )} />
                 </div>
@@ -694,7 +733,7 @@ export default function Pagos() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)' }}>
-                  {['Paciente', 'Fecha', 'Procedimiento', 'Matrona', 'Monto', 'Método', 'Estado', 'Extra', 'Acciones'].map(h => (
+                  {['Paciente', 'Fecha', 'Procedimiento / Nota', 'Matrona', 'Monto', 'Método', 'Estado', 'Extra', 'Acciones'].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -710,7 +749,10 @@ export default function Pagos() {
                       {formatFecha(p.fecha_cita || p.fecha)}
                       {p.fecha_cita && <p className="text-teal-500">fecha cita</p>}
                     </td>
-                    <td className="px-4 py-3 text-gray-500 text-xs">{p.notas || '—'}</td>
+                    <td className="px-4 py-3 text-xs">
+                      {p.procedimiento_nombre && <p className="text-gray-600 font-medium mb-0.5">{p.procedimiento_nombre}</p>}
+                      <NotaInline p={p} />
+                    </td>
                     <td className="px-4 py-3 text-gray-500 text-xs">{p.profesional_nombre ? `${p.profesional_nombre} ${p.profesional_apellido}` : '—'}</td>
                     <td className="px-4 py-3 font-black text-gray-800">{formatCLP(p.monto)}</td>
                     <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-semibold ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span></td>
@@ -752,9 +794,10 @@ export default function Pagos() {
                   </div>
                   <p className="font-black text-green-800 text-lg">{formatCLP(p.monto)}</p>
                 </div>
-                {p.notas && <p className="text-xs text-gray-500 mb-1">{p.notas}</p>}
-                {p.profesional_nombre && <p className="text-xs text-teal-600 mb-1">👩‍⚕️ {p.profesional_nombre} {p.profesional_apellido}</p>}
-                <div className="flex gap-2 mb-2 flex-wrap">
+                {p.procedimiento_nombre && <p className="text-xs text-gray-600 font-medium mb-1">{p.procedimiento_nombre}</p>}
+                <NotaInline p={p} />
+                {p.profesional_nombre && <p className="text-xs text-teal-600 mt-1">👩‍⚕️ {p.profesional_nombre} {p.profesional_apellido}</p>}
+                <div className="flex gap-2 mt-2 mb-2 flex-wrap">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${estadoBadge[p.estado]}`}>{p.estado}</span>
                 </div>
