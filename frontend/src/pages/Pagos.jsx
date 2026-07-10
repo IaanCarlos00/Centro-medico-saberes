@@ -38,7 +38,7 @@ function formatFecha(f) {
 const formInicial = {
   paciente_id: '', monto: '', metodo: 'debito', estado: 'pendiente',
   notas: '', numero_bono: '', estado_bono: 'pendiente', estado_boleta: 'pendiente',
-  procedimiento_nombre: '', profesional_id: '', fecha: ''
+  procedimiento_nombre: '', profesional_id: '', fecha: '', notas_abono: ''
 }
 
 export default function Pagos() {
@@ -66,8 +66,6 @@ export default function Pagos() {
   const dropdownRef = useRef(null)
   const [catalogo, setCatalogo] = useState([])
   const [profesionales, setProfesionales] = useState([])
-  const [notaEditando, setNotaEditando] = useState(null)
-  const [notaTemp, setNotaTemp] = useState('')
 
   const cargar = async () => {
     const [p, pa, r, cat, pro] = await Promise.all([
@@ -145,7 +143,8 @@ export default function Pagos() {
       paciente_id: p.paciente_id, monto: p.monto, metodo: p.metodo, estado: p.estado,
       notas: p.notas || '', numero_bono: p.numero_bono || '', estado_bono: p.estado_bono || 'pendiente',
       estado_boleta: p.estado_boleta || 'pendiente', procedimiento_nombre: p.procedimiento_nombre || '',
-      profesional_id: p.profesional_id || '', fecha: String(p.fecha_cita || p.fecha || '').slice(0, 10)
+      profesional_id: p.profesional_id || '', fecha: String(p.fecha_cita || p.fecha || '').slice(0, 10),
+      notas_abono: p.notas_abono || ''
     })
     setBusquedaPaciente(`${p.paciente_nombre} ${p.paciente_apellido}`)
     setEditando(p.id)
@@ -176,13 +175,6 @@ export default function Pagos() {
 
   const marcarPagado = async p => {
     await axios.put(`${API}/${p.id}`, { ...p, estado: 'pagado' })
-    cargar()
-  }
-
-  const guardarNota = async p => {
-    await axios.put(`${API}/${p.id}`, { ...p, notas: notaTemp })
-    setNotaEditando(null)
-    setNotaTemp('')
     cargar()
   }
 
@@ -235,32 +227,6 @@ export default function Pagos() {
   const pagadosProfesionalSeleccionada = pagosProfesionalSeleccionada.filter(p => p.estado === 'pagado')
   const totalPagadoProfesionalSeleccionada = pagadosProfesionalSeleccionada.reduce((s, p) => s + parseFloat(p.monto), 0)
   const profesionalSeleccionada = profesionales.find(p => String(p.id) === String(filtroProfesionalVista))
-
-  // Componente nota inline reutilizable
-  const NotaInline = ({ p }) => (
-    notaEditando === p.id ? (
-      <div className="flex items-center gap-1 mt-1" onClick={e => e.stopPropagation()}>
-        <input
-          autoFocus
-          className="border border-purple-300 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-purple-400 flex-1 min-w-0"
-          value={notaTemp}
-          onChange={e => setNotaTemp(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') guardarNota(p); if (e.key === 'Escape') { setNotaEditando(null); setNotaTemp('') } }}
-          placeholder="Ej: Abonó $10.000, resta $15.000..."
-        />
-        <button onClick={() => guardarNota(p)} className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-lg hover:bg-purple-200 font-bold shrink-0">✓</button>
-        <button onClick={() => { setNotaEditando(null); setNotaTemp('') }} className="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-lg hover:bg-gray-200 shrink-0">✕</button>
-      </div>
-    ) : (
-      <div className="flex items-center gap-1 mt-1 group cursor-pointer" onClick={e => { e.stopPropagation(); setNotaEditando(p.id); setNotaTemp(p.notas || '') }}>
-        {p.notas
-          ? <p className="text-xs text-purple-600 font-medium">📝 {p.notas}</p>
-          : <p className="text-xs text-gray-300 group-hover:text-purple-400 transition-colors">+ agregar nota de abono</p>
-        }
-        <span className="text-xs text-gray-200 group-hover:text-purple-300 transition-colors ml-1 opacity-0 group-hover:opacity-100">✏️</span>
-      </div>
-    )
-  )
 
   return (
     <div className="min-h-screen bg-white">
@@ -385,6 +351,27 @@ export default function Pagos() {
                   <label className="text-sm font-semibold text-gray-700">Notas <span className="text-gray-400 font-normal text-xs">(opcional)</span></label>
                   <input className="border border-gray-200 hover:border-gray-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400" name="notas" placeholder="Ej: Control mensual..." value={form.notas} onChange={handleChange} />
                 </div>
+
+                {/* Nota de abono — solo visible al editar */}
+                {editando && (
+                  <div className="flex flex-col gap-1 sm:col-span-2">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-sm font-bold text-purple-700">📝 Nota de abono</span>
+                      <span className="text-xs text-gray-400 font-normal">— solo para recordatorio interno</span>
+                    </div>
+                    <textarea
+                      className="border border-purple-200 hover:border-purple-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-purple-400 resize-none text-sm bg-purple-50"
+                      name="notas_abono"
+                      placeholder="Ej: Abonó $10.000 el 15/06, resta $15.000 para el 30/06..."
+                      rows={3}
+                      value={form.notas_abono}
+                      onChange={handleChange}
+                    />
+                    {form.notas_abono && (
+                      <p className="text-xs text-purple-500 font-medium">💾 Esta nota se guardará junto al pago</p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
             <div className="px-6 pb-6 flex gap-3">
@@ -480,7 +467,7 @@ export default function Pagos() {
         })()}
       </div>
 
-      {/* Alertas pendientes */}
+      {/* Alertas */}
       {pendientes.length > 0 && (
         <div className="rounded-2xl p-5 mb-6 border border-yellow-200" style={{ background: 'linear-gradient(135deg, #fffbeb, #fef3c7)' }}>
           <h3 className="text-sm font-bold text-yellow-800 mb-3 flex items-center gap-2">
@@ -492,7 +479,8 @@ export default function Pagos() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-800">{p.paciente_nombre} {p.paciente_apellido}</p>
                 <p className="text-xs text-gray-400">{metodoIcono[p.metodo]} {p.metodo} · {formatFecha(p.fecha_cita || p.fecha)}</p>
-                <NotaInline p={p} />
+                {p.notas && <p className="text-xs text-gray-400 mt-0.5">{p.notas}</p>}
+                {p.notas_abono && <p className="text-xs text-purple-600 font-medium mt-0.5">📝 {p.notas_abono}</p>}
               </div>
               <div className="flex items-center gap-2 ml-3 shrink-0">
                 <span className="font-bold text-gray-800 text-sm">{formatCLP(p.monto)}</span>
@@ -523,7 +511,7 @@ export default function Pagos() {
                 <p className="text-xs text-gray-400">🏥 Bono: {p.numero_bono} · {formatFecha(p.fecha_cita || p.fecha)}</p>
                 {p.paciente_rut && <p className="text-xs text-gray-400">🪪 {p.paciente_rut}</p>}
                 {p.profesional_nombre && <p className="text-xs text-teal-600">👩‍⚕️ {p.profesional_nombre} {p.profesional_apellido}</p>}
-                <NotaInline p={p} />
+                {p.notas_abono && <p className="text-xs text-purple-600 font-medium mt-0.5">📝 {p.notas_abono}</p>}
               </div>
               <div className="flex gap-2 shrink-0 ml-3">
                 <button onClick={async () => { await axios.put(`${API}/${p.id}`, { ...p, estado_bono: 'verificado' }); cargar() }} className="text-xs bg-green-100 text-green-700 px-2.5 py-1.5 rounded-lg hover:bg-green-200 font-semibold">✅ Verificado</button>
@@ -627,28 +615,26 @@ export default function Pagos() {
               {expandidoPaciente === grupo.paciente_id && (
                 <div className="border-t border-gray-100">
                   {grupo.pagos.map((p, i) => (
-                    <div key={p.id} className={`px-4 py-3 text-sm ${i % 2 === 0 ? 'bg-gray-50' : 'bg-white'} ${p.estado === 'pendiente' ? 'border-l-4 border-yellow-400' : ''}`}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-gray-700 font-semibold">{p.procedimiento_nombre || 'Pago'}</span>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
-                          </div>
-                          <div className="flex gap-3 mt-0.5 flex-wrap">
-                            <span className="text-xs text-gray-400">{formatFecha(p.fecha_cita || p.fecha)}</span>
-                            {p.profesional_nombre && <span className="text-xs text-teal-600">👩‍⚕️ {p.profesional_nombre} {p.profesional_apellido}</span>}
-                            {p.numero_bono && <span className="text-xs text-blue-600">🏥 {p.numero_bono}</span>}
-                          </div>
-                          <NotaInline p={p} />
+                    <div key={p.id} className={`flex items-center justify-between px-4 py-3 text-sm ${i % 2 === 0 ? 'bg-gray-50' : 'bg-white'} ${p.estado === 'pendiente' ? 'border-l-4 border-yellow-400' : ''}`}>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-gray-700 font-semibold">{p.notas || 'Pago'}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className="font-black text-gray-800">{formatCLP(p.monto)}</span>
-                          <div className="flex gap-1">
-                            {p.estado === 'pendiente' && <button onClick={() => marcarPagado(p)} className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-lg hover:bg-green-100 font-semibold">✅</button>}
-                            <button onClick={() => abrirEditar(p)} className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-lg hover:bg-blue-100 font-semibold">Editar</button>
-                            <button onClick={() => eliminar(p.id)} className="text-xs bg-red-50 text-red-600 px-2 py-1 rounded-lg hover:bg-red-100 font-semibold">Eliminar</button>
-                          </div>
+                        <div className="flex gap-3 mt-0.5 flex-wrap">
+                          <span className="text-xs text-gray-400">{formatFecha(p.fecha_cita || p.fecha)}</span>
+                          {p.profesional_nombre && <span className="text-xs text-teal-600">👩‍⚕️ {p.profesional_nombre} {p.profesional_apellido}</span>}
+                          {p.numero_bono && <span className="text-xs text-blue-600">🏥 {p.numero_bono}</span>}
+                        </div>
+                        {p.notas_abono && <p className="text-xs text-purple-600 font-medium mt-0.5">📝 {p.notas_abono}</p>}
+                      </div>
+                      <div className="flex items-center gap-3 ml-3 shrink-0">
+                        <span className="font-black text-gray-800">{formatCLP(p.monto)}</span>
+                        <div className="flex gap-1">
+                          {p.estado === 'pendiente' && <button onClick={() => marcarPagado(p)} className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-lg hover:bg-green-100 font-semibold">✅</button>}
+                          <button onClick={() => abrirEditar(p)} className="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded-lg hover:bg-blue-100 font-semibold">Editar</button>
+                          <button onClick={() => eliminar(p.id)} className="text-xs bg-red-50 text-red-600 px-2 py-1 rounded-lg hover:bg-red-100 font-semibold">Eliminar</button>
                         </div>
                       </div>
                     </div>
@@ -704,19 +690,20 @@ export default function Pagos() {
               ) : (
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                   <ListaConVerMas items={pagosProfesionalSeleccionada} limite={10} renderItem={(p, i) => (
-                    <div key={p.id} className={`px-4 py-3 text-sm ${i % 2 === 0 ? 'bg-gray-50' : 'bg-white'} ${p.estado === 'pendiente' ? 'border-l-4 border-yellow-400' : ''}`}>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-gray-700 font-semibold">{p.paciente_nombre} {p.paciente_apellido}</span>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
-                          </div>
-                          <span className="text-xs text-gray-400">{formatFecha(p.fecha_cita || p.fecha)}</span>
-                          <NotaInline p={p} />
+                    <div key={p.id} className={`flex items-center justify-between px-4 py-3 text-sm ${i % 2 === 0 ? 'bg-gray-50' : 'bg-white'} ${p.estado === 'pendiente' ? 'border-l-4 border-yellow-400' : ''}`}>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-gray-700 font-semibold">{p.paciente_nombre} {p.paciente_apellido}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${estadoBadge[p.estado]}`}>{p.estado}</span>
                         </div>
-                        <span className="font-black text-gray-800 shrink-0">{formatCLP(p.monto)}</span>
+                        <div className="flex gap-3 mt-0.5 flex-wrap">
+                          <span className="text-xs text-gray-400">{formatFecha(p.fecha_cita || p.fecha)}</span>
+                          {p.notas && <span className="text-xs text-gray-400">{p.notas}</span>}
+                        </div>
+                        {p.notas_abono && <p className="text-xs text-purple-600 font-medium mt-0.5">📝 {p.notas_abono}</p>}
                       </div>
+                      <span className="font-black text-gray-800 ml-3 shrink-0">{formatCLP(p.monto)}</span>
                     </div>
                   )} />
                 </div>
@@ -733,7 +720,7 @@ export default function Pagos() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ background: 'linear-gradient(135deg, #f0fdf4, #dcfce7)' }}>
-                  {['Paciente', 'Fecha', 'Procedimiento / Nota', 'Matrona', 'Monto', 'Método', 'Estado', 'Extra', 'Acciones'].map(h => (
+                  {['Paciente', 'Fecha', 'Procedimiento', 'Matrona', 'Monto', 'Método', 'Estado', 'Extra', 'Acciones'].map(h => (
                     <th key={h} className="px-4 py-3 text-left text-xs font-bold text-green-800 uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -750,8 +737,8 @@ export default function Pagos() {
                       {p.fecha_cita && <p className="text-teal-500">fecha cita</p>}
                     </td>
                     <td className="px-4 py-3 text-xs">
-                      {p.procedimiento_nombre && <p className="text-gray-600 font-medium mb-0.5">{p.procedimiento_nombre}</p>}
-                      <NotaInline p={p} />
+                      <p className="text-gray-500">{p.notas || '—'}</p>
+                      {p.notas_abono && <p className="text-purple-600 font-medium mt-0.5">📝 {p.notas_abono}</p>}
                     </td>
                     <td className="px-4 py-3 text-gray-500 text-xs">{p.profesional_nombre ? `${p.profesional_nombre} ${p.profesional_apellido}` : '—'}</td>
                     <td className="px-4 py-3 font-black text-gray-800">{formatCLP(p.monto)}</td>
@@ -794,10 +781,10 @@ export default function Pagos() {
                   </div>
                   <p className="font-black text-green-800 text-lg">{formatCLP(p.monto)}</p>
                 </div>
-                {p.procedimiento_nombre && <p className="text-xs text-gray-600 font-medium mb-1">{p.procedimiento_nombre}</p>}
-                <NotaInline p={p} />
-                {p.profesional_nombre && <p className="text-xs text-teal-600 mt-1">👩‍⚕️ {p.profesional_nombre} {p.profesional_apellido}</p>}
-                <div className="flex gap-2 mt-2 mb-2 flex-wrap">
+                {p.notas && <p className="text-xs text-gray-500 mb-1">{p.notas}</p>}
+                {p.notas_abono && <p className="text-xs text-purple-600 font-medium mb-1">📝 {p.notas_abono}</p>}
+                {p.profesional_nombre && <p className="text-xs text-teal-600 mb-1">👩‍⚕️ {p.profesional_nombre} {p.profesional_apellido}</p>}
+                <div className="flex gap-2 mb-2 flex-wrap">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${metodoBadge[p.metodo]}`}>{metodoIcono[p.metodo]} {p.metodo}</span>
                   <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${estadoBadge[p.estado]}`}>{p.estado}</span>
                 </div>
