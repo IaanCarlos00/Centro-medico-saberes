@@ -17,6 +17,7 @@ import Encuesta from './pages/Encuesta'
 import Encuestas from './pages/Encuestas'
 import Logs from './pages/Logs'
 import Controles from './pages/Controles'
+import PcrVph from './pages/PcrVph'
 import AsistenteIA from './components/AsistenteIA'
 
 function NavLink({ to, children, onClick }) {
@@ -46,6 +47,7 @@ function BottomNav({ links, onLogout, darkMode, setDarkMode }) {
     '/pagos': '💰',
     '/pap': '🧪',
     '/flujos': '🔬',
+    '/pcr-vph': '🔬',
     '/encuestas': '📋',
     '/procedimientos': '🩺',
     '/reportes': '📊',
@@ -138,6 +140,7 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
     { to: '/procedimientos', label: 'Procedimientos' },
     { to: '/pap', label: 'PAP' },
     { to: '/flujos', label: 'Flujos' },
+    { to: '/pcr-vph', label: 'PCR VPH' },
     { to: '/encuestas', label: 'Encuestas' },
     { to: '/logs', label: 'Actividad' },
     { to: '/controles', label: 'Controles' },
@@ -151,6 +154,7 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
     { to: '/procedimientos', label: 'Procedimientos' },
     { to: '/pap', label: 'PAP' },
     { to: '/flujos', label: 'Flujos' },
+    { to: '/pcr-vph', label: 'PCR VPH' },
     { to: '/encuestas', label: 'Encuestas' },
     { to: '/controles', label: 'Controles' },
   ]
@@ -162,6 +166,7 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
     { to: '/pagos', label: 'Pagos' },
     { to: '/pap', label: 'PAP' },
     { to: '/flujos', label: 'Flujos' },
+    { to: '/pcr-vph', label: 'PCR VPH' },
     { to: '/encuestas', label: 'Encuestas' },
     { to: '/reportes', label: 'Reportes' },
   ]
@@ -227,6 +232,7 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
             <Route path="procedimientos" element={<Procedimientos />} />
             <Route path="pap" element={<Pap />} />
             <Route path="flujos" element={<Flujos />} />
+            <Route path="pcr-vph" element={<PcrVph />} />
             <Route path="encuestas" element={<Encuestas />} />
             <Route path="logs" element={<Logs />} />
             <Route path="controles" element={<Controles />} />
@@ -241,6 +247,7 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
             <Route path="cambiar-password" element={<CambiarPassword />} />
             <Route path="pap" element={<Pap />} />
             <Route path="flujos" element={<Flujos />} />
+            <Route path="pcr-vph" element={<PcrVph />} />
             <Route path="encuestas" element={<Encuestas />} />
             <Route path="controles" element={<Controles />} />
             <Route path="*" element={<Navigate to="/pacientes" />} />
@@ -253,6 +260,7 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
             <Route path="cambiar-password" element={<CambiarPassword />} />
             <Route path="pap" element={<Pap />} />
             <Route path="flujos" element={<Flujos />} />
+            <Route path="pcr-vph" element={<PcrVph />} />
             <Route path="encuestas" element={<Encuestas />} />
             <Route path="reportes" element={<Reportes />} />
             <Route path="*" element={<Navigate to="/" />} />

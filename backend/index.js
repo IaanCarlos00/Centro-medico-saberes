@@ -13,6 +13,7 @@ const pagosRouter = require('./routes/pagos');
 const bloqueosRouter = require('./routes/bloqueos');
 const procedimientosRouter = require('./routes/procedimientos');
 const papRouter = require('./routes/pap');
+const pcrVphRouter = require('./routes/pcrVph')
 const flujosRouter = require('./routes/flujos');
 const encuestasRouter = require('./routes/encuestas');
 const archivosRouter = require('./routes/archivos');
@@ -49,6 +50,7 @@ app.use('/pagos', auth, pagosRouter);
 app.use('/bloqueos', auth, bloqueosRouter);
 app.use('/procedimientos', auth, procedimientosRouter);
 app.use('/pap', auth, papRouter);
+app.use('/pcr-vph', auth, pcrVphRouter);
 app.use('/flujos', auth, flujosRouter);
 app.use('/archivos', auth, archivosRouter);
 app.use('/logs', auth, logsRouter);
