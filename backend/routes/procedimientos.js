@@ -87,6 +87,13 @@ router.post('/', async (req, res) => {
       )
     }
 
+    if (nombreUpper.includes('PCR') && nombreUpper.includes('VPH')) {
+      await pool.query(
+        'INSERT INTO pcr_vph (paciente_id, fecha_toma, estado_envio, profesional_id) VALUES ($1,$2,$3,$4)',
+        [paciente_id, fechaFinal, 'pendiente', profesional_id || null]
+      )
+    }
+
     res.status(201).json(proc.rows[0])
   } catch (error) { res.status(500).json({ error: error.message }) }
 })
