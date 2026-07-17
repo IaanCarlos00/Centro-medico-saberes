@@ -7,6 +7,7 @@ const rolConfig = {
   admin: { badge: 'bg-purple-100 text-purple-700', gradient: 'linear-gradient(135deg, #7c3aed, #8b5cf6)', icon: '👑', label: 'Administrador' },
   secretaria: { badge: 'bg-blue-100 text-blue-700', gradient: 'linear-gradient(135deg, #1d4ed8, #3b82f6)', icon: '📋', label: 'Secretaria' },
   matrona: { badge: 'bg-green-100 text-green-700', gradient: 'linear-gradient(135deg, #166534, #15803d)', icon: '🩺', label: 'Matrona' },
+  recepcionista: { badge: 'bg-orange-100 text-orange-700', gradient: 'linear-gradient(135deg, #c2410c, #f97316)', icon: '🖥️', label: 'Recepcionista' },
 }
 
 export default function Usuarios() {
@@ -119,7 +120,7 @@ export default function Usuarios() {
               </div>
               <div className="flex flex-col gap-1">
                 <label className="text-sm font-semibold text-gray-700">Rol *</label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   {Object.entries(rolConfig).map(([rol, config]) => (
                     <button key={rol} type="button" onClick={() => setForm(f => ({ ...f, rol }))}
                       className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all ${form.rol === rol ? 'border-green-600 bg-green-50' : 'border-gray-200 hover:border-gray-300'}`}>
@@ -191,6 +192,7 @@ export default function Usuarios() {
           <option value="admin">👑 Admin</option>
           <option value="matrona">🩺 Matrona</option>
           <option value="secretaria">📋 Secretaria</option>
+          <option value="recepcionista">🖥️ Recepcionista</option>
         </select>
       </div>
 

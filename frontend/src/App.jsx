@@ -17,6 +17,7 @@ import Encuesta from './pages/Encuesta'
 import Encuestas from './pages/Encuestas'
 import Logs from './pages/Logs'
 import Controles from './pages/Controles'
+import InicioRecepcionista from './pages/InicioRecepcionista'
 import PcrVph from './pages/PcrVph'
 import AsistenteIA from './components/AsistenteIA'
 
@@ -55,6 +56,7 @@ function BottomNav({ links, onLogout, darkMode, setDarkMode }) {
     '/profesionales': '👩‍⚕️',
     '/logs': '📝',
     '/controles': '📆',
+    '/': '🖥️',
   }
 
   return (
@@ -171,7 +173,11 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
     { to: '/reportes', label: 'Reportes' },
   ]
 
-  const links = rol === 'admin' ? linksAdmin : rol === 'secretaria' ? linksSecretaria : linksMatrona
+  const linksRecepcionista = [
+    { to: '/', label: 'Agenda' },
+  ]
+
+  const links = rol === 'admin' ? linksAdmin : rol === 'secretaria' ? linksSecretaria : rol === 'matrona' ? linksMatrona : linksRecepcionista
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
@@ -263,6 +269,11 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
             <Route path="pcr-vph" element={<PcrVph />} />
             <Route path="encuestas" element={<Encuestas />} />
             <Route path="reportes" element={<Reportes />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </>}
+          {rol === 'recepcionista' && <>
+            <Route index element={<InicioRecepcionista />} />
+            <Route path="cambiar-password" element={<CambiarPassword />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}
         </Routes>
