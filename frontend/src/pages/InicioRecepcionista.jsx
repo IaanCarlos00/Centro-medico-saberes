@@ -34,8 +34,6 @@ export default function InicioRecepcionista() {
 
   useEffect(() => {
     cargar()
-    const intervalo = setInterval(cargar, 5 * 60 * 1000)
-    return () => clearInterval(intervalo)
   }, [])
 
   const citasJ = citas.filter(c => String(c.profesional_id) === '1')
@@ -112,7 +110,6 @@ export default function InicioRecepcionista() {
               </div>
             </div>
           ))}
-          <p className="text-xs text-gray-400 text-center mt-2">Se actualiza automáticamente cada 5 minutos</p>
         </div>
       )}
     </div>
