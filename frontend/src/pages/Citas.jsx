@@ -14,6 +14,11 @@ const API = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
 const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
 const API_BLOQUEOS = 'https://centro-medico-saberes-production.up.railway.app/bloqueos'
+const API_HORARIOS = 'https://centro-medico-saberes-production.up.railway.app/horarios'
+
+// Los bloques de 45 min y la disponibilidad por matrona entran en vigencia el 1 de agosto de 2026.
+// Antes de esa fecha se puede activar una vista previa con el botón "Vista previa" sin afectar a los demás usuarios.
+const FECHA_ACTIVACION_NUEVO_HORARIO = new Date('2026-08-01T00:00:00')
 
 const localizer = dateFnsLocalizer({
   format: (date, formatStr, options) => format(date, formatStr, { locale: es, ...options }),
@@ -144,6 +149,8 @@ export default function Agenda() {
   const [filtroEstado, setFiltroEstado] = useState('')
   const [historialPaciente, setHistorialPaciente] = useState([])
   const [bloqueos, setBloqueos] = useState([])
+  const [horarios, setHorarios] = useState([])
+  const [previaNuevoHorario, setPreviaNuevoHorario] = useState(false)
   const [modalPago, setModalPago] = useState(null)
   const [citaRecienAgendada, setCitaRecienAgendada] = useState(null)
   const [modalProcedimientosCita, setModalProcedimientosCita] = useState(null)
@@ -176,12 +183,13 @@ export default function Agenda() {
   const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
 
   const cargar = async () => {
-  const [c, p, pr, bl, cat] = await Promise.all([axios.get(API), axios.get(API_PAC), axios.get(API_PRO), axios.get(API_BLOQUEOS), axios.get(`${API_PROC}/catalogo`)])
+  const [c, p, pr, bl, cat, ho] = await Promise.all([axios.get(API), axios.get(API_PAC), axios.get(API_PRO), axios.get(API_BLOQUEOS), axios.get(`${API_PROC}/catalogo`), axios.get(API_HORARIOS).catch(() => ({ data: [] }))])
   setCitas(c.data)
   setPacientes(p.data)
   setProfesionales(pr.data)
   setBloqueos(bl.data)
   setCatalogo(cat.data)
+  setHorarios(ho.data)
 }
 
   useEffect(() => { cargar() }, [])
@@ -346,6 +354,23 @@ export default function Agenda() {
   setMostrarNuevoPaciente(false)
   setFormNuevoPaciente({ nombre: '', apellido: '' })
 }
+
+  const nuevoHorarioActivo = new Date() >= FECHA_ACTIVACION_NUEVO_HORARIO || previaNuevoHorario
+
+  const colorProfesional = profId => {
+    const pr = profesionales.find(p => String(p.id) === String(profId))
+    if (pr?.color) return pr.color
+    // Compatibilidad con la paleta anterior mientras se asignan colores en Profesionales
+    if (String(profId) === '2') return '#f97316'
+    if (String(profId) === '1') return '#06b6d4'
+    return '#3b82f6'
+  }
+
+  const bloquesDelSlot = date => {
+    const dia = date.getDay()
+    const hora = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+    return horarios.filter(h => Number(h.dia_semana) === dia && hora >= h.hora_inicio && hora < h.hora_fin)
+  }
 
   return (
   <div>
@@ -848,6 +873,19 @@ export default function Agenda() {
       {/* VISTA AGENDA */}
       {vistaActiva === 'agenda' && (
         <>
+          {new Date() < FECHA_ACTIVACION_NUEVO_HORARIO && (
+            <div className="flex items-center justify-between gap-3 mb-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5">
+              <p className="text-sm text-amber-800">
+                🗓️ El horario de 45 min y la disponibilidad por matrona se activan automáticamente el <strong>1 de agosto</strong>.
+              </p>
+              <button
+                onClick={() => setPreviaNuevoHorario(v => !v)}
+                className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${previaNuevoHorario ? 'bg-amber-500 text-white' : 'bg-white text-amber-700 border border-amber-300'}`}
+              >
+                {previaNuevoHorario ? '✓ Viendo vista previa' : 'Ver vista previa'}
+              </button>
+            </div>
+          )}
           <div className="flex justify-end gap-3 mb-5">
             <button
               onClick={() => { setModoMover(!modoMover); setCitaParaMover(null) }}
@@ -1036,6 +1074,21 @@ export default function Agenda() {
                   </div>
                 )
               })()}
+            {nuevoHorarioActivo && profesionales.length > 0 && (
+              <div className="flex flex-wrap items-center gap-4 mb-3">
+                <span className="text-xs font-semibold text-gray-500 uppercase">Disponibilidad:</span>
+                {profesionales.map(p => (
+                  <span key={p.id} className="flex items-center gap-1.5 text-xs text-gray-600">
+                    <span className="w-3 h-3 rounded-full inline-block" style={{ backgroundColor: `${colorProfesional(p.id)}55` }} />
+                    {p.nombre} {p.apellido}
+                  </span>
+                ))}
+                <span className="flex items-center gap-1.5 text-xs text-gray-600">
+                  <span className="w-3 h-3 rounded-full inline-block bg-white border border-gray-300" />
+                  Sin atención
+                </span>
+              </div>
+            )}
             <Calendar
               localizer={localizer}
               events={eventos}
@@ -1050,8 +1103,18 @@ export default function Agenda() {
               views={[Views.WEEK, Views.DAY, Views.AGENDA]}
               min={new Date(0, 0, 0, 8, 30, 0)}
               max={new Date(0, 0, 0, 20, 0, 0)}
-              step={30}
+              step={nuevoHorarioActivo ? 45 : 30}
               timeslots={1}
+              slotPropGetter={date => {
+  if (!nuevoHorarioActivo) return {}
+  const bloques = bloquesDelSlot(date)
+  if (bloques.length === 0) return {}
+  if (bloques.length === 1) {
+    return { style: { backgroundColor: `${colorProfesional(bloques[0].profesional_id)}26` } }
+  }
+  const colores = bloques.map(b => colorProfesional(b.profesional_id))
+  return { style: { background: `linear-gradient(90deg, ${colores.map((c, i) => `${c}26 ${i * 100 / colores.length}% ${(i + 1) * 100 / colores.length}%`).join(', ')})` } }
+}}
               eventPropGetter={evento => {
   let bg = '#6b7280'
   let textColor = 'white'
@@ -1059,14 +1122,12 @@ export default function Agenda() {
     bg = '#ef4444'
   } else {
     const estado = evento.resource?.estado
-    const profId = String(evento.resource?.profesional_id)
+    const profId = evento.resource?.profesional_id
     if (estado === 'pendiente') {
       bg = '#d1d5db'
       textColor = '#6b7280'
     } else if (estado === 'confirmada') {
-      if (profId === '2') bg = '#f97316'
-      else if (profId === '1') bg = '#06b6d4'
-      else bg = '#3b82f6'
+      bg = colorProfesional(profId)
     } else if (estado === 'realizada') {
       bg = '#22c55e'
     } else if (estado === 'cancelada') {

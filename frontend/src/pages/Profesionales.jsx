@@ -5,7 +5,7 @@ const API = 'https://centro-medico-saberes-production.up.railway.app/profesional
 
 export default function Profesionales() {
   const [profesionales, setProfesionales] = useState([])
-  const [form, setForm] = useState({ rut: '', nombre: '', apellido: '', especialidad: '' })
+  const [form, setForm] = useState({ rut: '', nombre: '', apellido: '', especialidad: '', color: '#15803d' })
   const [editando, setEditando] = useState(null)
   const [errores, setErrores] = useState({})
   const [modalForm, setModalForm] = useState(false)
@@ -40,14 +40,14 @@ export default function Profesionales() {
     } else {
       await axios.post(API, form)
     }
-    setForm({ rut: '', nombre: '', apellido: '', especialidad: '' })
+    setForm({ rut: '', nombre: '', apellido: '', especialidad: '', color: '#15803d' })
     setErrores({})
     setModalForm(false)
     cargar()
   }
 
   const editar = p => {
-    setForm({ rut: p.rut, nombre: p.nombre, apellido: p.apellido, especialidad: p.especialidad })
+    setForm({ rut: p.rut, nombre: p.nombre, apellido: p.apellido, especialidad: p.especialidad, color: p.color || '#15803d' })
     setEditando(p.id)
     setErrores({})
     setModalForm(true)
@@ -62,7 +62,7 @@ export default function Profesionales() {
 
   const cancelar = () => {
     setEditando(null)
-    setForm({ rut: '', nombre: '', apellido: '', especialidad: '' })
+    setForm({ rut: '', nombre: '', apellido: '', especialidad: '', color: '#15803d' })
     setErrores({})
     setModalForm(false)
   }
@@ -111,6 +111,14 @@ export default function Profesionales() {
                   </div>
                 ))}
               </div>
+              <div className="flex flex-col gap-1 mt-4">
+                <label className="text-sm font-semibold text-gray-700">Color en la agenda</label>
+                <p className="text-xs text-gray-400 mb-1">Se usa para mostrar su disponibilidad y sus citas en el calendario</p>
+                <div className="flex items-center gap-3">
+                  <input type="color" name="color" value={form.color} onChange={handleChange} className="w-12 h-10 rounded-lg border border-gray-200 cursor-pointer" />
+                  <span className="text-sm text-gray-500">{form.color}</span>
+                </div>
+              </div>
             </div>
             <div className="px-6 pb-6 flex gap-3">
               <button onClick={cancelar} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 font-medium transition-colors">Cancelar</button>
@@ -140,10 +148,10 @@ export default function Profesionales() {
         {profesionales.map((p, i) => (
           <div key={p.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
             {/* Top colored bar */}
-            <div className="h-2 w-full" style={{ background: colores[i % colores.length] }} />
+            <div className="h-2 w-full" style={{ background: p.color || colores[i % colores.length] }} />
             <div className="p-5">
               <div className="flex items-start gap-4 mb-4">
-                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shrink-0 shadow-sm" style={{ background: colores[i % colores.length] }}>
+                <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-black text-white shrink-0 shadow-sm" style={{ background: p.color || colores[i % colores.length] }}>
                   {p.foto
                     ? <img src={p.foto} alt={p.nombre} className="w-14 h-14 rounded-2xl object-cover" />
                     : `${p.nombre?.charAt(0)}${p.apellido?.charAt(0)}`
@@ -151,7 +159,7 @@ export default function Profesionales() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-black text-gray-800 text-lg leading-tight">{p.nombre} {p.apellido}</p>
-                  <span className="inline-block mt-1 text-xs font-semibold px-2.5 py-1 rounded-full text-white" style={{ background: colores[i % colores.length] }}>
+                  <span className="inline-block mt-1 text-xs font-semibold px-2.5 py-1 rounded-full text-white" style={{ background: p.color || colores[i % colores.length] }}>
                     {p.especialidad}
                   </span>
                 </div>

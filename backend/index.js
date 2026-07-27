@@ -11,6 +11,7 @@ const dashboardRouter = require('./routes/dashboard');
 const fichasIngresoRouter = require('./routes/fichasIngreso');
 const pagosRouter = require('./routes/pagos');
 const bloqueosRouter = require('./routes/bloqueos');
+const horariosRouter = require('./routes/horarios');
 const procedimientosRouter = require('./routes/procedimientos');
 const papRouter = require('./routes/pap');
 const pcrVphRouter = require('./routes/pcrVph')
@@ -48,6 +49,7 @@ app.use('/dashboard', auth, dashboardRouter);
 app.use('/fichas-ingreso', auth, fichasIngresoRouter);
 app.use('/pagos', auth, pagosRouter);
 app.use('/bloqueos', auth, bloqueosRouter);
+app.use('/horarios', auth, horariosRouter);
 app.use('/procedimientos', auth, procedimientosRouter);
 app.use('/pap', auth, papRouter);
 app.use('/pcr-vph', auth, pcrVphRouter);

@@ -19,6 +19,7 @@ import Logs from './pages/Logs'
 import Controles from './pages/Controles'
 import InicioRecepcionista from './pages/InicioRecepcionista'
 import PcrVph from './pages/PcrVph'
+import HorariosMatronas from './pages/HorariosMatronas'
 import AsistenteIA from './components/AsistenteIA'
 
 function NavLink({ to, children, onClick }) {
@@ -54,6 +55,7 @@ function BottomNav({ links, onLogout, darkMode, setDarkMode }) {
     '/reportes': '📊',
     '/usuarios': '👥',
     '/profesionales': '👩‍⚕️',
+    '/horarios': '🗓️',
     '/logs': '📝',
     '/controles': '📆',
     '/': '🖥️',
@@ -135,6 +137,7 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
     { to: '/', label: 'Inicio' },
     { to: '/pacientes', label: 'Pacientes' },
     { to: '/profesionales', label: 'Profesionales' },
+    { to: '/horarios', label: 'Horarios' },
     { to: '/citas', label: 'Agenda' },
     { to: '/pagos', label: 'Pagos' },
     { to: '/usuarios', label: 'Usuarios' },
@@ -230,6 +233,7 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
             <Route index element={<Inicio />} />
             <Route path="pacientes" element={<Pacientes />} />
             <Route path="profesionales" element={<Profesionales />} />
+            <Route path="horarios" element={<HorariosMatronas />} />
             <Route path="citas" element={<Agenda />} />
             <Route path="pagos" element={<Pagos />} />
             <Route path="usuarios" element={<Usuarios />} />

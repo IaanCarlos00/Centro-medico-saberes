@@ -25,11 +25,11 @@ router.get('/:id', async (req, res) => {
 
 // Crear profesional
 router.post('/', async (req, res) => {
-  const { rut, nombre, apellido, especialidad } = req.body;
+  const { rut, nombre, apellido, especialidad, color } = req.body;
   try {
     const result = await pool.query(
-      'INSERT INTO profesional (rut, nombre, apellido, especialidad) VALUES ($1,$2,$3,$4) RETURNING *',
-      [rut, nombre, apellido, especialidad]
+      'INSERT INTO profesional (rut, nombre, apellido, especialidad, color) VALUES ($1,$2,$3,$4,$5) RETURNING *',
+      [rut, nombre, apellido, especialidad, color || null]
     );
     res.status(201).json(result.rows[0]);
   } catch (error) {
@@ -39,11 +39,11 @@ router.post('/', async (req, res) => {
 
 // Actualizar profesional
 router.put('/:id', async (req, res) => {
-  const { rut, nombre, apellido, especialidad } = req.body;
+  const { rut, nombre, apellido, especialidad, color } = req.body;
   try {
     const result = await pool.query(
-      'UPDATE profesional SET rut=$1, nombre=$2, apellido=$3, especialidad=$4 WHERE id=$5 RETURNING *',
-      [rut, nombre, apellido, especialidad, req.params.id]
+      'UPDATE profesional SET rut=$1, nombre=$2, apellido=$3, especialidad=$4, color=COALESCE($5, color) WHERE id=$6 RETURNING *',
+      [rut, nombre, apellido, especialidad, color || null, req.params.id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: 'Profesional no encontrado' });
     res.json(result.rows[0]);
