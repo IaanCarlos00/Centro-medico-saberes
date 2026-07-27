@@ -17,7 +17,7 @@ const DIAS = [
 export default function HorariosMatronas() {
   const [horarios, setHorarios] = useState([])
   const [profesionales, setProfesionales] = useState([])
-  const [form, setForm] = useState({ profesional_id: '', dia_semana: 1, hora_inicio: '08:00', hora_fin: '12:00' })
+  const [form, setForm] = useState({ profesional_id: '', dia_semana: 1, hora: '08:30', sobrecupo: false })
   const [editando, setEditando] = useState(null)
   const [errores, setErrores] = useState({})
   const [modalForm, setModalForm] = useState(false)
@@ -31,16 +31,15 @@ export default function HorariosMatronas() {
   useEffect(() => { cargar() }, [])
 
   const handleChange = e => {
-    setForm({ ...form, [e.target.name]: e.target.value })
-    setErrores({ ...errores, [e.target.name]: '' })
+    const { name, type, checked, value } = e.target
+    setForm({ ...form, [name]: type === 'checkbox' ? checked : value })
+    setErrores({ ...errores, [name]: '' })
   }
 
   const validar = () => {
     const e = {}
     if (!form.profesional_id) e.profesional_id = 'Selecciona una matrona'
-    if (!form.hora_inicio) e.hora_inicio = 'Obligatorio'
-    if (!form.hora_fin) e.hora_fin = 'Obligatorio'
-    if (form.hora_inicio && form.hora_fin && form.hora_fin <= form.hora_inicio) e.hora_fin = 'Debe ser posterior a la hora de inicio'
+    if (!form.hora) e.hora = 'Obligatorio'
     return e
   }
 
@@ -53,14 +52,14 @@ export default function HorariosMatronas() {
     } else {
       await axios.post(API, form)
     }
-    setForm({ profesional_id: '', dia_semana: 1, hora_inicio: '08:00', hora_fin: '12:00' })
+    setForm({ profesional_id: '', dia_semana: 1, hora: '08:30', sobrecupo: false })
     setErrores({})
     setModalForm(false)
     cargar()
   }
 
   const editar = h => {
-    setForm({ profesional_id: h.profesional_id, dia_semana: h.dia_semana, hora_inicio: h.hora_inicio, hora_fin: h.hora_fin })
+    setForm({ profesional_id: h.profesional_id, dia_semana: h.dia_semana, hora: h.hora, sobrecupo: !!h.sobrecupo })
     setEditando(h.id)
     setErrores({})
     setModalForm(true)
@@ -75,7 +74,7 @@ export default function HorariosMatronas() {
 
   const cancelar = () => {
     setEditando(null)
-    setForm({ profesional_id: '', dia_semana: 1, hora_inicio: '08:00', hora_fin: '12:00' })
+    setForm({ profesional_id: '', dia_semana: 1, hora: '08:30', sobrecupo: false })
     setErrores({})
     setModalForm(false)
   }
@@ -106,20 +105,17 @@ export default function HorariosMatronas() {
                   {DIAS.map(d => <option key={d.valor} value={d.valor}>{d.label}</option>)}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold text-gray-700">Desde *</label>
-                  <input type="time" name="hora_inicio" value={form.hora_inicio} onChange={handleChange}
-                    className={`border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.hora_inicio ? 'border-red-400' : 'border-gray-200'}`} />
-                  {errores.hora_inicio && <span className="text-red-500 text-xs">{errores.hora_inicio}</span>}
-                </div>
-                <div className="flex flex-col gap-1">
-                  <label className="text-sm font-semibold text-gray-700">Hasta *</label>
-                  <input type="time" name="hora_fin" value={form.hora_fin} onChange={handleChange}
-                    className={`border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.hora_fin ? 'border-red-400' : 'border-gray-200'}`} />
-                  {errores.hora_fin && <span className="text-red-500 text-xs">{errores.hora_fin}</span>}
-                </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-semibold text-gray-700">Hora *</label>
+                <input type="time" name="hora" value={form.hora} onChange={handleChange}
+                  className={`border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.hora ? 'border-red-400' : 'border-gray-200'}`} />
+                {errores.hora && <span className="text-red-500 text-xs">{errores.hora}</span>}
               </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" name="sobrecupo" checked={form.sobrecupo} onChange={handleChange}
+                  className="w-4 h-4 rounded accent-amber-500" />
+                <span className="text-sm text-gray-700">Sobrecupo (solo si hay espacio, ej. colación)</span>
+              </label>
             </div>
             <div className="px-6 pb-6 flex gap-3">
               <button onClick={cancelar} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 font-medium">Cancelar</button>
@@ -157,7 +153,8 @@ export default function HorariosMatronas() {
                       <div className="flex items-center gap-3">
                         <span className="w-3 h-3 rounded-full shrink-0" style={{ background: h.profesional_color || '#15803d' }} />
                         <span className="text-sm font-semibold text-gray-800">{h.profesional_nombre} {h.profesional_apellido}</span>
-                        <span className="text-sm text-gray-500">{h.hora_inicio} – {h.hora_fin}</span>
+                        <span className="text-sm text-gray-500">{h.hora}</span>
+                        {h.sobrecupo && <span className="text-xs font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded-full">Sobrecupo</span>}
                       </div>
                       <div className="flex gap-2">
                         <button onClick={() => editar(h)} className="text-xs font-semibold px-2.5 py-1.5 rounded-lg bg-white text-gray-600 hover:bg-gray-100">Editar</button>

@@ -369,7 +369,7 @@ export default function Agenda() {
   const bloquesDelSlot = date => {
     const dia = date.getDay()
     const hora = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
-    return horarios.filter(h => Number(h.dia_semana) === dia && hora >= h.hora_inicio && hora < h.hora_fin)
+    return horarios.filter(h => Number(h.dia_semana) === dia && h.hora === hora)
   }
 
   return (
@@ -1110,7 +1110,13 @@ export default function Agenda() {
   const bloques = bloquesDelSlot(date)
   if (bloques.length === 0) return {}
   if (bloques.length === 1) {
-    return { style: { backgroundColor: `${colorProfesional(bloques[0].profesional_id)}26` } }
+    const b = bloques[0]
+    return {
+      style: {
+        backgroundColor: `${colorProfesional(b.profesional_id)}${b.sobrecupo ? '15' : '26'}`,
+        ...(b.sobrecupo ? { backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 6px, ${colorProfesional(b.profesional_id)}33 6px, ${colorProfesional(b.profesional_id)}33 12px)` } : {})
+      }
+    }
   }
   const colores = bloques.map(b => colorProfesional(b.profesional_id))
   return { style: { background: `linear-gradient(90deg, ${colores.map((c, i) => `${c}26 ${i * 100 / colores.length}% ${(i + 1) * 100 / colores.length}%`).join(', ')})` } }
