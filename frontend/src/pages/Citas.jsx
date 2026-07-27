@@ -1045,32 +1045,86 @@ export default function Agenda() {
 
           {/* Calendario */}
           <div className="bg-white rounded-xl shadow p-4 overflow-x-auto" style={{ height: 'auto' }}>
-            {/* Resumen disponibilidad del día */}
+            {/* Horas disponibles por matrona para el día seleccionado */}
             <div style={{ minWidth: '700px' }}>
-              {(() => {
-                const hoyStr = new Date().toISOString().slice(0,10)
-                const citasHoy = citas.filter(c => c.fecha_hora?.slice(0,10) === hoyStr)
-                const horasDisponibles = []
-                const inicio = 8.5 // 8:30
-                const fin = 20 // hasta 19:30 inclusive
-                for (let h = inicio; h <= 19.5; h += 0.5) {
-                  const hh = Math.floor(h)
-                  const mm = h % 1 === 0 ? '00' : '30'
-                  const horaStr = `${String(hh).padStart(2,'0')}:${mm}`
-                  const ahora = new Date()
-                  const horaActual = `${String(ahora.getHours()).padStart(2,'0')}:${String(ahora.getMinutes()).padStart(2,'0')}`
-                  const ocupada = citasHoy.some(c => c.fecha_hora?.slice(11,16) === horaStr)
-                  if (!ocupada && horaStr > horaActual) horasDisponibles.push(horaStr)
+              {nuevoHorarioActivo && (() => {
+                const diaSemana = fecha.getDay()
+                const offsetDia = fecha.getTimezoneOffset() * 60000
+                const fechaStr = new Date(fecha.getTime() - offsetDia).toISOString().slice(0, 10)
+                const ahora = new Date()
+                const hoyStr = new Date(ahora.getTime() - ahora.getTimezoneOffset() * 60000).toISOString().slice(0, 10)
+                const esHoy = fechaStr === hoyStr
+                const horaActual = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`
+                const citasDelDia = citas.filter(c => c.fecha_hora?.slice(0, 10) === fechaStr && c.estado !== 'cancelada')
+
+                const porMatrona = profesionales
+                  .map(p => ({
+                    profesional: p,
+                    horas: horarios
+                      .filter(h => Number(h.profesional_id) === Number(p.id) && Number(h.dia_semana) === diaSemana)
+                      .sort((a, b) => a.hora.localeCompare(b.hora))
+                  }))
+                  .filter(g => g.horas.length > 0)
+
+                if (porMatrona.length === 0) {
+                  return (
+                    <div className="bg-white rounded-xl shadow p-4 mb-4">
+                      <p className="text-sm text-gray-400">Ninguna matrona atiende este día.</p>
+                    </div>
+                  )
                 }
+
                 return (
                   <div className="bg-white rounded-xl shadow p-4 mb-4">
-                    <p className="text-sm font-semibold text-gray-700 mb-2">⏰ Horas disponibles hoy ({horasDisponibles.length})</p>
-                    <div className="flex flex-wrap gap-1">
-                      {horasDisponibles.slice(0, 12).map(h => (
-                        <span key={h} className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">{h}</span>
+                    <p className="text-sm font-semibold text-gray-700 mb-3">
+                      ⏰ Horas disponibles — {fecha.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
+                    </p>
+                    <div className="flex flex-col gap-4">
+                      {porMatrona.map(({ profesional, horas }) => (
+                        <div key={profesional.id}>
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: colorProfesional(profesional.id) }} />
+                            <span className="text-xs font-bold text-gray-600">{profesional.nombre} {profesional.apellido}</span>
+                          </div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {horas.map(h => {
+                              const ocupada = citasDelDia.some(c => Number(c.profesional_id) === Number(profesional.id) && c.fecha_hora?.slice(11, 16) === h.hora)
+                              const pasada = esHoy && h.hora <= horaActual
+                              const deshabilitada = ocupada || pasada
+                              const color = colorProfesional(profesional.id)
+                              return (
+                                <button
+                                  key={h.id}
+                                  disabled={deshabilitada}
+                                  title={ocupada ? 'Ya reservada' : h.sobrecupo ? 'Sobrecupo: solo si hay espacio' : ''}
+                                  onClick={() => {
+                                    const fechaHora = `${fechaStr}T${h.hora}`
+                                    const [hh, mm] = h.hora.split(':').map(Number)
+                                    const finDate = new Date(fecha)
+                                    finDate.setHours(hh, mm + 45, 0, 0)
+                                    const fechaHoraFin = `${fechaStr}T${String(finDate.getHours()).padStart(2, '0')}:${String(finDate.getMinutes()).padStart(2, '0')}`
+                                    setForm({ paciente_id: '', profesional_id: profesional.id, fecha_hora: fechaHora, estado: 'pendiente', observaciones: '' })
+                                    setBusquedaPaciente('')
+                                    setErrores({})
+                                    setMostrarNuevoPaciente(false)
+                                    setModalOpcion({ fechaHora, fechaHoraFin })
+                                  }}
+                                  className={`text-xs px-2.5 py-1.5 rounded-full font-semibold transition-all ${
+                                    deshabilitada
+                                      ? 'bg-gray-100 text-gray-300 cursor-not-allowed line-through'
+                                      : 'hover:scale-105 cursor-pointer'
+                                  } ${!deshabilitada && h.sobrecupo ? 'border border-dashed' : ''}`}
+                                  style={!deshabilitada ? { backgroundColor: `${color}1a`, color, borderColor: h.sobrecupo ? color : undefined } : {}}
+                                >
+                                  {h.hora}{h.sobrecupo ? ' *' : ''}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </div>
                       ))}
-                      {horasDisponibles.length > 12 && <span className="text-xs text-gray-400 px-2 py-1">+{horasDisponibles.length - 12} más</span>}
                     </div>
+                    <p className="text-[11px] text-gray-400 mt-3">* Sobrecupo: solo si hay espacio (horario de colación)</p>
                   </div>
                 )
               })()}
@@ -1103,7 +1157,7 @@ export default function Agenda() {
               views={[Views.WEEK, Views.DAY, Views.AGENDA]}
               min={new Date(0, 0, 0, 8, 30, 0)}
               max={nuevoHorarioActivo ? new Date(0, 0, 0, 21, 0, 0) : new Date(0, 0, 0, 20, 0, 0)}
-              step={nuevoHorarioActivo ? 45 : 30}
+              step={nuevoHorarioActivo ? 15 : 30}
               timeslots={1}
               slotPropGetter={date => {
   if (!nuevoHorarioActivo) return {}
