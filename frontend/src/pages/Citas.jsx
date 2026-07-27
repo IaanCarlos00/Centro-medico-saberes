@@ -42,7 +42,7 @@ const estadoColor = {
 }
 
 const HORA_MIN = '08:30'
-const HORA_MAX = '19:30'
+const HORA_MAX = '21:00'
 
 function validarFechaHora(fechaHora, bloqueos = []) {
   if (!fechaHora) return 'La hora de la cita es obligatoria'
@@ -990,7 +990,7 @@ export default function Agenda() {
 
                 {/* Fecha */}
                 <div className="flex flex-col">
-                  <label className="text-sm text-gray-600 mb-1">Hora de la cita <span className="text-gray-400 text-xs">(Lun-Vie 08:30-19:30)</span></label>
+                  <label className="text-sm text-gray-600 mb-1">Hora de la cita <span className="text-gray-400 text-xs">(Lun-Vie 08:30-21:00)</span></label>
                   <input
                     className={`border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400 ${errores.fecha_hora ? 'border-red-400' : 'border-gray-300'}`}
                     name="fecha_hora" type="datetime-local"
@@ -1102,7 +1102,7 @@ export default function Agenda() {
               onNavigate={setFecha}
               views={[Views.WEEK, Views.DAY, Views.AGENDA]}
               min={new Date(0, 0, 0, 8, 30, 0)}
-              max={new Date(0, 0, 0, 20, 0, 0)}
+              max={nuevoHorarioActivo ? new Date(0, 0, 0, 21, 0, 0) : new Date(0, 0, 0, 20, 0, 0)}
               step={nuevoHorarioActivo ? 45 : 30}
               timeslots={1}
               slotPropGetter={date => {
