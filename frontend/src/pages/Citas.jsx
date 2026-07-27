@@ -366,12 +366,6 @@ export default function Agenda() {
     return '#3b82f6'
   }
 
-  const bloquesDelSlot = date => {
-    const dia = date.getDay()
-    const hora = `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
-    return horarios.filter(h => Number(h.dia_semana) === dia && h.hora === hora)
-  }
-
   return (
   <div>
     {citasPendientesAviso.length > 0 && (
@@ -1130,17 +1124,13 @@ export default function Agenda() {
               })()}
             {nuevoHorarioActivo && profesionales.length > 0 && (
               <div className="flex flex-wrap items-center gap-4 mb-3">
-                <span className="text-xs font-semibold text-gray-500 uppercase">Disponibilidad:</span>
+                <span className="text-xs font-semibold text-gray-500 uppercase">Colores:</span>
                 {profesionales.map(p => (
                   <span key={p.id} className="flex items-center gap-1.5 text-xs text-gray-600">
-                    <span className="w-3 h-3 rounded-full inline-block" style={{ backgroundColor: `${colorProfesional(p.id)}55` }} />
+                    <span className="w-3 h-3 rounded-full inline-block" style={{ backgroundColor: colorProfesional(p.id) }} />
                     {p.nombre} {p.apellido}
                   </span>
                 ))}
-                <span className="flex items-center gap-1.5 text-xs text-gray-600">
-                  <span className="w-3 h-3 rounded-full inline-block bg-white border border-gray-300" />
-                  Sin atención
-                </span>
               </div>
             )}
             <Calendar
@@ -1157,24 +1147,8 @@ export default function Agenda() {
               views={[Views.WEEK, Views.DAY, Views.AGENDA]}
               min={new Date(0, 0, 0, 8, 30, 0)}
               max={nuevoHorarioActivo ? new Date(0, 0, 0, 21, 0, 0) : new Date(0, 0, 0, 20, 0, 0)}
-              step={nuevoHorarioActivo ? 15 : 30}
+              step={30}
               timeslots={1}
-              slotPropGetter={date => {
-  if (!nuevoHorarioActivo) return {}
-  const bloques = bloquesDelSlot(date)
-  if (bloques.length === 0) return {}
-  if (bloques.length === 1) {
-    const b = bloques[0]
-    return {
-      style: {
-        backgroundColor: `${colorProfesional(b.profesional_id)}${b.sobrecupo ? '15' : '26'}`,
-        ...(b.sobrecupo ? { backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 6px, ${colorProfesional(b.profesional_id)}33 6px, ${colorProfesional(b.profesional_id)}33 12px)` } : {})
-      }
-    }
-  }
-  const colores = bloques.map(b => colorProfesional(b.profesional_id))
-  return { style: { background: `linear-gradient(90deg, ${colores.map((c, i) => `${c}26 ${i * 100 / colores.length}% ${(i + 1) * 100 / colores.length}%`).join(', ')})` } }
-}}
               eventPropGetter={evento => {
   let bg = '#6b7280'
   let textColor = 'white'
