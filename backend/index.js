@@ -34,6 +34,7 @@ app.use(cors({
     'https://saberes.cl',
     'https://www.saberes.cl',
     'https://centro.saberes.cl',
+    'http://localhost:5173',
   ]
 }));
 app.use(express.json());
