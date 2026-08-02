@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 
-const API = 'https://centro-medico-saberes-production.up.railway.app/auth'
+const API = 'https://centro-medico-saberes-production.up.railway.app/usuarios'
 
 const rolConfig = {
   admin: { badge: 'bg-purple-100 text-purple-700', gradient: 'linear-gradient(135deg, #7c3aed, #8b5cf6)', icon: '👑', label: 'Administrador' },
@@ -21,7 +21,7 @@ export default function Usuarios() {
   const [filtroRol, setFiltroRol] = useState('')
 
   const cargar = async () => {
-    const res = await axios.get(`${API}/usuarios`)
+    const res = await axios.get(API)
     setUsuarios(res.data)
   }
 
@@ -45,7 +45,7 @@ export default function Usuarios() {
     const e = validar()
     if (Object.keys(e).length > 0) { setErrores(e); return }
     try {
-      await axios.post(`${API}/registro`, form)
+      await axios.post(API, form)
       setForm({ nombre: '', email: '', password: '', rol: 'secretaria' })
       setErrores({})
       setModalForm(false)
@@ -58,7 +58,7 @@ export default function Usuarios() {
   }
 
   const toggleActivo = async (id, activo) => {
-    await axios.put(`${API}/usuarios/${id}`, { activo: !activo })
+    await axios.put(`${API}/${id}`, { activo: !activo })
     cargar()
   }
 

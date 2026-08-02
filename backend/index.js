@@ -7,6 +7,8 @@ const profesionalesRouter = require('./routes/profesionales');
 const citasRouter = require('./routes/citas');
 const fichasRouter = require('./routes/fichas');
 const authRouter = require('./routes/auth');
+const usuariosRouter = require('./routes/usuarios');
+const soloAdmin = require('./middleware/soloAdmin');
 const dashboardRouter = require('./routes/dashboard');
 const fichasIngresoRouter = require('./routes/fichasIngreso');
 const pagosRouter = require('./routes/pagos');
@@ -40,6 +42,9 @@ app.use(express.json());
 app.use('/auth', authRouter);
 app.use('/encuestas', encuestasRouter);
 
+// Rutas protegidas: solo admin
+app.use('/usuarios', auth, soloAdmin, usuariosRouter);
+
 // Rutas protegidas (requieren token)
 app.use('/pacientes', auth, pacientesRouter);
 app.use('/profesionales', auth, profesionalesRouter);
@@ -57,7 +62,7 @@ app.use('/flujos', auth, flujosRouter);
 app.use('/archivos', auth, archivosRouter);
 app.use('/logs', auth, logsRouter);
 app.use('/reportes', auth, reportesRouter);
-app.use('/asistente', asistente);
+app.use('/asistente', auth, asistente);
 
 
 // Ruta de prueba

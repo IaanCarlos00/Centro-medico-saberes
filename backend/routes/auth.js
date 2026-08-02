@@ -4,7 +4,8 @@ const pool = require('../db')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
-const SECRET = process.env.JWT_SECRET || 'saberes_secret_key'
+const SECRET = process.env.JWT_SECRET
+if (!SECRET) throw new Error('Falta JWT_SECRET en las variables de entorno')
 
 // Login
 router.post('/login', async (req, res) => {
@@ -24,42 +25,6 @@ router.post('/login', async (req, res) => {
     )
 
     res.json({ token, id: usuario.id, nombre: usuario.nombre, rol: usuario.rol, email: usuario.email, profesional_id: usuario.profesional_id || null })
-  } catch (error) {
-    res.status(500).json({ error: error.message })
-  }
-})
-
-// Crear usuario (solo admin)
-router.post('/registro', async (req, res) => {
-  const { nombre, email, password, rol } = req.body
-  try {
-    const hash = await bcrypt.hash(password, 10)
-    const result = await pool.query(
-      'INSERT INTO usuario (nombre, email, password_hash, rol) VALUES ($1,$2,$3,$4) RETURNING id, nombre, email, rol',
-      [nombre, email, hash, rol || 'personal']
-    )
-    res.status(201).json(result.rows[0])
-  } catch (error) {
-    res.status(500).json({ error: error.message })
-  }
-})
-
-// Obtener todos los usuarios (solo admin)
-router.get('/usuarios', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT id, nombre, email, rol, activo, creado_en FROM usuario ORDER BY creado_en DESC')
-    res.json(result.rows)
-  } catch (error) {
-    res.status(500).json({ error: error.message })
-  }
-})
-
-// Actualizar usuario (activar/desactivar)
-router.put('/usuarios/:id', async (req, res) => {
-  const { activo } = req.body
-  try {
-    const result = await pool.query('UPDATE usuario SET activo=$1 WHERE id=$2 RETURNING id, nombre, email, rol, activo', [activo, req.params.id])
-    res.json(result.rows[0])
   } catch (error) {
     res.status(500).json({ error: error.message })
   }

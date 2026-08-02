@@ -3,7 +3,7 @@ const router = express.Router()
 const pool = require('../db')
 const { Resend } = require('resend')
 
-const resend = new Resend('re_CGpgATbp_5o65CMMtivJ4UXp4RjxLFdQF')
+const resend = new Resend(process.env.RESEND_API_KEY)
 const BASE_URL = 'https://saberes.cl'
 
 // Enviar encuesta
