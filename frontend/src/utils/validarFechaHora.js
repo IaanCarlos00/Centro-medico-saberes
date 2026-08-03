@@ -7,7 +7,7 @@ export function validarFechaHora(fechaHora, bloqueos = []) {
 
   if (diaSemana === 0) return 'No se pueden agendar citas los domingos'
   if (hora < '08:30') return 'advertencia:Fuera de horario: la hora ingresada es antes de las 08:30. ¿Deseas continuar de todos modos?'
-  if (hora > '19:30') return 'advertencia:Fuera de horario: la hora ingresada es después de las 19:30. ¿Deseas continuar de todos modos?'
+  if (hora > '20:30') return 'advertencia:Fuera de horario: la hora ingresada es después de las 20:30. ¿Deseas continuar de todos modos?'
   if (fecha < ahora) return 'advertencia:Esta fecha y hora ya pasaron. ¿Deseas agendar de todos modos?'
 
   const bloqueado = bloqueos.find(b => {
