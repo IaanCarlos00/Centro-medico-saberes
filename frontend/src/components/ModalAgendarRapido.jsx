@@ -33,8 +33,8 @@ export default function ModalAgendarRapido({
 }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4" onClick={cerrarModalAgendar}>
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="px-6 py-5 flex items-center justify-between" style={{ background: 'linear-gradient(135deg, #052e16, #166534)' }}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="px-6 py-5 flex items-center justify-between shrink-0" style={{ background: 'linear-gradient(135deg, #052e16, #166534)' }}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: 'rgba(255,255,255,0.15)' }}>
               {editando ? '✏️' : '🗓️'}
@@ -46,7 +46,7 @@ export default function ModalAgendarRapido({
           </div>
           <button onClick={cerrarModalAgendar} className="text-white hover:text-green-200 text-2xl">✕</button>
         </div>
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1 min-h-0">
         <div className="flex gap-2 mb-4">
           <button onClick={() => setTipoAgendamiento('confirmado')} className={`flex-1 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${tipoAgendamiento === 'confirmado' ? 'border-green-600 bg-green-50 text-green-800' : 'border-gray-200 text-gray-500'}`}>✅ Confirmada</button>
           <button onClick={() => setTipoAgendamiento('tentativo')} className={`flex-1 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${tipoAgendamiento === 'tentativo' ? 'border-yellow-500 bg-yellow-50 text-yellow-800' : 'border-gray-200 text-gray-500'}`}>⏳ Tentativa</button>
@@ -210,7 +210,7 @@ export default function ModalAgendarRapido({
   )}
 
   </div>
-        <div className="px-6 pb-6 flex gap-3">
+        <div className="px-6 py-4 flex gap-3 border-t border-gray-100 shrink-0">
           <button onClick={guardarAgendamiento} className="flex-1 text-white py-2.5 rounded-xl font-bold hover:opacity-90 transition-all" style={{ background: 'linear-gradient(135deg, #166534, #15803d)' }}>
             {editando ? '✓ Actualizar cita' : tipoAgendamiento === 'tentativo' ? '⏳ Reservar tentativa' : '+ Agendar'}
           </button>
