@@ -54,28 +54,54 @@ function NavDropdown({ links }) {
     <div className="relative" ref={ref}>
       <button
         onClick={() => setAbierto(v => !v)}
-        className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-1.5 ${
-          activoAdentro ? 'bg-white text-green-800' : 'text-white hover:bg-green-700'
+        className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-1.5 ${
+          activoAdentro
+            ? 'bg-white text-green-800 shadow-[0_0_16px_rgba(74,222,128,0.45)]'
+            : 'text-green-100 hover:text-white hover:bg-white/10'
         }`}
       >
         Más
-        <svg className={`w-3.5 h-3.5 transition-transform ${abierto ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className={`w-3.5 h-3.5 transition-transform duration-300 ${abierto ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       {abierto && (
-        <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl py-2 w-56 z-50 border border-gray-100 dark:border-gray-700">
-          {links.map(l => {
-            const active = location.pathname === l.to
-            return (
-              <Link
-                key={l.to} to={l.to} onClick={() => setAbierto(false)}
-                className={`block px-4 py-2 text-sm transition-colors ${
-                  active ? 'bg-green-50 text-green-800 font-semibold dark:bg-green-900 dark:text-green-200' : 'text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700'
-                }`}
-              >{l.label}</Link>
-            )
-          })}
+        <div
+          className="nav-dropdown-in absolute right-0 top-full mt-3 w-64 z-50 rounded-2xl border border-white/10 overflow-hidden"
+          style={{
+            background: 'linear-gradient(160deg, rgba(5,46,22,0.98), rgba(15,64,33,0.98))',
+            backdropFilter: 'blur(16px)',
+            boxShadow: '0 20px 50px -10px rgba(5,46,22,0.65), 0 0 0 1px rgba(255,255,255,0.04)',
+          }}
+        >
+          {/* Caret apuntando al botón */}
+          <div
+            className="absolute -top-1.5 right-6 w-3 h-3 rotate-45 border-t border-l border-white/10"
+            style={{ background: 'rgba(5,46,22,0.98)' }}
+          />
+          <div className="relative px-4 pt-3 pb-2">
+            <p className="text-[10px] uppercase tracking-widest font-bold text-green-300/70">Más opciones</p>
+          </div>
+          <div className="relative flex flex-col px-2 pb-2">
+            {links.map(l => {
+              const active = location.pathname === l.to
+              return (
+                <Link
+                  key={l.to} to={l.to} onClick={() => setAbierto(false)}
+                  className={`group relative flex items-center px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 ${
+                    active ? 'text-white bg-white/10' : 'text-green-100/90 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <span
+                    className={`absolute left-0 top-1/2 -translate-y-1/2 h-4 w-[3px] rounded-full transition-all duration-200 ${
+                      active ? 'bg-emerald-400 opacity-100' : 'bg-emerald-400 opacity-0 group-hover:opacity-70'
+                    }`}
+                  />
+                  <span className="pl-2">{l.label}</span>
+                </Link>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>
