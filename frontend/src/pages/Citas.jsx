@@ -91,6 +91,7 @@ export default function Agenda() {
   const [toast, setToast] = useState(null)
   const [modoMover, setModoMover] = useState(false)
   const [modalConfirmarMover, setModalConfirmarMover] = useState(null)
+  const [modalConfirmarEstado, setModalConfirmarEstado] = useState(false)
   const [citaParaMover, setCitaParaMover] = useState(null)
 
   const API_PROC = 'https://centro-medico-saberes-production.up.railway.app/procedimientos'
@@ -232,10 +233,14 @@ export default function Agenda() {
     // CASO NUEVO
     const e = validar()
     if (Object.keys(e).length > 0) { setErrores(e); return }
-    let estadoCita = procedimientoSeleccionado ? 'confirmada' : 'pendiente'
     if (!procedimientoSeleccionado) {
-      estadoCita = confirm('¿Confirmar esta cita?\n\nAceptar = queda Confirmada\nCancelar = queda Pendiente') ? 'confirmada' : 'pendiente'
+      setModalConfirmarEstado(true)
+      return
     }
+    await guardarNuevaCita('confirmada')
+  }
+
+  const guardarNuevaCita = async estadoCita => {
     if (citaTentativaOrigen?.id) {
       await axios.delete(`${API}/${citaTentativaOrigen.id}`)
       setCitaTentativaOrigen(null)
@@ -256,6 +261,7 @@ export default function Agenda() {
         fecha_atencion: form.fecha_hora?.slice(0, 10)
       })
     }
+    setModalConfirmarEstado(false)
     setCitaRecienAgendada({ ...res.data, paciente_id: form.paciente_id, paciente_nombre: paciente?.nombre, paciente_apellido: paciente?.apellido })
     setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
     setBusquedaPaciente('')
@@ -427,6 +433,17 @@ export default function Agenda() {
       })
     }}
     onCancelar={() => setModalEliminarBloqueo(null)}
+  />
+)}
+{modalConfirmarEstado && (
+  <ModalConfirmar
+    titulo="¿Confirmar esta cita?"
+    mensaje="No seleccionaste un procedimiento. Puedes dejarla confirmada o como pendiente."
+    textoConfirmar="✅ Confirmada"
+    textoCancelar="⏳ Dejar pendiente"
+    textoColor="bg-green-700 hover:bg-green-800"
+    onConfirmar={() => guardarNuevaCita('confirmada')}
+    onCancelar={() => guardarNuevaCita('pendiente')}
   />
 )}
 
