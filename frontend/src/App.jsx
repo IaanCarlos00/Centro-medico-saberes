@@ -27,8 +27,10 @@ function NavLink({ to, children, onClick }) {
   const active = location.pathname === to
   return (
     <Link to={to} onClick={onClick}
-      className={`px-4 py-2 rounded-lg font-medium transition-colors block md:inline-block ${
-        active ? 'bg-white text-green-800' : 'text-white hover:bg-green-700'
+      className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 block md:inline-block ${
+        active
+          ? 'bg-white text-green-800 shadow-[0_0_16px_rgba(74,222,128,0.45)]'
+          : 'text-green-100 hover:text-white hover:bg-white/10'
       }`}
     >{children}</Link>
   )
@@ -182,18 +184,20 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
   // Navbar flotante: se oculta al hacer scroll hacia abajo y reaparece al subir,
   // o si el mouse se acerca al borde superior de la pantalla.
   const [navVisible, setNavVisible] = useState(true)
+  const [navFloating, setNavFloating] = useState(false)
   const [navHeight, setNavHeight] = useState(72)
   const navRef = useRef(null)
   const ultimoScrollY = useRef(0)
 
   useEffect(() => {
     if (navRef.current) setNavHeight(navRef.current.offsetHeight)
-  }, [menuAbierto])
+  }, [menuAbierto, navFloating])
 
   useEffect(() => {
     const UMBRAL = 80
     const manejarScroll = () => {
       const y = window.scrollY
+      setNavFloating(y > 24)
       if (y < UMBRAL) {
         setNavVisible(true)
       } else if (y > ultimoScrollY.current) {
@@ -267,13 +271,37 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <nav
         ref={navRef}
-        className={`bg-green-800 dark:bg-gray-800 shadow-md px-4 py-3 fixed top-0 left-0 right-0 z-40 transition-transform duration-300 ${navVisible ? 'translate-y-0' : '-translate-y-full'}`}
+        className={`fixed z-40 transition-all duration-500 ease-out ${
+          navVisible ? 'translate-y-0 opacity-100' : '-translate-y-[130%] opacity-0'
+        } ${
+          navFloating
+            ? 'top-3 left-3 right-3 md:left-6 md:right-6 rounded-2xl px-4 py-2.5 border border-white/10 dark:border-gray-700 backdrop-blur-xl shadow-[0_10px_40px_-6px_rgba(5,46,22,0.55)]'
+            : 'top-0 left-0 right-0 px-4 py-3 shadow-md'
+        }`}
+        style={{
+          background: navFloating
+            ? 'linear-gradient(135deg, rgba(5,46,22,0.92), rgba(22,101,52,0.92))'
+            : 'linear-gradient(135deg, #052e16, #166534)',
+        }}
       >
-        <div className="flex items-center justify-between">
+        {/* Línea de energía animada en el borde inferior */}
+        <div className="absolute left-4 right-4 -bottom-px h-px overflow-hidden rounded-full">
+          <div className="nav-aurora h-full w-full" />
+        </div>
+
+        {/* Brillo que recorre el navbar de tanto en tanto */}
+        <div className={`absolute inset-0 overflow-hidden pointer-events-none ${navFloating ? 'rounded-2xl' : ''}`}>
+          <div className="nav-sheen absolute top-0 h-full w-1/4" style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)' }} />
+        </div>
+
+        <div className="relative flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3" onClick={() => setMenuAbierto(false)}>
-            <img src="/logo.png" alt="Saberes" className="h-10 w-10 rounded-full object-cover" />
+            <div className="relative">
+              <div className="nav-logo-halo absolute -inset-1 rounded-full blur-md" style={{ background: 'radial-gradient(circle, #4ade80, transparent 70%)' }} />
+              <img src="/logo.png" alt="Saberes" className="relative h-10 w-10 rounded-full object-cover ring-2 ring-white/20" />
+            </div>
             <div className="leading-tight">
-              <div className="text-white font-bold text-base">Saberes</div>
+              <div className="text-white font-bold text-base tracking-wide">Saberes</div>
               <div className="text-green-200 text-xs capitalize">{rol}</div>
             </div>
           </Link>
@@ -289,13 +317,13 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
           <div className="hidden md:flex items-center gap-2">
             {links.slice(0, 4).map(l => <NavLink key={l.to} to={l.to}>{l.label}</NavLink>)}
             {links.length > 4 && <NavDropdown links={links.slice(4)} />}
-            <div className="ml-4 flex items-center gap-3 border-l border-green-600 pl-4">
+            <div className="ml-4 flex items-center gap-3 border-l border-white/15 pl-4">
               <span className="text-green-200 text-sm">Hola, {usuario.nombre}</span>
-              <Link to="/cambiar-password" className="text-green-200 hover:text-white text-sm">🔑</Link>
+              <Link to="/cambiar-password" className="text-green-200 hover:text-white text-sm transition-colors">🔑</Link>
               <button onClick={() => setDarkMode(!darkMode)} className="text-green-200 hover:text-white text-lg transition-colors" title={darkMode ? 'Modo claro' : 'Modo oscuro'}>
                 {darkMode ? '☀️' : '🌙'}
               </button>
-              <button onClick={onLogout} className="text-white bg-green-600 hover:bg-green-500 px-3 py-1 rounded-lg text-sm font-medium transition-colors">Salir</button>
+              <button onClick={onLogout} className="text-white bg-white/10 hover:bg-red-500/80 border border-white/10 px-3 py-1 rounded-lg text-sm font-medium transition-all">Salir</button>
             </div>
           </div>
         </div>

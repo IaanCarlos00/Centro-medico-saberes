@@ -48,6 +48,34 @@
   background: linear-gradient(145deg, #3f1d1d, #1f1315) !important;
 }
 
+/* --- Navbar: aurora seam + halo del logo --- */
+@keyframes auroraDrift {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+.nav-aurora {
+  background: linear-gradient(90deg, transparent, #4ade80, #bbf7d0, #4ade80, transparent);
+  background-size: 200% 100%;
+  animation: auroraDrift 5s linear infinite;
+  opacity: 0.85;
+}
+
+@keyframes haloPulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50%      { opacity: 0.95; transform: scale(1.12); }
+}
+.nav-logo-halo {
+  animation: haloPulse 3.2s ease-in-out infinite;
+}
+
+@keyframes sheenSweep {
+  0%   { transform: translateX(-120%) skewX(-20deg); }
+  100% { transform: translateX(220%) skewX(-20deg); }
+}
+.nav-sheen {
+  animation: sheenSweep 6s ease-in-out infinite;
+}
+
 .rbc-time-content {
   overflow-y: visible !important;
 }
