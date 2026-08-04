@@ -131,7 +131,8 @@ export default function Agenda() {
 
   const pacientesFiltrados = pacientes.filter(p => {
     const q = busquedaPaciente.toLowerCase()
-    return (p.nombre || '').toLowerCase().includes(q) || (p.apellido || '').toLowerCase().includes(q) || (p.rut || '').toLowerCase().includes(q)
+    const nombreCompleto = `${p.nombre || ''} ${p.apellido || ''}`.toLowerCase()
+    return (p.nombre || '').toLowerCase().includes(q) || (p.apellido || '').toLowerCase().includes(q) || (p.rut || '').toLowerCase().includes(q) || nombreCompleto.includes(q)
   }).slice(0, 8)
 
   const seleccionarPaciente = async p => {
@@ -231,7 +232,10 @@ export default function Agenda() {
     // CASO NUEVO
     const e = validar()
     if (Object.keys(e).length > 0) { setErrores(e); return }
-    const estadoCita = procedimientoSeleccionado ? 'confirmada' : 'pendiente'
+    let estadoCita = procedimientoSeleccionado ? 'confirmada' : 'pendiente'
+    if (!procedimientoSeleccionado) {
+      estadoCita = confirm('¿Confirmar esta cita?\n\nAceptar = queda Confirmada\nCancelar = queda Pendiente') ? 'confirmada' : 'pendiente'
+    }
     if (citaTentativaOrigen?.id) {
       await axios.delete(`${API}/${citaTentativaOrigen.id}`)
       setCitaTentativaOrigen(null)
