@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { BrowserRouter, Routes, Route, Link, useLocation, Navigate, useNavigate } from 'react-router-dom'
 import Pacientes from './pages/Pacientes'
 import Profesionales from './pages/Profesionales'
@@ -31,6 +31,52 @@ function NavLink({ to, children, onClick }) {
         active ? 'bg-white text-green-800' : 'text-white hover:bg-green-700'
       }`}
     >{children}</Link>
+  )
+}
+
+function NavDropdown({ links }) {
+  const location = useLocation()
+  const [abierto, setAbierto] = useState(false)
+  const ref = useRef(null)
+  const activoAdentro = links.some(l => l.to === location.pathname)
+
+  useEffect(() => {
+    const handleClick = e => {
+      if (ref.current && !ref.current.contains(e.target)) setAbierto(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setAbierto(v => !v)}
+        className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-1.5 ${
+          activoAdentro ? 'bg-white text-green-800' : 'text-white hover:bg-green-700'
+        }`}
+      >
+        Más
+        <svg className={`w-3.5 h-3.5 transition-transform ${abierto ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {abierto && (
+        <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl py-2 w-56 z-50 border border-gray-100 dark:border-gray-700">
+          {links.map(l => {
+            const active = location.pathname === l.to
+            return (
+              <Link
+                key={l.to} to={l.to} onClick={() => setAbierto(false)}
+                className={`block px-4 py-2 text-sm transition-colors ${
+                  active ? 'bg-green-50 text-green-800 font-semibold dark:bg-green-900 dark:text-green-200' : 'text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700'
+                }`}
+              >{l.label}</Link>
+            )
+          })}
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -203,7 +249,8 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
           </button>
 
           <div className="hidden md:flex items-center gap-2">
-            {links.map(l => <NavLink key={l.to} to={l.to}>{l.label}</NavLink>)}
+            {links.slice(0, 4).map(l => <NavLink key={l.to} to={l.to}>{l.label}</NavLink>)}
+            {links.length > 4 && <NavDropdown links={links.slice(4)} />}
             <div className="ml-4 flex items-center gap-3 border-l border-green-600 pl-4">
               <span className="text-green-200 text-sm">Hola, {usuario.nombre}</span>
               <Link to="/cambiar-password" className="text-green-200 hover:text-white text-sm">🔑</Link>
