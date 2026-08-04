@@ -121,6 +121,30 @@ export default function ModalAgendarRapido({
           </div>
 
           <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Duración de la consulta</label>
+            <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" name="duracion_minutos" value={form.duracion_minutos || 30} onChange={handleChange}>
+              <option value={30}>30 minutos</option>
+              <option value={45}>45 minutos</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">¿Permite atención con estudiantes?</label>
+            <select
+              className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400"
+              value={form.permite_estudiantes === null || form.permite_estudiantes === undefined ? '' : String(form.permite_estudiantes)}
+              onChange={e => {
+                const v = e.target.value
+                setForm(f => ({ ...f, permite_estudiantes: v === '' ? null : v === 'true' }))
+              }}
+            >
+              <option value="">No preguntado</option>
+              <option value="true">Sí</option>
+              <option value="false">No</option>
+            </select>
+          </div>
+
+          <div className="flex flex-col">
             <label className="text-sm text-gray-600 mb-1">Procedimiento (opcional)</label>
             <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={procedimientoSeleccionado?.id || ''} onChange={e => {
               const proc = catalogo.find(c => c.id === parseInt(e.target.value))

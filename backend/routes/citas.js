@@ -7,7 +7,7 @@ router.get('/', async (req, res) => {
     const result = await pool.query(`
       SELECT c.id, c.paciente_id, c.profesional_id, c.procedimiento_nombre, c.referencia,
              TO_CHAR(c.fecha_hora, 'YYYY-MM-DD HH24:MI:SS') AS fecha_hora,
-             c.estado, c.observaciones,
+             c.estado, c.observaciones, c.duracion_minutos, c.permite_estudiantes,
              p.nombre AS paciente_nombre, p.apellido AS paciente_apellido,
              pr.nombre AS profesional_nombre, pr.apellido AS profesional_apellido
       FROM cita c
@@ -35,11 +35,11 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', async (req, res) => {
-  const { paciente_id, profesional_id, fecha_hora, estado, observaciones, procedimiento_nombre, referencia } = req.body
+  const { paciente_id, profesional_id, fecha_hora, estado, observaciones, procedimiento_nombre, referencia, duracion_minutos, permite_estudiantes } = req.body
   try {
     const result = await pool.query(
-      "INSERT INTO cita (paciente_id, profesional_id, fecha_hora, estado, observaciones, procedimiento_nombre, referencia) VALUES ($1,$2,$3::timestamp,$4,$5,$6,$7) RETURNING *, TO_CHAR(fecha_hora, 'YYYY-MM-DD HH24:MI:SS') AS fecha_hora",
-      [paciente_id || null, profesional_id, fecha_hora, estado || 'pendiente', observaciones, procedimiento_nombre || null, referencia || null]
+      "INSERT INTO cita (paciente_id, profesional_id, fecha_hora, estado, observaciones, procedimiento_nombre, referencia, duracion_minutos, permite_estudiantes) VALUES ($1,$2,$3::timestamp,$4,$5,$6,$7,$8,$9) RETURNING *, TO_CHAR(fecha_hora, 'YYYY-MM-DD HH24:MI:SS') AS fecha_hora",
+      [paciente_id || null, profesional_id, fecha_hora, estado || 'pendiente', observaciones, procedimiento_nombre || null, referencia || null, duracion_minutos || 30, permite_estudiantes === undefined ? null : permite_estudiantes]
     )
     res.status(201).json(result.rows[0])
   } catch (error) {
@@ -48,11 +48,11 @@ router.post('/', async (req, res) => {
 })
 
 router.put('/:id', async (req, res) => {
-  const { paciente_id, profesional_id, fecha_hora, estado, observaciones, procedimiento_nombre, referencia } = req.body
+  const { paciente_id, profesional_id, fecha_hora, estado, observaciones, procedimiento_nombre, referencia, duracion_minutos, permite_estudiantes } = req.body
   try {
     const result = await pool.query(
-      "UPDATE cita SET paciente_id=$1, profesional_id=$2, fecha_hora=$3::timestamp, estado=$4, observaciones=$5, procedimiento_nombre=$6, referencia=$7 WHERE id=$8 RETURNING *, TO_CHAR(fecha_hora, 'YYYY-MM-DD HH24:MI:SS') AS fecha_hora",
-      [paciente_id || null, profesional_id, fecha_hora, estado, observaciones, procedimiento_nombre || null, referencia || null, req.params.id]
+      "UPDATE cita SET paciente_id=$1, profesional_id=$2, fecha_hora=$3::timestamp, estado=$4, observaciones=$5, procedimiento_nombre=$6, referencia=$7, duracion_minutos=$8, permite_estudiantes=$9 WHERE id=$10 RETURNING *, TO_CHAR(fecha_hora, 'YYYY-MM-DD HH24:MI:SS') AS fecha_hora",
+      [paciente_id || null, profesional_id, fecha_hora, estado, observaciones, procedimiento_nombre || null, referencia || null, duracion_minutos || 30, permite_estudiantes === undefined ? null : permite_estudiantes, req.params.id]
     )
     if (result.rows.length === 0) return res.status(404).json({ error: 'Cita no encontrada' })
     res.json(result.rows[0])

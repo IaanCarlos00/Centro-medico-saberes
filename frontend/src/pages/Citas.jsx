@@ -55,7 +55,7 @@ export default function Agenda() {
   const [citaSeleccionada, setCitaSeleccionada] = useState(null)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [editando, setEditando] = useState(null)
-  const [form, setForm] = useState({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+  const [form, setForm] = useState({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
   const [errores, setErrores] = useState({})
   const [busquedaPaciente, setBusquedaPaciente] = useState('')
   const [mostrarDropdown, setMostrarDropdown] = useState(false)
@@ -181,7 +181,7 @@ export default function Agenda() {
     await registrarLog('crear', 'cita', res.data.id, `Cita de ${paciente?.nombre} ${paciente?.apellido}`)
     setCitaRecienAgendada({ ...res.data, paciente_id: form.paciente_id, paciente_nombre: paciente?.nombre, paciente_apellido: paciente?.apellido })
   }
-  setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+  setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
   setBusquedaPaciente('')
   setHistorialPaciente([])
   setErrores({})
@@ -199,7 +199,7 @@ export default function Agenda() {
       await axios.put(`${API}/${editando}`, form)
       await registrarLog('editar', 'cita', editando, `Cita de ${busquedaPaciente}`)
       setEditando(null)
-      setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+      setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
       setBusquedaPaciente('')
       setErrores({})
       setModalAgendar(null)
@@ -220,7 +220,7 @@ export default function Agenda() {
         estado: 'pendiente',
         referencia: form.referencia || null
       })
-      setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+      setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
       setBusquedaPaciente('')
       setErrores({})
       setTipoAgendamiento('confirmado')
@@ -253,7 +253,7 @@ export default function Agenda() {
       })
     }
     setCitaRecienAgendada({ ...res.data, paciente_id: form.paciente_id, paciente_nombre: paciente?.nombre, paciente_apellido: paciente?.apellido })
-    setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+    setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
     setBusquedaPaciente('')
     setErrores({})
     setMostrarNuevoPaciente(false)
@@ -268,7 +268,7 @@ export default function Agenda() {
     await axios.put(`${API}/${editando}`, { ...form, estado: 'realizada' })
     await registrarLog('editar', 'cita', editando, `Cita marcada como realizada`)
     setEditando(null)
-    setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+    setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
     setBusquedaPaciente('')
     setErrores({})
     setModalAgendar(null)
@@ -276,7 +276,7 @@ export default function Agenda() {
   }
 
   const editar = c => {
-    setForm({ paciente_id: c.paciente_id, profesional_id: c.profesional_id, fecha_hora: c.fecha_hora?.slice(0,16), estado: c.estado, observaciones: c.observaciones || '' })
+    setForm({ paciente_id: c.paciente_id, profesional_id: c.profesional_id, fecha_hora: c.fecha_hora?.slice(0,16), estado: c.estado, observaciones: c.observaciones || '', duracion_minutos: c.duracion_minutos || 30, permite_estudiantes: c.permite_estudiantes ?? null })
     setBusquedaPaciente(`${c.paciente_nombre} ${c.paciente_apellido}`)
     setHistorialPaciente(citas.filter(ci => ci.paciente_id === c.paciente_id && ci.id !== c.id).slice(0, 3))
     setEditando(c.id)
@@ -305,7 +305,7 @@ export default function Agenda() {
 
   const cancelar = () => {
     setEditando(null)
-    setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+    setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
     setBusquedaPaciente('')
     setHistorialPaciente([])
     setErrores({})
@@ -319,7 +319,7 @@ export default function Agenda() {
   ? (c.procedimiento_nombre ? `${c.paciente_nombre} ${c.paciente_apellido} — ${c.procedimiento_nombre}` : `${c.paciente_nombre} ${c.paciente_apellido}`)
   : `⏳ ${c.referencia || 'Reserva tentativa'}`,
     start: new Date(c.fecha_hora.replace(' ', 'T')),
-  end: new Date(new Date(c.fecha_hora.replace(' ', 'T')).getTime() + 30 * 60000),
+  end: new Date(new Date(c.fecha_hora.replace(' ', 'T')).getTime() + (c.duracion_minutos || 30) * 60000),
     resource: c,
     tipo: 'cita'
   })),
@@ -634,7 +634,7 @@ export default function Agenda() {
             </button>
             <button
               onClick={() => {
-                setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '' })
+                setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
                 setBusquedaPaciente('')
                 setErrores({})
                 setTipoAgendamiento('confirmado')
@@ -736,7 +736,7 @@ export default function Agenda() {
                                     const finDate = new Date(fecha)
                                     finDate.setHours(hh, mm + 45, 0, 0)
                                     const fechaHoraFin = `${fechaStr}T${String(finDate.getHours()).padStart(2, '0')}:${String(finDate.getMinutes()).padStart(2, '0')}`
-                                    setForm({ paciente_id: '', profesional_id: profesional.id, fecha_hora: fechaHora, estado: 'pendiente', observaciones: '' })
+                                    setForm({ paciente_id: '', profesional_id: profesional.id, fecha_hora: fechaHora, estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
                                     setBusquedaPaciente('')
                                     setErrores({})
                                     setMostrarNuevoPaciente(false)
@@ -844,7 +844,7 @@ export default function Agenda() {
                   setCitaParaMover(null)
                   return
                 }
-                setForm({ paciente_id: '', profesional_id: '', fecha_hora: fechaHora, estado: 'pendiente', observaciones: '' })
+                setForm({ paciente_id: '', profesional_id: '', fecha_hora: fechaHora, estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
                 setBusquedaPaciente('')
                 setErrores({})
                 setMostrarNuevoPaciente(false)
@@ -866,7 +866,7 @@ export default function Agenda() {
                     <p className="text-sm font-medium text-yellow-800 mb-1">⏳ Reserva tentativa</p>
                     {citaSeleccionada.referencia && <p className="text-xs text-yellow-700">Referencia: {citaSeleccionada.referencia}</p>}
                     <button onClick={() => {
-                      setForm({ paciente_id: '', profesional_id: citaSeleccionada.profesional_id, fecha_hora: citaSeleccionada.fecha_hora?.slice(0,16), estado: 'pendiente', observaciones: '' })
+                      setForm({ paciente_id: '', profesional_id: citaSeleccionada.profesional_id, fecha_hora: citaSeleccionada.fecha_hora?.slice(0,16), estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
                       setBusquedaPaciente('')
                       setErrores({})
                       setTipoAgendamiento('confirmado')
@@ -887,6 +887,15 @@ export default function Agenda() {
                     <span style={{ background: estadoColor[citaSeleccionada.estado]?.bg }} className="text-white text-xs px-2 py-1 rounded-full capitalize">{citaSeleccionada.estado}</span>
                   </div>
                   {citaSeleccionada.observaciones && <div><span className="font-semibold text-gray-600">Observaciones:</span> <span className="text-gray-800">{citaSeleccionada.observaciones}</span></div>}
+                  <div><span className="font-semibold text-gray-600">Duración:</span> <span className="text-gray-800">{citaSeleccionada.duracion_minutos || 30} min</span></div>
+                  {citaSeleccionada.paciente_id && (
+                    <div>
+                      <span className="font-semibold text-gray-600">Permite estudiantes:</span>{' '}
+                      {citaSeleccionada.permite_estudiantes === true && <span className="text-green-700 font-medium">Sí</span>}
+                      {citaSeleccionada.permite_estudiantes === false && <span className="text-red-600 font-medium">No</span>}
+                      {(citaSeleccionada.permite_estudiantes === null || citaSeleccionada.permite_estudiantes === undefined) && <span className="text-gray-400">No preguntado</span>}
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-col gap-2 mt-5">
                   <div className="flex gap-2">
