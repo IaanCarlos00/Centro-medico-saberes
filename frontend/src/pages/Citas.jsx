@@ -14,6 +14,7 @@ import FormularioCita from '../components/FormularioCita'
 import { validarFechaHora } from '../utils/validarFechaHora'
 import ModalAgendarRapido from '../components/ModalAgendarRapido'
 import ModalBloquearHorario from '../components/ModalBloquearHorario'
+import { estadoColorCita as estadoColor } from '../utils/estadoColor'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
@@ -37,13 +38,6 @@ const messages = {
   allDay: 'Todo el día', previous: '← Anterior', next: 'Siguiente →',
   today: 'Hoy', month: 'Mes', week: 'Semana', day: 'Día', agenda: 'Agenda',
   date: 'Fecha', time: 'Hora', event: 'Cita', noEventsInRange: 'No hay citas en este período',
-}
-
-const estadoColor = {
-  pendiente: { bg: '#d1d5db', badge: 'bg-gray-100 text-gray-600' },
-  confirmada: { bg: '#3b82f6', badge: 'bg-blue-100 text-blue-700' },
-  realizada: { bg: '#22c55e', badge: 'bg-green-100 text-green-700' },
-  cancelada: { bg: '#ef4444', badge: 'bg-red-100 text-red-700' },
 }
 
 const HORA_MIN = '08:30'

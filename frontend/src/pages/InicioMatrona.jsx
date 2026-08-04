@@ -4,17 +4,10 @@ import axios from 'axios'
 import Fichas from './Fichas'
 import ModalConfirmar from '../components/ModalConfirmar'
 import Toast from '../components/Toast'
+import { estadoColorMatrona as estadoColor } from '../utils/estadoColor'
 
 const API_CITAS = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
-
-const estadoColor = {
-  pendiente: 'bg-yellow-100 text-yellow-700',
-  confirmada: 'bg-blue-100 text-blue-700',
-  en_atencion: 'bg-purple-100 text-purple-700',
-  realizada: 'bg-green-100 text-green-700',
-  cancelada: 'bg-red-100 text-red-700',
-}
 
 function ModalCompletarPaciente({ paciente, onConfirmar, onCerrar }) {
   const [form, setForm] = useState({

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import ExcelJS from 'exceljs'
+import { estadoColorReporte } from '../utils/estadoColor'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/reportes'
 const API_PAGOS = 'https://centro-medico-saberes-production.up.railway.app/pagos'
@@ -459,7 +460,7 @@ export default function Reportes() {
   const pieData = datos.ingresosPorMetodo?.map(m => ({ name: m.metodo, value: parseFloat(m.total) })) || []
   const maxCitas = Math.max(...(datos.citasPorEstado?.map(e => parseInt(e.total)) || [0]), 1)
 
-  const estadoColors = { realizada: '#22c55e', confirmada: '#3b82f6', pendiente: '#f59e0b', cancelada: '#ef4444' }
+  const estadoColors = estadoColorReporte
 
   return (
     <div className="min-h-screen bg-white">
