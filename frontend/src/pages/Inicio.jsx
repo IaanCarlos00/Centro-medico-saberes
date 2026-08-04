@@ -3,6 +3,7 @@ import { frases } from '../data/frases'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import ListaConVerMas from '../components/ListaConVerMas'
+import { infoPermiteEstudiantes } from '../utils/permiteEstudiantes'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/dashboard'
 
@@ -206,8 +207,21 @@ export default function Inicio() {
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-gray-800 truncate">{c.paciente_nombre} {c.paciente_apellido}</p>
                       <p className="text-xs text-gray-400 truncate">con {c.profesional_nombre} {c.profesional_apellido}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                        <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
+                          ⏱️ {c.duracion_minutos || 30} min
+                        </span>
+                        {(() => {
+                          const info = infoPermiteEstudiantes(c.permite_estudiantes)
+                          return (
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-medium whitespace-nowrap ${info.clase}`}>
+                              {info.icono} {info.texto}
+                            </span>
+                          )
+                        })()}
+                      </div>
                     </div>
-                    <span className={`text-xs px-2 py-1 rounded-full font-semibold whitespace-nowrap ${estadoBadge[c.estado]}`}>
+                    <span className={`text-xs px-2 py-1 rounded-full font-semibold whitespace-nowrap shrink-0 ${estadoBadge[c.estado]}`}>
                       {estadoIcono[c.estado]} {c.estado}
                     </span>
                   </div>

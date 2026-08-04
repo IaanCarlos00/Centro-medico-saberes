@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
+import { infoPermiteEstudiantes } from '../utils/permiteEstudiantes'
 
 const API_CITAS = 'https://centro-medico-saberes-production.up.railway.app/citas'
 
@@ -102,6 +103,19 @@ export default function InicioRecepcionista() {
                   {c.observaciones && (
                     <p className="text-xs text-gray-400 mt-0.5">💬 {c.observaciones}</p>
                   )}
+                  <div className="flex items-center gap-2 flex-wrap mt-1.5">
+                    <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">
+                      ⏱️ {c.duracion_minutos || 30} min
+                    </span>
+                    {(() => {
+                      const info = infoPermiteEstudiantes(c.permite_estudiantes)
+                      return (
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${info.clase}`}>
+                          {info.icono} {info.texto}
+                        </span>
+                      )
+                    })()}
+                  </div>
                 </div>
                 {/* Estado */}
                 <span className={`px-2.5 py-1 rounded-full text-xs font-bold shrink-0 ${estadoBadge[c.estado]}`}>

@@ -5,6 +5,7 @@ import Fichas from './Fichas'
 import ModalConfirmar from '../components/ModalConfirmar'
 import Toast from '../components/Toast'
 import { estadoColorMatrona as estadoColor } from '../utils/estadoColor'
+import { infoPermiteEstudiantes } from '../utils/permiteEstudiantes'
 
 const API_CITAS = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
@@ -338,7 +339,20 @@ export default function InicioMatrona({ usuario }) {
                         <p className="font-bold text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</p>
                         {c.procedimiento_nombre && <p className="text-xs text-blue-600 mt-0.5 font-semibold">📋 {c.procedimiento_nombre}</p>}
                         {c.observaciones && <p className="text-xs text-gray-400 mt-0.5">{c.observaciones}</p>}
-                        {incompleto && <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full mt-1 inline-block font-medium">Datos incompletos</span>}
+                        <div className="flex items-center gap-2 flex-wrap mt-1.5">
+                          <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium">
+                            ⏱️ {c.duracion_minutos || 30} min
+                          </span>
+                          {(() => {
+                            const info = infoPermiteEstudiantes(c.permite_estudiantes)
+                            return (
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${info.clase}`}>
+                                {info.icono} {info.texto}
+                              </span>
+                            )
+                          })()}
+                          {incompleto && <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded-full font-medium">Datos incompletos</span>}
+                        </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
                         <span className={`text-xs px-3 py-1 rounded-full font-bold ${estadoColor[c.estado] || 'bg-gray-100 text-gray-600'}`}>
