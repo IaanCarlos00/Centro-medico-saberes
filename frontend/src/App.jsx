@@ -22,6 +22,33 @@ import PcrVph from './pages/PcrVph'
 import HorariosMatronas from './pages/HorariosMatronas'
 import AsistenteIA from './components/AsistenteIA'
 
+const ICONOS_NAV = {
+  '/': '🏠',
+  '/pacientes': '👤',
+  '/citas': '📅',
+  '/pagos': '💰',
+  '/pap': '🧪',
+  '/flujos': '🔬',
+  '/pcr-vph': '🔬',
+  '/encuestas': '📋',
+  '/procedimientos': '🩺',
+  '/reportes': '📊',
+  '/usuarios': '👥',
+  '/profesionales': '👩‍⚕️',
+  '/horarios': '🗓️',
+  '/logs': '📝',
+  '/controles': '📆',
+}
+
+// Agrupa las opciones del dropdown "Más" por tipo de tarea, para que sea fácil de escanear
+const CATEGORIA_RUTA = {
+  '/citas': 'Clínico', '/pagos': 'Clínico', '/procedimientos': 'Clínico',
+  '/pap': 'Clínico', '/flujos': 'Clínico', '/pcr-vph': 'Clínico', '/encuestas': 'Clínico',
+  '/usuarios': 'Administración', '/reportes': 'Administración', '/logs': 'Administración',
+  '/controles': 'Administración', '/profesionales': 'Administración', '/horarios': 'Administración',
+}
+const ORDEN_CATEGORIAS = ['Clínico', 'Administración', 'General']
+
 function NavLink({ to, children, onClick }) {
   const location = useLocation()
   const active = location.pathname === to
@@ -48,32 +75,150 @@ function NavDropdown({ links }) {
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
+  const grupos = ORDEN_CATEGORIAS
+    .map(cat => ({ cat, items: links.filter(l => (CATEGORIA_RUTA[l.to] || 'General') === cat) }))
+    .filter(g => g.items.length > 0)
+
   return (
     <div className="relative" ref={ref}>
       <button
         onClick={() => setAbierto(v => !v)}
-        className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-1.5 ${
-          activoAdentro ? 'bg-white text-green-800' : 'text-white hover:bg-green-700'
+        className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all flex items-center gap-1.5 ${
+          activoAdentro ? 'bg-white text-green-800 shadow-sm' : 'text-green-50 hover:bg-white/10'
         }`}
       >
         Más
-        <svg className={`w-3.5 h-3.5 transition-transform ${abierto ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className={`w-3.5 h-3.5 transition-transform duration-200 ${abierto ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
       {abierto && (
-        <div className="absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl py-2 w-56 z-50 border border-gray-100 dark:border-gray-700">
-          {links.map(l => {
-            const active = location.pathname === l.to
-            return (
-              <Link
-                key={l.to} to={l.to} onClick={() => setAbierto(false)}
-                className={`block px-4 py-2 text-sm transition-colors ${
-                  active ? 'bg-green-50 text-green-800 font-semibold dark:bg-green-900 dark:text-green-200' : 'text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700'
-                }`}
-              >{l.label}</Link>
-            )
-          })}
+        <div className="dropdown-in origin-top-right absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl py-2 w-64 z-50 border border-gray-100 dark:border-gray-700 overflow-hidden">
+          {grupos.map(({ cat, items }, i) => (
+            <div key={cat} className={i > 0 ? 'mt-1 pt-1 border-t border-gray-100 dark:border-gray-700' : ''}>
+              <p className="px-4 pt-2 pb-1 text-[10px] font-bold text-green-700 dark:text-green-400 uppercase tracking-wider">{cat}</p>
+              {items.map(l => {
+                const active = location.pathname === l.to
+                return (
+                  <Link
+                    key={l.to} to={l.to} onClick={() => setAbierto(false)}
+                    className={`flex items-center gap-2.5 px-4 py-2 text-sm transition-colors ${
+                      active ? 'bg-green-50 text-green-800 font-semibold dark:bg-green-900 dark:text-green-200' : 'text-gray-700 hover:bg-gray-50 dark:text-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className="text-base leading-none">{ICONOS_NAV[l.to] || '📌'}</span>
+                    {l.label}
+                  </Link>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function NavPill({ links }) {
+  const location = useLocation()
+  const containerRef = useRef(null)
+  const itemRefs = useRef({})
+  const [indicator, setIndicator] = useState({ left: 0, width: 0, opacity: 0 })
+
+  const medir = () => {
+    const activeEl = itemRefs.current[location.pathname]
+    if (activeEl && containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect()
+      const rect = activeEl.getBoundingClientRect()
+      setIndicator({ left: rect.left - containerRect.left, width: rect.width, opacity: 1 })
+    } else {
+      setIndicator(i => ({ ...i, opacity: 0 }))
+    }
+  }
+
+  useEffect(() => {
+    medir()
+    window.addEventListener('resize', medir)
+    return () => window.removeEventListener('resize', medir)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname, links.length])
+
+  return (
+    <div ref={containerRef} className="relative flex items-center gap-1 p-1 rounded-2xl" style={{ background: 'rgba(255,255,255,0.07)' }}>
+      <div
+        className="absolute top-1 bottom-1 rounded-xl transition-all duration-300 ease-out pointer-events-none"
+        style={{
+          left: indicator.left, width: indicator.width, opacity: indicator.opacity,
+          background: 'linear-gradient(135deg, #ffffff, #ecfdf5)',
+          boxShadow: '0 3px 12px rgba(0,0,0,0.18), 0 0 0 1px rgba(255,255,255,0.6)'
+        }}
+      />
+      {links.map(l => {
+        const active = location.pathname === l.to
+        return (
+          <Link
+            key={l.to}
+            ref={el => { itemRefs.current[l.to] = el }}
+            to={l.to}
+            className={`relative z-10 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-sm font-semibold transition-colors whitespace-nowrap ${
+              active ? 'text-green-800' : 'text-green-50 hover:text-white'
+            }`}
+          >
+            <span className="text-base leading-none">{ICONOS_NAV[l.to] || '📌'}</span>
+            {l.label}
+          </Link>
+        )
+      })}
+    </div>
+  )
+}
+
+function UserMenu({ usuario, onLogout, darkMode, setDarkMode }) {
+  const [abierto, setAbierto] = useState(false)
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const handleClick = e => {
+      if (ref.current && !ref.current.contains(e.target)) setAbierto(false)
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
+
+  const inicial = (usuario.nombre || '?').charAt(0).toUpperCase()
+
+  return (
+    <div className="relative" ref={ref}>
+      <button onClick={() => setAbierto(v => !v)} className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full hover:bg-white/10 transition-colors">
+        <span
+          className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold text-green-900 shrink-0"
+          style={{ background: 'linear-gradient(135deg, #bbf7d0, #4ade80)' }}
+        >{inicial}</span>
+        <span className="hidden lg:flex flex-col items-start leading-tight">
+          <span className="text-white text-xs font-semibold">{usuario.nombre}</span>
+          <span className="text-green-200 text-[10px] uppercase tracking-wide">{usuario.rol}</span>
+        </span>
+        <svg className={`w-3 h-3 text-green-200 transition-transform duration-200 ${abierto ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {abierto && (
+        <div className="dropdown-in origin-top-right absolute right-0 top-full mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl py-2 w-52 z-50 border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100 truncate">{usuario.nombre}</p>
+            <p className="text-xs text-gray-400 capitalize">{usuario.rol}</p>
+          </div>
+          <Link to="/cambiar-password" onClick={() => setAbierto(false)} className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+            <span className="text-base">🔑</span> Cambiar contraseña
+          </Link>
+          <button onClick={() => setDarkMode(!darkMode)} className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left">
+            <span className="text-base">{darkMode ? '☀️' : '🌙'}</span> Modo {darkMode ? 'claro' : 'oscuro'}
+          </button>
+          <div className="border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
+            <button onClick={onLogout} className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors text-left font-medium">
+              <span className="text-base">🚪</span> Cerrar sesión
+            </button>
+          </div>
         </div>
       )}
     </div>
