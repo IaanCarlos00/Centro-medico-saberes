@@ -24,7 +24,7 @@ Cuando el usuario pida algo, responde en JSON con este formato:
 Para "respuesta_directa" solo incluye el mensaje.
 Para "buscar_paciente" incluye: { "nombre": "..." } o { "rut": "..." }
 Para "ver_citas" incluye: { "fecha": "YYYY-MM-DD" } (hoy si no especifica)
-Para "agendar_cita" incluye: { "paciente_nombre": "...", "fecha_hora": "YYYY-MM-DDTHH:MM", "profesional_id": 1 o 2 }
+Para "agendar_cita" incluye: { "paciente_nombre": "...", "fecha_hora": "YYYY-MM-DDTHH:MM", "profesional_id": 1 o 2 }. La paciente debe existir previamente en el sistema; si no la encuentras, dile al usuario que primero debe crearla en Pacientes.
 Para "confirmar_tentativas" incluye: { "fecha": "YYYY-MM-DD" }
 Para "ver_pagos_pendientes" no necesita parámetros
 
@@ -33,6 +33,9 @@ Responde SIEMPRE en JSON válido, sin markdown ni backticks.`
 
 router.post('/', async (req, res) => {
   const { mensaje, historial = [] } = req.body
+  if (!GEMINI_API_KEY) {
+    return res.status(500).json({ error: 'Falta configurar GEMINI_API_KEY en las variables de entorno de Railway.' })
+  }
   try {
     // Llamar a Gemini para entender la intención
     const mensajes = [
@@ -41,7 +44,7 @@ router.post('/', async (req, res) => {
     ]
 
     const { data } = await axios.post(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
         system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
         contents: mensajes
@@ -59,7 +62,8 @@ router.post('/', async (req, res) => {
 
     // Ejecutar la acción
     let resultado = null
-    const { accion, parametros } = respuestaIA
+    const { accion } = respuestaIA
+    const parametros = respuestaIA.parametros || {}
 
     if (accion === 'buscar_paciente') {
       const q = parametros.rut || parametros.nombre
@@ -103,11 +107,37 @@ router.post('/', async (req, res) => {
       const fecha = parametros.fecha || new Date().toISOString().slice(0, 10)
       const r = await pool.query(
         `UPDATE cita SET estado = 'confirmada' 
-         WHERE estado = 'tentativa' AND DATE(fecha_hora) = $1
+         WHERE estado = 'pendiente' AND paciente_id IS NULL AND DATE(fecha_hora) = $1
          RETURNING id`,
         [fecha]
       )
-      respuestaIA.mensaje = `✅ Se confirmaron ${r.rowCount} citas tentativas del ${fecha}.`
+      respuestaIA.mensaje = `✅ Se confirmaron ${r.rowCount} reserva${r.rowCount === 1 ? '' : 's'} tentativa${r.rowCount === 1 ? '' : 's'} del ${fecha}.`
+
+    } else if (accion === 'agendar_cita') {
+      const { paciente_nombre, fecha_hora, profesional_id } = parametros
+      if (!paciente_nombre || !fecha_hora || !profesional_id) {
+        respuestaIA.mensaje = 'Me falta información para agendar: necesito el nombre de la paciente, la fecha/hora y el profesional.'
+      } else {
+        const pac = await pool.query(
+          `SELECT id, nombre, apellido FROM paciente WHERE nombre ILIKE $1 OR apellido ILIKE $1 LIMIT 5`,
+          [`%${paciente_nombre}%`]
+        )
+        if (pac.rows.length === 0) {
+          respuestaIA.mensaje = `No encontré ninguna paciente registrada como "${paciente_nombre}". Primero debe estar creada en Pacientes antes de poder agendarla.`
+        } else if (pac.rows.length > 1) {
+          respuestaIA.mensaje = `Encontré varias pacientes que calzan con "${paciente_nombre}", dime el nombre completo o el RUT:\n${pac.rows.map(p => `• ${p.nombre} ${p.apellido}`).join('\n')}`
+        } else {
+          const paciente = pac.rows[0]
+          const r = await pool.query(
+            `INSERT INTO cita (paciente_id, profesional_id, fecha_hora, estado, duracion_minutos)
+             VALUES ($1,$2,$3::timestamp,'pendiente',30)
+             RETURNING id, TO_CHAR(fecha_hora, 'YYYY-MM-DD HH24:MI:SS') AS fecha_hora`,
+            [paciente.id, profesional_id, fecha_hora]
+          )
+          resultado = r.rows[0]
+          respuestaIA.mensaje = `✅ Agendé a ${paciente.nombre} ${paciente.apellido} el ${r.rows[0].fecha_hora}. Quedó como pendiente — no olvides confirmarla.`
+        }
+      }
 
     } else if (accion === 'ver_pagos_pendientes') {
       const r = await pool.query(

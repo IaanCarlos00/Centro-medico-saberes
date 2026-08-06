@@ -8,7 +8,7 @@ export default function AsistenteIA() {
   const [mensaje, setMensaje] = useState('')
   const [historial, setHistorial] = useState([])
   const [mensajes, setMensajes] = useState([
-    { rol: 'asistente', texto: '¡Hola! Soy el asistente de Saberes 🌿\n\nPuedo ayudarte a:\n• Buscar pacientes\n• Ver citas del día\n• Confirmar citas tentativas\n• Ver pagos pendientes\n\n¿En qué te ayudo?' }
+    { rol: 'asistente', texto: '¡Hola! Soy el asistente de Saberes 🌿\n\nPuedo ayudarte a:\n• Buscar pacientes\n• Ver citas del día\n• Agendar una cita (si la paciente ya está registrada)\n• Confirmar reservas tentativas\n• Ver pagos pendientes\n\n¿En qué te ayudo?' }
   ])
   const [cargando, setCargando] = useState(false)
   const bottomRef = useRef(null)
