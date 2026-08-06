@@ -462,6 +462,14 @@ export default function Reportes() {
 
   const estadoColors = estadoColorReporte
 
+  // Aceptación de estudiantes en las citas del período seleccionado
+  const citasMesRaw = citasRaw.filter(c => c.fecha_hora?.startsWith(mes))
+  const totalCitasEstudiantes = citasMesRaw.length
+  const aceptanEstudiantes = citasMesRaw.filter(c => c.permite_estudiantes === true).length
+  const noAceptanEstudiantes = citasMesRaw.filter(c => c.permite_estudiantes === false).length
+  const noPreguntadoEstudiantes = totalCitasEstudiantes - aceptanEstudiantes - noAceptanEstudiantes
+  const pctAceptan = totalCitasEstudiantes > 0 ? Math.round((aceptanEstudiantes / totalCitasEstudiantes) * 100) : 0
+
   return (
     <div className="min-h-screen bg-white">
 
@@ -633,6 +641,37 @@ export default function Reportes() {
           </p>
         </div>
       )}
+
+      {/* Aceptación de estudiantes */}
+      <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm card-surface">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+            <span className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center text-base">🎓</span>
+            Aceptación de estudiantes
+          </h3>
+          {totalCitasEstudiantes > 0 && (
+            <span className="text-xs bg-blue-50 text-blue-700 px-3 py-1 rounded-full font-bold">{pctAceptan}% acepta</span>
+          )}
+        </div>
+        {totalCitasEstudiantes > 0 ? (
+          <>
+            <div className="flex flex-col gap-3">
+              {[
+                { label: 'Acepta estudiantes', icono: '🎓', total: aceptanEstudiantes, color: 'linear-gradient(90deg, #1d4ed8, #60a5fa)' },
+                { label: 'No acepta estudiantes', icono: '🚫', total: noAceptanEstudiantes, color: 'linear-gradient(90deg, #b91c1c, #f87171)' },
+                { label: 'No se preguntó', icono: '❔', total: noPreguntadoEstudiantes, color: 'linear-gradient(90deg, #6b7280, #d1d5db)' },
+              ].map((fila, i) => (
+                <BarraHorizontal key={i} label={`${fila.icono} ${fila.label}`} valor={fila.total} max={totalCitasEstudiantes} color={fila.color} />
+              ))}
+            </div>
+            <p className="text-xs text-gray-400 mt-4 text-right">
+              {totalCitasEstudiantes} cita{totalCitasEstudiantes !== 1 ? 's' : ''} en el período con este dato
+            </p>
+          </>
+        ) : (
+          <p className="text-gray-300 text-sm text-center py-6">Sin citas registradas este mes</p>
+        )}
+      </div>
 
       {/* Frecuentes + Deuda */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
