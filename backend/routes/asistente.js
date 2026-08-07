@@ -71,6 +71,7 @@ router.post('/', async (req, res) => {
         `SELECT id, nombre, apellido, rut, telefono, email, fecha_nacimiento 
          FROM paciente 
          WHERE nombre ILIKE $1 OR apellido ILIKE $1 OR rut ILIKE $1
+            OR (nombre || ' ' || apellido) ILIKE $1
          LIMIT 5`,
         [`%${q}%`]
       )
@@ -119,7 +120,9 @@ router.post('/', async (req, res) => {
         respuestaIA.mensaje = 'Me falta información para agendar: necesito el nombre de la paciente, la fecha/hora y el profesional.'
       } else {
         const pac = await pool.query(
-          `SELECT id, nombre, apellido FROM paciente WHERE nombre ILIKE $1 OR apellido ILIKE $1 LIMIT 5`,
+          `SELECT id, nombre, apellido FROM paciente 
+           WHERE nombre ILIKE $1 OR apellido ILIKE $1 OR (nombre || ' ' || apellido) ILIKE $1
+           LIMIT 5`,
           [`%${paciente_nombre}%`]
         )
         if (pac.rows.length === 0) {
