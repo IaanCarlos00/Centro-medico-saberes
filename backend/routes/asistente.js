@@ -10,13 +10,14 @@ const SYSTEM_PROMPT = `Eres un asistente inteligente de Saberes, una plataforma 
 Puedes ayudar con:
 - Buscar pacientes por nombre o RUT
 - Ver citas del día o de una fecha específica
+- Ver horarios disponibles (libres, sin agendar) de las matronas en una fecha
 - Agendar nuevas citas
 - Confirmar citas tentativas
 - Ver pagos pendientes
 
 Cuando el usuario pida algo, responde en JSON con este formato:
 {
-  "accion": "buscar_paciente" | "ver_citas" | "agendar_cita" | "confirmar_tentativas" | "ver_pagos_pendientes" | "respuesta_directa",
+  "accion": "buscar_paciente" | "ver_citas" | "ver_horarios_disponibles" | "agendar_cita" | "confirmar_tentativas" | "ver_pagos_pendientes" | "respuesta_directa",
   "parametros": { ... },
   "mensaje": "mensaje natural para mostrar al usuario"
 }
@@ -24,6 +25,7 @@ Cuando el usuario pida algo, responde en JSON con este formato:
 Para "respuesta_directa" solo incluye el mensaje.
 Para "buscar_paciente" incluye: { "nombre": "..." } o { "rut": "..." }
 Para "ver_citas" incluye: { "fecha": "YYYY-MM-DD" } (hoy si no especifica)
+Para "ver_horarios_disponibles" incluye: { "fecha": "YYYY-MM-DD", "profesional_id": 1 o 2 (opcional, si no especifica cuál matrona, omite el campo y se muestran ambas) }
 Para "agendar_cita" incluye: { "paciente_nombre": "...", "fecha_hora": "YYYY-MM-DDTHH:MM", "profesional_id": 1 o 2 }. La paciente debe existir previamente en el sistema; si no la encuentras, dile al usuario que primero debe crearla en Pacientes.
 Para "confirmar_tentativas" incluye: { "fecha": "YYYY-MM-DD" }
 Para "ver_pagos_pendientes" no necesita parámetros
@@ -88,7 +90,8 @@ router.post('/', async (req, res) => {
     } else if (accion === 'ver_citas') {
       const fecha = parametros.fecha || new Date().toISOString().slice(0, 10)
       const r = await pool.query(
-        `SELECT c.fecha_hora, c.estado, p.nombre AS paciente_nombre, p.apellido AS paciente_apellido,
+        `SELECT TO_CHAR(c.fecha_hora, 'YYYY-MM-DD HH24:MI:SS') AS fecha_hora, c.estado,
+                p.nombre AS paciente_nombre, p.apellido AS paciente_apellido,
                 pr.nombre AS profesional_nombre
          FROM cita c
          JOIN paciente p ON c.paciente_id = p.id
@@ -113,6 +116,63 @@ router.post('/', async (req, res) => {
         [fecha]
       )
       respuestaIA.mensaje = `✅ Se confirmaron ${r.rowCount} reserva${r.rowCount === 1 ? '' : 's'} tentativa${r.rowCount === 1 ? '' : 's'} del ${fecha}.`
+
+    } else if (accion === 'ver_horarios_disponibles') {
+      const fecha = parametros.fecha || new Date().toISOString().slice(0, 10)
+      const profesionalId = parametros.profesional_id || null
+      const diaSemana = new Date(`${fecha}T12:00:00`).getDay()
+
+      const horariosR = await pool.query(
+        `SELECT h.profesional_id, TO_CHAR(h.hora, 'HH24:MI') AS hora, h.sobrecupo,
+                pr.nombre AS profesional_nombre, pr.apellido AS profesional_apellido
+         FROM horario_profesional h
+         JOIN profesional pr ON h.profesional_id = pr.id
+         WHERE h.dia_semana = $1 ${profesionalId ? 'AND h.profesional_id = $2' : ''}
+         ORDER BY h.profesional_id, h.hora`,
+        profesionalId ? [diaSemana, profesionalId] : [diaSemana]
+      )
+
+      const citasR = await pool.query(
+        `SELECT profesional_id, TO_CHAR(fecha_hora, 'HH24:MI') AS hora
+         FROM cita
+         WHERE DATE(fecha_hora) = $1::date AND estado != 'cancelada'`,
+        [fecha]
+      )
+
+      const bloqueosR = await pool.query(
+        `SELECT profesional_id, fecha_inicio, fecha_fin
+         FROM bloqueo_horario
+         WHERE fecha_inicio < ($1::date + 1) AND fecha_fin > $1::date`,
+        [fecha]
+      )
+
+      const ocupados = new Set(citasR.rows.map(c => `${c.profesional_id}_${c.hora}`))
+
+      const disponibles = horariosR.rows.filter(h => {
+        if (ocupados.has(`${h.profesional_id}_${h.hora}`)) return false
+        const inicioSlot = new Date(`${fecha}T${h.hora}:00`)
+        const bloqueado = bloqueosR.rows.some(b =>
+          (!b.profesional_id || b.profesional_id === h.profesional_id) &&
+          inicioSlot >= new Date(b.fecha_inicio) && inicioSlot < new Date(b.fecha_fin)
+        )
+        return !bloqueado
+      })
+
+      resultado = disponibles
+      if (horariosR.rows.length === 0) {
+        respuestaIA.mensaje = `Ninguna matrona tiene horario configurado ese día (${fecha}).`
+      } else if (disponibles.length === 0) {
+        respuestaIA.mensaje = `No quedan horarios disponibles para el ${fecha}, está todo ocupado o bloqueado.`
+      } else {
+        const porProfesional = {}
+        disponibles.forEach(d => {
+          const nombre = `${d.profesional_nombre} ${d.profesional_apellido}`
+          if (!porProfesional[nombre]) porProfesional[nombre] = []
+          porProfesional[nombre].push(`${d.hora}${d.sobrecupo ? ' (sobrecupo)' : ''}`)
+        })
+        respuestaIA.mensaje = `Horarios disponibles el ${fecha}:\n` +
+          Object.entries(porProfesional).map(([nombre, horas]) => `👩‍⚕️ ${nombre}: ${horas.join(', ')}`).join('\n')
+      }
 
     } else if (accion === 'agendar_cita') {
       const { paciente_nombre, fecha_hora, profesional_id } = parametros
