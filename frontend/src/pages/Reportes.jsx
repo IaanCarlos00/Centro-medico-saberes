@@ -596,6 +596,26 @@ export default function Reportes() {
   const nombreMesActualTxt = new Date(anioMes, mesNumSel - 1, 1).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
   const nombreMesAnteriorTxt = new Date(anioMes, mesNumSel - 2, 1).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
 
+  // Patrón histórico de asistencia según el día del mes (con TODAS las citas registradas,
+  // sin filtrar por el mes que esté seleccionado), para saber si la gente prefiere
+  // agendarse a principio, mitad o fin de mes.
+  const citasHistoricas = citasRaw.filter(c => c.estado !== 'cancelada' && c.fecha_hora)
+  const citasPorDiaDelMes = Array(31).fill(0)
+  citasHistoricas.forEach(c => {
+    const [fechaParte] = c.fecha_hora.split(' ')
+    const dia = parseInt(fechaParte.split('-')[2])
+    if (dia >= 1 && dia <= 31) citasPorDiaDelMes[dia - 1]++
+  })
+  const totalCitasHistoricas = citasPorDiaDelMes.reduce((s, v) => s + v, 0)
+  const tramosMes = [
+    { label: 'Inicio de mes (1 al 10)', total: citasPorDiaDelMes.slice(0, 10).reduce((s, v) => s + v, 0) },
+    { label: 'Mitad de mes (11 al 20)', total: citasPorDiaDelMes.slice(10, 20).reduce((s, v) => s + v, 0) },
+    { label: 'Fin de mes (21 al 31)', total: citasPorDiaDelMes.slice(20, 31).reduce((s, v) => s + v, 0) },
+  ]
+  const maxTramoMes = Math.max(...tramosMes.map(t => t.total), 1)
+  const tramoGanador = tramosMes.reduce((a, b) => b.total > a.total ? b : a, tramosMes[0])
+  const maxDiaDelMes = Math.max(...citasPorDiaDelMes, 1)
+
   return (
     <div className="min-h-screen bg-white">
 
@@ -775,6 +795,62 @@ export default function Reportes() {
           </p>
         </div>
       )}
+
+      {/* Patrón histórico: en qué parte del mes asiste más la gente */}
+      <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm card-surface">
+        <h3 className="text-lg font-bold text-gray-800 mb-1 flex items-center gap-2">
+          <span className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center text-base">🔥</span>
+          En qué parte del mes asiste más la gente
+        </h3>
+        <p className="text-xs text-gray-400 mb-5">Con todo el historial de citas (no solo el mes filtrado arriba), para planificar mejor los turnos</p>
+
+        {totalCitasHistoricas > 0 ? (
+          <>
+            {/* Los 3 tramos grandes */}
+            <div className="flex flex-col gap-3 mb-2">
+              {tramosMes.map(t => (
+                <BarraHorizontal
+                  key={t.label}
+                  label={t.label}
+                  valor={t.total}
+                  max={maxTramoMes}
+                  color={t.label === tramoGanador.label ? 'linear-gradient(90deg, #c2410c, #fb923c)' : '#fdba74'}
+                />
+              ))}
+            </div>
+            <p className="text-xs text-orange-700 bg-orange-50 rounded-lg px-3 py-2 mt-2 mb-6 font-medium inline-block">
+              🔥 El {tramoGanador.label.toLowerCase()} es cuando más asiste la gente ({tramoGanador.total} citas, {Math.round(tramoGanador.total / totalCitasHistoricas * 100)}% del total histórico)
+            </p>
+
+            {/* Detalle día por día del mes */}
+            <p className="text-sm font-bold text-gray-700 mb-3">Detalle por día del mes (1 al 31)</p>
+            <div className="flex items-end gap-[3px] h-28">
+              {citasPorDiaDelMes.map((total, i) => {
+                const dia = i + 1
+                const pct = Math.max((total / maxDiaDelMes) * 100, total > 0 ? 4 : 1)
+                const enTramoGanador =
+                  (tramoGanador.label.startsWith('Inicio') && dia <= 10) ||
+                  (tramoGanador.label.startsWith('Mitad') && dia >= 11 && dia <= 20) ||
+                  (tramoGanador.label.startsWith('Fin') && dia >= 21)
+                return (
+                  <div key={dia} className="flex-1 flex flex-col items-center justify-end h-full group relative">
+                    <div
+                      className="w-full rounded-t transition-all"
+                      style={{ height: `${pct}%`, background: enTramoGanador ? '#c2410c' : '#fdba74', opacity: 0.85 }}
+                      title={`Día ${dia}: ${total} citas`}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+            <div className="flex justify-between text-[10px] text-gray-300 mt-1 px-0.5">
+              <span>1</span><span>10</span><span>20</span><span>31</span>
+            </div>
+          </>
+        ) : (
+          <p className="text-gray-300 text-sm text-center py-6">Sin citas registradas todavía</p>
+        )}
+      </div>
 
       {/* Aceptación de estudiantes */}
       <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm card-surface">
