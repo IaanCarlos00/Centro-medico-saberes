@@ -42,6 +42,121 @@ function BarraHorizontal({ label, valor, max, color = '#22c55e' }) {
   )
 }
 
+// Junta el detalle por día con los días sin pagos (para que la curva no tenga huecos)
+// y devuelve el acumulado corriendo día a día.
+function construirAcumulado(porDia, diaLimite) {
+  const mapa = {}
+  ;(porDia || []).forEach(d => { mapa[parseInt(d.dia)] = parseFloat(d.total) })
+  let acumulado = 0
+  const resultado = []
+  for (let dia = 1; dia <= diaLimite; dia++) {
+    acumulado += mapa[dia] || 0
+    resultado.push({ dia, acumulado })
+  }
+  return resultado
+}
+
+function ComparativoMensual({ esteMes, mesAnterior, nombreActual, nombreAnterior }) {
+  const [hoverDia, setHoverDia] = useState(null)
+  const ancho = 700, alto = 220, padIzq = 58, padDer = 10, padArriba = 14, padAbajo = 26
+  const n = esteMes.length
+  const maxValor = Math.max(...esteMes.map(d => d.acumulado), ...mesAnterior.map(d => d.acumulado), 1)
+
+  const x = i => padIzq + (n > 1 ? (i / (n - 1)) * (ancho - padIzq - padDer) : 0)
+  const y = v => padArriba + (1 - v / maxValor) * (alto - padArriba - padAbajo)
+
+  const pathEsteMes = esteMes.map((d, i) => `${i === 0 ? 'M' : 'L'} ${x(i)} ${y(d.acumulado)}`).join(' ')
+  const pathAnterior = mesAnterior.map((d, i) => `${i === 0 ? 'M' : 'L'} ${x(i)} ${y(d.acumulado)}`).join(' ')
+  const areaEsteMes = `${pathEsteMes} L ${x(n - 1)} ${y(0)} L ${x(0)} ${y(0)} Z`
+
+  const totalEsteMes = esteMes[n - 1]?.acumulado || 0
+  const totalAnterior = mesAnterior[n - 1]?.acumulado || 0
+  const diferenciaPct = totalAnterior > 0 ? ((totalEsteMes - totalAnterior) / totalAnterior * 100) : null
+
+  const pasoEtiqueta = Math.max(Math.ceil(n / 7), 1)
+
+  return (
+    <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm card-surface">
+      <div className="flex items-center justify-between mb-1 flex-wrap gap-2">
+        <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+          <span className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center text-base">📈</span>
+          Ritmo de ingresos vs. mes anterior
+        </h3>
+        {diferenciaPct !== null && (
+          <span className={`text-xs px-3 py-1 rounded-full font-bold ${diferenciaPct >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+            {diferenciaPct >= 0 ? '▲' : '▼'} {Math.abs(diferenciaPct).toFixed(1)}% vs mismo punto del mes pasado
+          </span>
+        )}
+      </div>
+      <p className="text-xs text-gray-400 mb-4">Ingresos acumulados hasta el día {n} de cada mes</p>
+
+      <div className="flex items-center gap-5 mb-3 flex-wrap">
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-700">
+          <span className="w-3 h-3 rounded-full inline-block" style={{ background: '#16a34a' }} /> {nombreActual} — {formatCLP(totalEsteMes)}
+        </span>
+        <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-400">
+          <span className="w-3 h-3 rounded-full inline-block border border-gray-300" style={{ background: '#e5e7eb' }} /> {nombreAnterior} — {formatCLP(totalAnterior)}
+        </span>
+      </div>
+
+      <svg viewBox={`0 0 ${ancho} ${alto}`} className="w-full select-none" style={{ height: 220 }}>
+        <defs>
+          <linearGradient id="gradEsteMes" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#16a34a" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#16a34a" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        {/* Líneas de referencia horizontales */}
+        {[0, 0.25, 0.5, 0.75, 1].map(f => (
+          <g key={f}>
+            <line x1={padIzq} x2={ancho - padDer} y1={y(maxValor * f)} y2={y(maxValor * f)} stroke="#f3f4f6" />
+            <text x={padIzq - 6} y={y(maxValor * f) + 3} fontSize="9" fill="#9ca3af" textAnchor="end">
+              {formatCLP(maxValor * f).replace('CLP', '').trim()}
+            </text>
+          </g>
+        ))}
+
+        {/* Etiquetas de días en el eje X */}
+        {esteMes.filter((_, i) => i % pasoEtiqueta === 0 || i === n - 1).map(d => (
+          <text key={d.dia} x={x(d.dia - 1)} y={alto - 8} fontSize="9" fill="#9ca3af" textAnchor="middle">{d.dia}</text>
+        ))}
+
+        {/* Área bajo la curva de este mes */}
+        {n > 1 && <path d={areaEsteMes} fill="url(#gradEsteMes)" />}
+
+        {/* Línea mes anterior */}
+        {n > 1 && <path d={pathAnterior} fill="none" stroke="#9ca3af" strokeWidth="2" strokeDasharray="5 4" />}
+        {/* Línea este mes */}
+        {n > 1 && <path d={pathEsteMes} fill="none" stroke="#16a34a" strokeWidth="2.5" />}
+
+        {/* Línea guía + puntos al pasar el mouse */}
+        {hoverDia !== null && (
+          <>
+            <line x1={x(hoverDia)} x2={x(hoverDia)} y1={padArriba} y2={alto - padAbajo} stroke="#d1d5db" strokeDasharray="3 3" />
+            <circle cx={x(hoverDia)} cy={y(esteMes[hoverDia].acumulado)} r="4" fill="#16a34a" stroke="white" strokeWidth="1.5" />
+            <circle cx={x(hoverDia)} cy={y(mesAnterior[hoverDia]?.acumulado || 0)} r="4" fill="#9ca3af" stroke="white" strokeWidth="1.5" />
+          </>
+        )}
+
+        {/* Franjas invisibles para detectar el hover por día */}
+        {esteMes.map((d, i) => (
+          <rect key={i} x={x(i) - (ancho - padIzq - padDer) / Math.max(n, 1) / 2} y={0} width={(ancho - padIzq - padDer) / Math.max(n, 1)} height={alto} fill="transparent"
+            onMouseEnter={() => setHoverDia(i)} onMouseLeave={() => setHoverDia(null)} />
+        ))}
+      </svg>
+
+      {hoverDia !== null && (
+        <div className="bg-gray-900 text-white text-xs rounded-xl px-3 py-2 inline-block">
+          <p className="font-bold mb-0.5">Día {esteMes[hoverDia].dia}</p>
+          <p style={{ color: '#4ade80' }}>{nombreActual}: {formatCLP(esteMes[hoverDia].acumulado)}</p>
+          <p className="text-gray-400">{nombreAnterior}: {formatCLP(mesAnterior[hoverDia]?.acumulado || 0)}</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
 function GraficoBarras({ data }) {
   const [hover, setHover] = useState(null)
   const valores = data.map(d => parseFloat(d.total))
@@ -470,6 +585,17 @@ export default function Reportes() {
   const noPreguntadoEstudiantes = totalCitasEstudiantes - aceptanEstudiantes - noAceptanEstudiantes
   const pctAceptan = totalCitasEstudiantes > 0 ? Math.round((aceptanEstudiantes / totalCitasEstudiantes) * 100) : 0
 
+  // Comparativo diario: ingresos acumulados de este mes vs el mismo tramo del mes anterior
+  const [anioMes, mesNumSel] = mes.split('-').map(Number)
+  const hoyReal = new Date()
+  const esMesActual = mes === hoyReal.toISOString().slice(0, 7)
+  const diasEnMesSel = new Date(anioMes, mesNumSel, 0).getDate()
+  const diaLimite = esMesActual ? hoyReal.getDate() : diasEnMesSel
+  const acumEsteMes = construirAcumulado(datos.ingresosPorDia, diaLimite)
+  const acumMesAnterior = construirAcumulado(datos.ingresosPorDiaAnterior, diaLimite)
+  const nombreMesActualTxt = new Date(anioMes, mesNumSel - 1, 1).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
+  const nombreMesAnteriorTxt = new Date(anioMes, mesNumSel - 2, 1).toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
+
   return (
     <div className="min-h-screen bg-white">
 
@@ -507,6 +633,14 @@ export default function Reportes() {
           </div>
         ))}
       </div>
+
+      {/* Comparativo diario vs mes anterior */}
+      <ComparativoMensual
+        esteMes={acumEsteMes}
+        mesAnterior={acumMesAnterior}
+        nombreActual={nombreMesActualTxt}
+        nombreAnterior={nombreMesAnteriorTxt}
+      />
 
       {/* Gráfico ingresos */}
       <div className="rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm card-surface">

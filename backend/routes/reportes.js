@@ -20,7 +20,7 @@ router.get('/', async (req, res) => {
       ingresosMes, ingresosAnterior, ingresosPorMetodo,
       citasMes, citasAnterior, citasPorProfesional, citasPorEstado,
       pacientesNuevos, pacientesDeuda, pacientesFrecuentes,
-      ingresosPorDia, pendientesMes, rangoEdades
+      ingresosPorDia, ingresosPorDiaAnterior, pendientesMes, rangoEdades
     ] = await Promise.all([
       pool.query(`SELECT COALESCE(SUM(monto),0) AS total FROM pago WHERE estado='pagado' AND fecha >= $1 AND fecha <= $2`, [inicio, finHora]),
       pool.query(`SELECT COALESCE(SUM(monto),0) AS total FROM pago WHERE estado='pagado' AND fecha >= $1 AND fecha <= $2`, [inicioAnterior, finAnteriorHora]),
@@ -33,6 +33,7 @@ router.get('/', async (req, res) => {
       pool.query(`SELECT p.nombre, p.apellido, p.telefono, COALESCE(SUM(pg.monto),0) AS deuda FROM paciente p JOIN pago pg ON pg.paciente_id = p.id WHERE pg.estado='pendiente' GROUP BY p.id, p.nombre, p.apellido, p.telefono HAVING SUM(pg.monto) > 0 ORDER BY deuda DESC`),
       pool.query(`SELECT p.nombre, p.apellido, COUNT(*) AS visitas FROM paciente p JOIN cita c ON c.paciente_id = p.id WHERE c.estado='realizada' AND c.fecha_hora >= $1 AND c.fecha_hora <= $2 GROUP BY p.id, p.nombre, p.apellido ORDER BY visitas DESC`, [inicio, fin + ' 23:59:59']),
       pool.query(`SELECT TO_CHAR(fecha, 'DD') AS dia, COALESCE(SUM(monto),0) AS total FROM pago WHERE estado='pagado' AND fecha >= $1 AND fecha <= $2 GROUP BY dia ORDER BY dia`, [inicio, finHora]),
+      pool.query(`SELECT TO_CHAR(fecha, 'DD') AS dia, COALESCE(SUM(monto),0) AS total FROM pago WHERE estado='pagado' AND fecha >= $1 AND fecha <= $2 GROUP BY dia ORDER BY dia`, [inicioAnterior, finAnteriorHora]),
       pool.query(`SELECT COALESCE(SUM(monto),0) AS total, COUNT(*) AS cantidad FROM pago WHERE estado='pendiente' AND fecha >= $1 AND fecha <= $2`, [inicio, finHora]),
       pool.query(`
         SELECT
@@ -88,6 +89,7 @@ router.get('/', async (req, res) => {
       pacientesDeuda: pacientesDeuda.rows,
       pacientesFrecuentes: pacientesFrecuentes.rows.slice(0, 5),
       ingresosPorDia: ingresosPorDia.rows,
+      ingresosPorDiaAnterior: ingresosPorDiaAnterior.rows,
       pendientesMes: {
         total: parseFloat(pendientesMes.rows[0].total),
         cantidad: parseInt(pendientesMes.rows[0].cantidad)
