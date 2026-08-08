@@ -22,6 +22,10 @@ const API_PRO = 'https://centro-medico-saberes-production.up.railway.app/profesi
 const API_BLOQUEOS = 'https://centro-medico-saberes-production.up.railway.app/bloqueos'
 const API_HORARIOS = 'https://centro-medico-saberes-production.up.railway.app/horarios'
 
+// Orden de "importancia" para el filtro de historial: primero lo que necesita atención
+// (pendiente de confirmar), luego lo confirmado por venir, y al final lo ya resuelto.
+const PRIORIDAD_ESTADO = { pendiente: 0, confirmada: 1, en_atencion: 2, realizada: 3, cancelada: 4 }
+
 // Los bloques de 45 min y la disponibilidad por matrona entran en vigencia el 1 de agosto de 2026.
 // Antes de esa fecha se puede activar una vista previa con el botón "Vista previa" sin afectar a los demás usuarios.
 const FECHA_ACTIVACION_NUEVO_HORARIO = new Date('2026-08-01T00:00:00')
@@ -61,6 +65,7 @@ export default function Agenda() {
   const [mostrarDropdown, setMostrarDropdown] = useState(false)
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('')
+  const [ordenHistorial, setOrdenHistorial] = useState('reciente')
   const [historialPaciente, setHistorialPaciente] = useState([])
   const [bloqueos, setBloqueos] = useState([])
   const [horarios, setHorarios] = useState([])
@@ -352,6 +357,11 @@ export default function Agenda() {
       (c.observaciones && c.observaciones.toLowerCase().includes(q))
     const coincideEstado = !filtroEstado || c.estado === filtroEstado
     return coincideBusqueda && coincideEstado
+  }).sort((a, b) => {
+    if (ordenHistorial === 'reciente') return new Date(b.fecha_hora) - new Date(a.fecha_hora)
+    if (ordenHistorial === 'antigua') return new Date(a.fecha_hora) - new Date(b.fecha_hora)
+    if (ordenHistorial === 'importancia') return (PRIORIDAD_ESTADO[a.estado] ?? 99) - (PRIORIDAD_ESTADO[b.estado] ?? 99)
+    return 0
   })
 
   const crearPaciente = async () => {
@@ -956,6 +966,11 @@ export default function Agenda() {
               <option value="confirmada">Confirmada</option>
               <option value="realizada">Realizada</option>
               <option value="cancelada">Cancelada</option>
+            </select>
+            <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={ordenHistorial} onChange={e => setOrdenHistorial(e.target.value)}>
+              <option value="reciente">Más recientes primero</option>
+              <option value="antigua">Más antiguas primero</option>
+              <option value="importancia">Por importancia (pendientes primero)</option>
             </select>
           </div>
           {(busqueda || filtroEstado) && <p className="text-sm text-gray-500 mb-3">{filtradas.length} cita{filtradas.length !== 1 ? 's' : ''} encontrada{filtradas.length !== 1 ? 's' : ''}</p>}
