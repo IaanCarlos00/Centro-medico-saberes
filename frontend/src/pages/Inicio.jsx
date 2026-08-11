@@ -59,7 +59,7 @@ export default function Inicio() {
   }
 
   const hoy = new Date().toLocaleDateString('es-CL', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Santiago'
   })
 
   useEffect(() => {

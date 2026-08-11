@@ -89,7 +89,7 @@ export default function InicioMatrona({ usuario }) {
   }
 
   const hoy = new Date().toLocaleDateString('es-CL', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'America/Santiago'
   })
 
   const cargar = async () => {
