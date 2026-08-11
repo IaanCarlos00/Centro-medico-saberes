@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import axios from 'axios'
 import ListaConVerMas from '../components/ListaConVerMas'
 import { infoPermiteEstudiantes } from '../utils/permiteEstudiantes'
+import { hoyChile } from '../utils/fechaChile'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/dashboard'
 
@@ -29,7 +30,7 @@ export default function Inicio() {
   const [datos, setDatos] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [filtroFecha, setFiltroFecha] = useState('mes')
-  const [fechaDia, setFechaDia] = useState(new Date().toISOString().slice(0, 10))
+  const [fechaDia, setFechaDia] = useState(hoyChile())
   const [fechaDesde, setFechaDesde] = useState('')
   const [fechaHasta, setFechaHasta] = useState('')
   const [atencionesProf, setAtencionesProf] = useState([])

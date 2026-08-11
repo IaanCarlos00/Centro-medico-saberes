@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { infoPermiteEstudiantes } from '../utils/permiteEstudiantes'
+import { hoyChile } from '../utils/fechaChile'
 
 const API_CITAS = 'https://centro-medico-saberes-production.up.railway.app/citas'
 
@@ -20,8 +21,8 @@ export default function InicioRecepcionista() {
   const [citas, setCitas] = useState([])
   const [cargando, setCargando] = useState(true)
 
-  const hoyStr = new Date().toISOString().slice(0, 10)
-  const hoyFormateado = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+  const hoyStr = hoyChile()
+  const hoyFormateado = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Santiago' })
 
   const cargar = async () => {
     setCargando(true)

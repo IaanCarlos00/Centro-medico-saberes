@@ -1,10 +1,11 @@
 const express = require('express')
 const router = express.Router()
 const pool = require('../db')
+const { hoyChile } = require('../utils/fecha')
 
 router.get('/', async (req, res) => {
   try {
-    const hoy = new Date().toISOString().slice(0, 10)
+    const hoy = hoyChile()
 
     const [
       totalPacientes,

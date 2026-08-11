@@ -6,6 +6,7 @@ import ModalConfirmar from '../components/ModalConfirmar'
 import Toast from '../components/Toast'
 import { estadoColorMatrona as estadoColor } from '../utils/estadoColor'
 import { infoPermiteEstudiantes } from '../utils/permiteEstudiantes'
+import { hoyChile } from '../utils/fechaChile'
 
 const API_CITAS = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
@@ -95,7 +96,7 @@ export default function InicioMatrona({ usuario }) {
     setCargando(true)
     try {
       const [c, p] = await Promise.all([axios.get(API_CITAS), axios.get(API_PAC)])
-      const hoyStr = new Date().toISOString().slice(0, 10)
+      const hoyStr = hoyChile()
       const profesionalId = localStorage.getItem('profesional_id')
       const citasHoy = c.data
         .filter(ci => {
