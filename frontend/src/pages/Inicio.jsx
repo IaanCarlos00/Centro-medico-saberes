@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import axios from 'axios'
 import ListaConVerMas from '../components/ListaConVerMas'
 import { infoPermiteEstudiantes } from '../utils/permiteEstudiantes'
+import { esAtencionOnline } from '../utils/esOnline'
 import { hoyChile } from '../utils/fechaChile'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/dashboard'
@@ -200,13 +201,22 @@ export default function Inicio() {
                   <p className="text-gray-400 text-sm">No hay citas programadas para hoy</p>
                 </div>
               ) : (
-                <ListaConVerMas items={datos.proximasCitas} limite={5} renderItem={(c, i) => (
-                  <div key={i} className="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100">
+                <ListaConVerMas items={datos.proximasCitas} limite={5} renderItem={(c, i) => {
+                  const online = esAtencionOnline(c.procedimiento_nombre)
+                  return (
+                  <div key={i} className={`flex items-center gap-4 p-3 rounded-xl transition-colors border ${online ? 'bg-blue-50 border-blue-200' : 'hover:bg-gray-50 border-transparent hover:border-gray-100'}`}>
                     <div className="text-white rounded-xl px-3 py-2 text-center min-w-[56px] shrink-0" style={{ background: 'linear-gradient(135deg, #166534, #15803d)' }}>
                       <p className="text-base font-black leading-none">{c.fecha_hora?.slice(11,16)}</p>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-gray-800 truncate">{c.paciente_nombre} {c.paciente_apellido}</p>
+                      <p className="font-semibold text-gray-800 truncate flex items-center gap-2 flex-wrap">
+                        {c.paciente_nombre} {c.paciente_apellido}
+                        {online && (
+                          <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold whitespace-nowrap">
+                            🖥️ ONLINE
+                          </span>
+                        )}
+                      </p>
                       <p className="text-xs text-gray-400 truncate">con {c.profesional_nombre} {c.profesional_apellido}</p>
                       <div className="flex items-center gap-1.5 flex-wrap mt-1">
                         <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
@@ -226,7 +236,8 @@ export default function Inicio() {
                       {estadoIcono[c.estado]} {c.estado}
                     </span>
                   </div>
-                )} />
+                  )
+                }} />
               )}
             </div>
 

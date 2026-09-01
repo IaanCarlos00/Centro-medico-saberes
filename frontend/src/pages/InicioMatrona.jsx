@@ -7,6 +7,7 @@ import Toast from '../components/Toast'
 import { estadoColorMatrona as estadoColor } from '../utils/estadoColor'
 import { infoPermiteEstudiantes } from '../utils/permiteEstudiantes'
 import { hoyChile } from '../utils/fechaChile'
+import { esAtencionOnline } from '../utils/esOnline'
 
 const API_CITAS = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
@@ -330,14 +331,22 @@ export default function InicioMatrona({ usuario }) {
                 {citas.map(c => {
                   const paciente = getPaciente(c.paciente_id)
                   const incompleto = necesitaCompletar(paciente)
+                  const online = esAtencionOnline(c.procedimiento_nombre)
                   const bgMap = { en_atencion: 'linear-gradient(135deg, #f5f3ff, #ede9fe)', realizada: 'linear-gradient(135deg, #f0fdf4, #dcfce7)', cancelada: 'linear-gradient(135deg, #fef2f2, #fee2e2)' }
                   return (
-                    <div key={c.id} className="flex items-center gap-4 p-4 rounded-2xl border border-gray-100 hover:border-green-200 transition-all hover:shadow-sm" style={{ background: bgMap[c.estado] || 'white' }}>
+                    <div key={c.id} className={`flex items-center gap-4 p-4 rounded-2xl border transition-all hover:shadow-sm ${online ? 'border-blue-200' : 'border-gray-100 hover:border-green-200'}`} style={{ background: online && !bgMap[c.estado] ? 'linear-gradient(135deg, #eff6ff, #dbeafe)' : (bgMap[c.estado] || 'white') }}>
                       <div className="text-white rounded-xl px-3 py-2.5 text-center min-w-[64px] shrink-0" style={{ background: 'linear-gradient(135deg, #166534, #15803d)' }}>
                         <p className="text-lg font-black leading-none">{c.fecha_hora?.slice(11,16)}</p>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</p>
+                        <p className="font-bold text-gray-800 flex items-center gap-2 flex-wrap">
+                          {c.paciente_nombre} {c.paciente_apellido}
+                          {online && (
+                            <span className="text-xs bg-blue-600 text-white px-2.5 py-1 rounded-full font-bold flex items-center gap-1">
+                              🖥️ ONLINE — no llega presencial
+                            </span>
+                          )}
+                        </p>
                         {c.procedimiento_nombre && <p className="text-xs text-blue-600 mt-0.5 font-semibold">📋 {c.procedimiento_nombre}</p>}
                         {c.observaciones && <p className="text-xs text-gray-400 mt-0.5">{c.observaciones}</p>}
                         <div className="flex items-center gap-2 flex-wrap mt-1.5">

@@ -15,6 +15,7 @@ import { validarFechaHora } from '../utils/validarFechaHora'
 import ModalAgendarRapido from '../components/ModalAgendarRapido'
 import ModalBloquearHorario from '../components/ModalBloquearHorario'
 import { estadoColorCita as estadoColor } from '../utils/estadoColor'
+import { esAtencionOnline } from '../utils/esOnline'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
@@ -987,7 +988,12 @@ export default function Agenda() {
               <tbody className="divide-y divide-gray-100">
                 {filtradas.map(c => (
                   <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</td>
+                    <td className="px-4 py-3 font-medium text-gray-800">
+                      {c.paciente_nombre} {c.paciente_apellido}
+                      {esAtencionOnline(c.procedimiento_nombre) && (
+                        <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold whitespace-nowrap">🖥️ Online</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-gray-600">{c.profesional_nombre} {c.profesional_apellido}</td>
                     <td className="px-4 py-3 text-gray-600">{c.fecha_hora?.slice(0,16).replace('T',' ')}</td>
                     <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-semibold ${estadoColor[c.estado]?.badge}`}>{c.estado}</span></td>
@@ -1010,7 +1016,12 @@ export default function Agenda() {
               <div key={c.id} className="bg-white rounded-xl shadow p-4">
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <p className="font-semibold text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</p>
+                    <p className="font-semibold text-gray-800">
+                      {c.paciente_nombre} {c.paciente_apellido}
+                      {esAtencionOnline(c.procedimiento_nombre) && (
+                        <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold whitespace-nowrap">🖥️ Online</span>
+                      )}
+                    </p>
                     <p className="text-sm text-gray-500">{c.profesional_nombre} {c.profesional_apellido}</p>
                     <p className="text-sm text-gray-500 mt-1">🕐 {c.fecha_hora?.slice(0,16).replace('T',' ')}</p>
                   </div>

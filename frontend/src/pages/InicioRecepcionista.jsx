@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { infoPermiteEstudiantes } from '../utils/permiteEstudiantes'
 import { hoyChile } from '../utils/fechaChile'
+import { esAtencionOnline } from '../utils/esOnline'
 
 const API_CITAS = 'https://centro-medico-saberes-production.up.railway.app/citas'
 
@@ -85,8 +86,10 @@ export default function InicioRecepcionista() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {citas.map(c => (
-            <div key={c.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow">
+          {citas.map(c => {
+            const online = esAtencionOnline(c.procedimiento_nombre)
+            return (
+            <div key={c.id} className={`rounded-2xl shadow-sm border p-4 hover:shadow-md transition-shadow ${online ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-100'}`}>
               <div className="flex items-center gap-4">
                 {/* Hora */}
                 <div className="text-center shrink-0 w-14">
@@ -95,8 +98,13 @@ export default function InicioRecepcionista() {
                 <div className="w-px h-10 bg-gray-200 shrink-0" />
                 {/* Paciente */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-bold text-gray-800 text-base">
+                  <p className="font-bold text-gray-800 text-base flex items-center gap-2 flex-wrap">
                     {c.paciente_nombre ? `${c.paciente_nombre} ${c.paciente_apellido}` : '—'}
+                    {online && (
+                      <span className="text-xs bg-blue-600 text-white px-2.5 py-1 rounded-full font-bold flex items-center gap-1 animate-pulse">
+                        🖥️ ATENCIÓN ONLINE — no llega presencial
+                      </span>
+                    )}
                   </p>
                   <p className="text-sm text-gray-400">
                     👩‍⚕️ {c.profesional_nombre} {c.profesional_apellido}
@@ -124,7 +132,8 @@ export default function InicioRecepcionista() {
                 </span>
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

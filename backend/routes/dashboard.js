@@ -36,7 +36,7 @@ router.get('/', async (req, res) => {
       pool.query("SELECT COUNT(*) FROM cita WHERE estado = 'realizada'"),
       pool.query("SELECT COUNT(*) FROM cita WHERE estado = 'cancelada'"),
       pool.query(`
-        SELECT c.fecha_hora, c.estado, c.observaciones, c.duracion_minutos, c.permite_estudiantes,
+        SELECT c.fecha_hora, c.estado, c.observaciones, c.duracion_minutos, c.permite_estudiantes, c.procedimiento_nombre,
                p.nombre AS paciente_nombre, p.apellido AS paciente_apellido,
                pr.nombre AS profesional_nombre, pr.apellido AS profesional_apellido
         FROM cita c
