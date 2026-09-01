@@ -15,7 +15,6 @@ import { validarFechaHora } from '../utils/validarFechaHora'
 import ModalAgendarRapido from '../components/ModalAgendarRapido'
 import ModalBloquearHorario from '../components/ModalBloquearHorario'
 import { estadoColorCita as estadoColor } from '../utils/estadoColor'
-import { esAtencionOnline } from '../utils/esOnline'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/citas'
 const API_PAC = 'https://centro-medico-saberes-production.up.railway.app/pacientes'
@@ -60,7 +59,7 @@ export default function Agenda() {
   const [citaSeleccionada, setCitaSeleccionada] = useState(null)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [editando, setEditando] = useState(null)
-  const [form, setForm] = useState({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
+  const [form, setForm] = useState({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null, modalidad_online: null })
   const [errores, setErrores] = useState({})
   const [busquedaPaciente, setBusquedaPaciente] = useState('')
   const [mostrarDropdown, setMostrarDropdown] = useState(false)
@@ -156,10 +155,13 @@ export default function Agenda() {
     setErrores({ ...errores, [e.target.name]: '' })
   }
 
+  const esProcedimientoOnline = procedimientoSeleccionado?.nombre?.toLowerCase().includes('online')
+
   const validar = () => {
   const e = {}
   if (!form.paciente_id) e.paciente_id = 'Selecciona un paciente'
   if (!form.profesional_id) e.profesional_id = 'Selecciona un profesional'
+  if (esProcedimientoOnline && !form.modalidad_online) e.modalidad_online = 'Selecciona si la atención es por WhatsApp o Videollamada'
   if (!editando) {
     const bloqueosProfesional = bloqueos.filter(b => !b.profesional_id || String(b.profesional_id) === String(form.profesional_id))
     const errorFecha = validarFechaHora(form.fecha_hora, bloqueosProfesional)
@@ -189,7 +191,7 @@ export default function Agenda() {
     await registrarLog('crear', 'cita', res.data.id, `Cita de ${paciente?.nombre} ${paciente?.apellido}`)
     setCitaRecienAgendada({ ...res.data, paciente_id: form.paciente_id, paciente_nombre: paciente?.nombre, paciente_apellido: paciente?.apellido })
   }
-  setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
+  setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null, modalidad_online: null })
   setBusquedaPaciente('')
   setHistorialPaciente([])
   setErrores({})
@@ -207,7 +209,7 @@ export default function Agenda() {
       await axios.put(`${API}/${editando}`, form)
       await registrarLog('editar', 'cita', editando, `Cita de ${busquedaPaciente}`)
       setEditando(null)
-      setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
+      setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null, modalidad_online: null })
       setBusquedaPaciente('')
       setErrores({})
       setModalAgendar(null)
@@ -228,7 +230,7 @@ export default function Agenda() {
         estado: 'pendiente',
         referencia: form.referencia || null
       })
-      setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
+      setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null, modalidad_online: null })
       setBusquedaPaciente('')
       setErrores({})
       setTipoAgendamiento('confirmado')
@@ -269,7 +271,7 @@ export default function Agenda() {
     }
     setModalConfirmarEstado(false)
     setCitaRecienAgendada({ ...res.data, paciente_id: form.paciente_id, paciente_nombre: paciente?.nombre, paciente_apellido: paciente?.apellido })
-    setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
+    setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null, modalidad_online: null })
     setBusquedaPaciente('')
     setErrores({})
     setMostrarNuevoPaciente(false)
@@ -284,7 +286,7 @@ export default function Agenda() {
     await axios.put(`${API}/${editando}`, { ...form, estado: 'realizada' })
     await registrarLog('editar', 'cita', editando, `Cita marcada como realizada`)
     setEditando(null)
-    setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
+    setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null, modalidad_online: null })
     setBusquedaPaciente('')
     setErrores({})
     setModalAgendar(null)
@@ -292,7 +294,7 @@ export default function Agenda() {
   }
 
   const editar = c => {
-    setForm({ paciente_id: c.paciente_id, profesional_id: c.profesional_id, fecha_hora: c.fecha_hora?.slice(0,16), estado: c.estado, observaciones: c.observaciones || '', duracion_minutos: c.duracion_minutos || 30, permite_estudiantes: c.permite_estudiantes ?? null })
+    setForm({ paciente_id: c.paciente_id, profesional_id: c.profesional_id, fecha_hora: c.fecha_hora?.slice(0,16), estado: c.estado, observaciones: c.observaciones || '', duracion_minutos: c.duracion_minutos || 30, permite_estudiantes: c.permite_estudiantes ?? null, modalidad_online: c.modalidad_online || null })
     setBusquedaPaciente(`${c.paciente_nombre} ${c.paciente_apellido}`)
     setHistorialPaciente(citas.filter(ci => ci.paciente_id === c.paciente_id && ci.id !== c.id).slice(0, 3))
     setEditando(c.id)
@@ -321,7 +323,7 @@ export default function Agenda() {
 
   const cancelar = () => {
     setEditando(null)
-    setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
+    setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null, modalidad_online: null })
     setBusquedaPaciente('')
     setHistorialPaciente([])
     setErrores({})
@@ -332,7 +334,7 @@ export default function Agenda() {
   ...citas.map(c => ({
     id: c.id,
     title: c.paciente_nombre
-  ? (c.procedimiento_nombre ? `${c.paciente_nombre} ${c.paciente_apellido} — ${c.procedimiento_nombre}` : `${c.paciente_nombre} ${c.paciente_apellido}`)
+  ? `${c.modalidad_online ? (c.modalidad_online === 'whatsapp' ? '💬 ' : '🎥 ') : ''}${c.paciente_nombre} ${c.paciente_apellido}${c.procedimiento_nombre ? ` — ${c.procedimiento_nombre}` : ''}`
   : `⏳ ${c.referencia || 'Reserva tentativa'}`,
     start: new Date(c.fecha_hora.replace(' ', 'T')),
   end: new Date(new Date(c.fecha_hora.replace(' ', 'T')).getTime() + (c.duracion_minutos || 30) * 60000),
@@ -666,7 +668,7 @@ export default function Agenda() {
             </button>
             <button
               onClick={() => {
-                setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
+                setForm({ paciente_id: '', profesional_id: '', fecha_hora: '', estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null, modalidad_online: null })
                 setBusquedaPaciente('')
                 setErrores({})
                 setTipoAgendamiento('confirmado')
@@ -768,7 +770,7 @@ export default function Agenda() {
                                     const finDate = new Date(fecha)
                                     finDate.setHours(hh, mm + 45, 0, 0)
                                     const fechaHoraFin = `${fechaStr}T${String(finDate.getHours()).padStart(2, '0')}:${String(finDate.getMinutes()).padStart(2, '0')}`
-                                    setForm({ paciente_id: '', profesional_id: profesional.id, fecha_hora: fechaHora, estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
+                                    setForm({ paciente_id: '', profesional_id: profesional.id, fecha_hora: fechaHora, estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null, modalidad_online: null })
                                     setBusquedaPaciente('')
                                     setErrores({})
                                     setMostrarNuevoPaciente(false)
@@ -876,7 +878,7 @@ export default function Agenda() {
                   setCitaParaMover(null)
                   return
                 }
-                setForm({ paciente_id: '', profesional_id: '', fecha_hora: fechaHora, estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
+                setForm({ paciente_id: '', profesional_id: '', fecha_hora: fechaHora, estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null, modalidad_online: null })
                 setBusquedaPaciente('')
                 setErrores({})
                 setMostrarNuevoPaciente(false)
@@ -898,7 +900,7 @@ export default function Agenda() {
                     <p className="text-sm font-medium text-yellow-800 mb-1">⏳ Reserva tentativa</p>
                     {citaSeleccionada.referencia && <p className="text-xs text-yellow-700">Referencia: {citaSeleccionada.referencia}</p>}
                     <button onClick={() => {
-                      setForm({ paciente_id: '', profesional_id: citaSeleccionada.profesional_id, fecha_hora: citaSeleccionada.fecha_hora?.slice(0,16), estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null })
+                      setForm({ paciente_id: '', profesional_id: citaSeleccionada.profesional_id, fecha_hora: citaSeleccionada.fecha_hora?.slice(0,16), estado: 'pendiente', observaciones: '', duracion_minutos: 30, permite_estudiantes: null, modalidad_online: null })
                       setBusquedaPaciente('')
                       setErrores({})
                       setTipoAgendamiento('confirmado')
@@ -920,6 +922,12 @@ export default function Agenda() {
                   </div>
                   {citaSeleccionada.observaciones && <div><span className="font-semibold text-gray-600">Observaciones:</span> <span className="text-gray-800">{citaSeleccionada.observaciones}</span></div>}
                   <div><span className="font-semibold text-gray-600">Duración:</span> <span className="text-gray-800">{citaSeleccionada.duracion_minutos || 30} min</span></div>
+                  {citaSeleccionada.modalidad_online && (
+                    <div>
+                      <span className="font-semibold text-gray-600">Atención online:</span>{' '}
+                      <span className="text-gray-800">{citaSeleccionada.modalidad_online === 'whatsapp' ? '💬 WhatsApp' : '🎥 Videollamada'}</span>
+                    </div>
+                  )}
                   {citaSeleccionada.paciente_id && (
                     <div>
                       <span className="font-semibold text-gray-600">Permite estudiantes:</span>{' '}
@@ -988,12 +996,7 @@ export default function Agenda() {
               <tbody className="divide-y divide-gray-100">
                 {filtradas.map(c => (
                   <tr key={c.id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-gray-800">
-                      {c.paciente_nombre} {c.paciente_apellido}
-                      {esAtencionOnline(c.procedimiento_nombre) && (
-                        <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold whitespace-nowrap">🖥️ Online</span>
-                      )}
-                    </td>
+                    <td className="px-4 py-3 font-medium text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</td>
                     <td className="px-4 py-3 text-gray-600">{c.profesional_nombre} {c.profesional_apellido}</td>
                     <td className="px-4 py-3 text-gray-600">{c.fecha_hora?.slice(0,16).replace('T',' ')}</td>
                     <td className="px-4 py-3"><span className={`px-2 py-1 rounded-full text-xs font-semibold ${estadoColor[c.estado]?.badge}`}>{c.estado}</span></td>
@@ -1016,12 +1019,7 @@ export default function Agenda() {
               <div key={c.id} className="bg-white rounded-xl shadow p-4">
                 <div className="flex justify-between items-start mb-2">
                   <div>
-                    <p className="font-semibold text-gray-800">
-                      {c.paciente_nombre} {c.paciente_apellido}
-                      {esAtencionOnline(c.procedimiento_nombre) && (
-                        <span className="ml-2 text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold whitespace-nowrap">🖥️ Online</span>
-                      )}
-                    </p>
+                    <p className="font-semibold text-gray-800">{c.paciente_nombre} {c.paciente_apellido}</p>
                     <p className="text-sm text-gray-500">{c.profesional_nombre} {c.profesional_apellido}</p>
                     <p className="text-sm text-gray-500 mt-1">🕐 {c.fecha_hora?.slice(0,16).replace('T',' ')}</p>
                   </div>

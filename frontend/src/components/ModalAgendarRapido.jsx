@@ -150,11 +150,35 @@ export default function ModalAgendarRapido({
             <select className="border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" value={procedimientoSeleccionado?.id || ''} onChange={e => {
               const proc = catalogo.find(c => c.id === parseInt(e.target.value))
               setProcedimientoSeleccionado(proc || null)
+              if (!proc?.nombre?.toLowerCase().includes('online')) setForm(f => ({ ...f, modalidad_online: null }))
             }}>
               <option value="">Sin procedimiento — quedará pendiente</option>
               {catalogo.map(c => <option key={c.id} value={c.id}>{c.nombre} — ${Number(c.monto).toLocaleString('es-CL')}</option>)}
             </select>
           </div>
+
+          {procedimientoSeleccionado?.nombre?.toLowerCase().includes('online') && (
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-1">¿Atención por WhatsApp o Videollamada?</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, modalidad_online: 'whatsapp' }))}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${form.modalidad_online === 'whatsapp' ? 'border-green-600 bg-green-50 text-green-800' : 'border-gray-200 text-gray-500'}`}
+                >
+                  💬 WhatsApp
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, modalidad_online: 'videollamada' }))}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${form.modalidad_online === 'videollamada' ? 'border-green-600 bg-green-50 text-green-800' : 'border-gray-200 text-gray-500'}`}
+                >
+                  🎥 Videollamada
+                </button>
+              </div>
+              {errores.modalidad_online && <span className="text-red-500 text-xs mt-1">{errores.modalidad_online}</span>}
+            </div>
+          )}
 
           {procedimientoSeleccionado && (
             <>
