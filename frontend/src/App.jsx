@@ -268,6 +268,7 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
     { to: '/pacientes', label: 'Pacientes' },
     { to: '/pagos', label: 'Pagos' },
     { to: '/procedimientos', label: 'Procedimientos' },
+    { to: '/horarios', label: 'Horarios' },
     { to: '/pap', label: 'PAP' },
     { to: '/flujos', label: 'Flujos' },
     { to: '/pcr-vph', label: 'PCR VPH' },
@@ -283,6 +284,7 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
     { to: '/pap', label: 'PAP' },
     { to: '/flujos', label: 'Flujos' },
     { to: '/pcr-vph', label: 'PCR VPH' },
+    { to: '/horarios', label: 'Horarios' },
     { to: '/encuestas', label: 'Encuestas' },
     { to: '/reportes', label: 'Reportes' },
   ]
@@ -402,6 +404,7 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
             <Route path="pcr-vph" element={<PcrVph />} />
             <Route path="encuestas" element={<Encuestas />} />
             <Route path="controles" element={<Controles />} />
+            <Route path="horarios" element={<Horarios />} />
             <Route path="*" element={<Navigate to="/pacientes" />} />
           </>}
           {rol === 'matrona' && <>
@@ -415,6 +418,7 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
             <Route path="pcr-vph" element={<PcrVph />} />
             <Route path="encuestas" element={<Encuestas />} />
             <Route path="reportes" element={<Reportes />} />
+            <Route path="horarios" element={<Horarios />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}
           {rol === 'recepcionista' && <>
