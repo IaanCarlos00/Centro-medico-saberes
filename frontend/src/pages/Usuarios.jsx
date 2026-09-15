@@ -70,6 +70,16 @@ export default function Usuarios() {
     cargar()
   }
 
+  const eliminar = async id => {
+    if (!confirm('¿Eliminar este usuario? Esta acción no se puede deshacer.')) return
+    try {
+      await axios.delete(`${API}/${id}`)
+      cargar()
+    } catch (err) {
+      alert(err.response?.data?.error || 'No se pudo eliminar el usuario')
+    }
+  }
+
   const cerrarModal = () => {
     setModalForm(false)
     setForm({ nombre: '', email: '', password: '', rol: 'secretaria', profesional_id: '' })
@@ -258,9 +268,14 @@ export default function Usuarios() {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <button onClick={() => toggleActivo(u.id, u.activo)} className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${u.activo ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-700 hover:bg-green-100'}`}>
-                    {u.activo ? 'Desactivar' : 'Activar'}
-                  </button>
+                  <div className="flex gap-2">
+                    <button onClick={() => toggleActivo(u.id, u.activo)} className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${u.activo ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-700 hover:bg-green-100'}`}>
+                      {u.activo ? 'Desactivar' : 'Activar'}
+                    </button>
+                    <button onClick={() => eliminar(u.id)} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
+                      Eliminar
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -294,9 +309,14 @@ export default function Usuarios() {
               <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${rolConfig[u.rol]?.badge || 'bg-gray-100 text-gray-600'}`}>
                 {rolConfig[u.rol]?.icon} {rolConfig[u.rol]?.label || u.rol}
               </span>
-              <button onClick={() => toggleActivo(u.id, u.activo)} className={`text-xs font-semibold px-3 py-1.5 rounded-lg ${u.activo ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
-                {u.activo ? 'Desactivar' : 'Activar'}
-              </button>
+              <div className="flex gap-2">
+                <button onClick={() => toggleActivo(u.id, u.activo)} className={`text-xs font-semibold px-3 py-1.5 rounded-lg ${u.activo ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
+                  {u.activo ? 'Desactivar' : 'Activar'}
+                </button>
+                <button onClick={() => eliminar(u.id)} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600">
+                  Eliminar
+                </button>
+              </div>
             </div>
           </div>
         ))}

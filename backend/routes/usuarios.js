@@ -42,4 +42,18 @@ router.put('/:id', async (req, res) => {
   }
 })
 
+// Eliminar usuario
+router.delete('/:id', async (req, res) => {
+  try {
+    const result = await pool.query('DELETE FROM usuario WHERE id=$1 RETURNING id', [req.params.id])
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' })
+    res.json({ mensaje: 'Usuario eliminado' })
+  } catch (error) {
+    if (error.code === '23503') {
+      return res.status(409).json({ error: 'No se puede eliminar: este usuario tiene registros asociados (bloqueos de horario u otros). Puedes desactivarlo en su lugar.' })
+    }
+    res.status(500).json({ error: error.message })
+  }
+})
+
 module.exports = router
