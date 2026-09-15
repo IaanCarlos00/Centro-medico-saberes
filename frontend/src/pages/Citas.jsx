@@ -566,6 +566,7 @@ export default function Agenda() {
         procedimientoSeleccionado={procedimientoSeleccionado}
         setProcedimientoSeleccionado={setProcedimientoSeleccionado}
         catalogo={catalogo}
+        usuarioRol={usuarioRol}
         metodoPago={metodoPago}
         setMetodoPago={setMetodoPago}
         numeroBono={numeroBono}

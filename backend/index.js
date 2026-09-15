@@ -22,6 +22,7 @@ const encuestasRouter = require('./routes/encuestas');
 const archivosRouter = require('./routes/archivos');
 const logsRouter = require('./routes/logs');
 const auth = require('./middleware/auth');
+const bloquearMatrona = require('./middleware/bloquearMatrona');
 const reportesRouter = require('./routes/reportes');
 const asistente = require('./routes/asistente');
 
@@ -53,7 +54,7 @@ app.use('/citas', auth, citasRouter);
 app.use('/fichas', auth, fichasRouter);
 app.use('/dashboard', auth, dashboardRouter);
 app.use('/fichas-ingreso', auth, fichasIngresoRouter);
-app.use('/pagos', auth, pagosRouter);
+app.use('/pagos', auth, bloquearMatrona, pagosRouter);
 app.use('/bloqueos', auth, bloqueosRouter);
 app.use('/horarios', auth, horariosRouter);
 app.use('/procedimientos', auth, procedimientosRouter);
@@ -62,7 +63,7 @@ app.use('/pcr-vph', auth, pcrVphRouter);
 app.use('/flujos', auth, flujosRouter);
 app.use('/archivos', auth, archivosRouter);
 app.use('/logs', auth, logsRouter);
-app.use('/reportes', auth, reportesRouter);
+app.use('/reportes', auth, bloquearMatrona, reportesRouter);
 app.use('/asistente', auth, asistente);
 
 

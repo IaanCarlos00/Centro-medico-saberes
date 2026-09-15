@@ -280,13 +280,11 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
     { to: '/', label: 'Mi Agenda' },
     { to: '/pacientes', label: 'Pacientes' },
     { to: '/citas', label: 'Agenda' },
-    { to: '/pagos', label: 'Pagos' },
     { to: '/pap', label: 'PAP' },
     { to: '/flujos', label: 'Flujos' },
     { to: '/pcr-vph', label: 'PCR VPH' },
     { to: '/horarios', label: 'Horarios' },
     { to: '/encuestas', label: 'Encuestas' },
-    { to: '/reportes', label: 'Reportes' },
   ]
 
   const linksRecepcionista = [
@@ -411,13 +409,11 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
             <Route index element={<InicioMatrona usuario={usuario} />} />
             <Route path="pacientes" element={<Pacientes />} />
             <Route path="citas" element={<Agenda />} />
-            <Route path="pagos" element={<Pagos />} />
             <Route path="cambiar-password" element={<CambiarPassword />} />
             <Route path="pap" element={<Pap />} />
             <Route path="flujos" element={<Flujos />} />
             <Route path="pcr-vph" element={<PcrVph />} />
             <Route path="encuestas" element={<Encuestas />} />
-            <Route path="reportes" element={<Reportes />} />
             <Route path="horarios" element={<HorariosMatronas />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}

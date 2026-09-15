@@ -24,6 +24,7 @@ export default function ModalAgendarRapido({
   procedimientoSeleccionado,
   setProcedimientoSeleccionado,
   catalogo,
+  usuarioRol,
   metodoPago,
   setMetodoPago,
   numeroBono,
@@ -153,7 +154,7 @@ export default function ModalAgendarRapido({
               if (!proc?.nombre?.toLowerCase().includes('online')) setForm(f => ({ ...f, modalidad_online: null }))
             }}>
               <option value="">Sin procedimiento — quedará pendiente</option>
-              {catalogo.map(c => <option key={c.id} value={c.id}>{c.nombre} — ${Number(c.monto).toLocaleString('es-CL')}</option>)}
+              {catalogo.map(c => <option key={c.id} value={c.id}>{c.nombre}{usuarioRol !== 'matrona' ? ` — $${Number(c.monto).toLocaleString('es-CL')}` : ''}</option>)}
             </select>
           </div>
 
@@ -180,7 +181,7 @@ export default function ModalAgendarRapido({
             </div>
           )}
 
-          {procedimientoSeleccionado && (
+          {procedimientoSeleccionado && usuarioRol !== 'matrona' && (
             <>
               <div className="flex flex-col">
                 <label className="text-sm text-gray-600 mb-1">Método de pago</label>
