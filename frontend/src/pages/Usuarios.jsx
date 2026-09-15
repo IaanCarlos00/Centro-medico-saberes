@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import axios from 'axios'
 
 const API = 'https://centro-medico-saberes-production.up.railway.app/usuarios'
+const API_PROFESIONALES = 'https://centro-medico-saberes-production.up.railway.app/profesionales'
 
 const rolConfig = {
   admin: { badge: 'bg-purple-100 text-purple-700', gradient: 'linear-gradient(135deg, #7c3aed, #8b5cf6)', icon: '👑', label: 'Administrador' },
@@ -12,8 +13,9 @@ const rolConfig = {
 
 export default function Usuarios() {
   const [usuarios, setUsuarios] = useState([])
+  const [profesionales, setProfesionales] = useState([])
   const [modalForm, setModalForm] = useState(false)
-  const [form, setForm] = useState({ nombre: '', email: '', password: '', rol: 'secretaria' })
+  const [form, setForm] = useState({ nombre: '', email: '', password: '', rol: 'secretaria', profesional_id: '' })
   const [errores, setErrores] = useState({})
   const [mensaje, setMensaje] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -25,7 +27,12 @@ export default function Usuarios() {
     setUsuarios(res.data)
   }
 
-  useEffect(() => { cargar() }, [])
+  const cargarProfesionales = async () => {
+    const res = await axios.get(API_PROFESIONALES)
+    setProfesionales(res.data)
+  }
+
+  useEffect(() => { cargar(); cargarProfesionales() }, [])
 
   const handleChange = e => {
     setForm({ ...form, [e.target.name]: e.target.value })
@@ -38,6 +45,7 @@ export default function Usuarios() {
     if (!form.email.trim()) e.email = 'El email es obligatorio'
     if (!form.password.trim()) e.password = 'La contraseña es obligatoria'
     if (form.password.length < 6) e.password = 'Mínimo 6 caracteres'
+    if (form.rol === 'matrona' && !form.profesional_id) e.profesional_id = 'Selecciona con qué ficha de profesional se vincula'
     return e
   }
 
@@ -45,8 +53,8 @@ export default function Usuarios() {
     const e = validar()
     if (Object.keys(e).length > 0) { setErrores(e); return }
     try {
-      await axios.post(API, form)
-      setForm({ nombre: '', email: '', password: '', rol: 'secretaria' })
+      await axios.post(API, { ...form, profesional_id: form.rol === 'matrona' ? form.profesional_id : null })
+      setForm({ nombre: '', email: '', password: '', rol: 'secretaria', profesional_id: '' })
       setErrores({})
       setModalForm(false)
       setMensaje('Usuario creado exitosamente')
@@ -64,7 +72,7 @@ export default function Usuarios() {
 
   const cerrarModal = () => {
     setModalForm(false)
-    setForm({ nombre: '', email: '', password: '', rol: 'secretaria' })
+    setForm({ nombre: '', email: '', password: '', rol: 'secretaria', profesional_id: '' })
     setErrores({})
   }
 
@@ -130,6 +138,27 @@ export default function Usuarios() {
                   ))}
                 </div>
               </div>
+              {form.rol === 'matrona' && (
+                <div className="flex flex-col gap-1 mt-4">
+                  <label className="text-sm font-semibold text-gray-700">Vincular con ficha de profesional *</label>
+                  <p className="text-xs text-gray-400 mb-1">Así el sistema sabe cuáles son sus citas y horarios en la agenda.</p>
+                  <select
+                    name="profesional_id"
+                    value={form.profesional_id}
+                    onChange={handleChange}
+                    className={`border rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors ${errores.profesional_id ? 'border-red-400 bg-red-50' : 'border-gray-200 hover:border-gray-300'}`}
+                  >
+                    <option value="">Selecciona una profesional...</option>
+                    {profesionales.map(p => (
+                      <option key={p.id} value={p.id}>{p.nombre} {p.apellido} — {p.especialidad}</option>
+                    ))}
+                  </select>
+                  {errores.profesional_id && <span className="text-red-500 text-xs">{errores.profesional_id}</span>}
+                  {profesionales.length === 0 && (
+                    <span className="text-xs text-orange-600 mt-1">Aún no hay fichas de profesionales creadas. Ve primero a "Profesionales" y agrégala ahí, luego vuelve aquí a crear su acceso.</span>
+                  )}
+                </div>
+              )}
             </div>
             <div className="px-6 pb-6 flex gap-3">
               <button onClick={cerrarModal} className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 font-medium transition-colors">Cancelar</button>
