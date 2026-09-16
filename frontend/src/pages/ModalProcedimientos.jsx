@@ -14,6 +14,7 @@ const formatCLP = n => new Intl.NumberFormat('es-CL', { style: 'currency', curre
 const metodoIcono = { fonasa: '🏥', efectivo: '💵', transferencia: '🏦', debito: '💳', credito: '💳' }
 
 export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
+  const verFinanzas = localStorage.getItem('rol') !== 'matrona' || localStorage.getItem('ver_finanzas') === '1'
   const [catalogo, setCatalogo] = useState([])
   const [procedimientos, setProcedimientos] = useState([])
   const [pagos, setPagos] = useState([])
@@ -31,14 +32,18 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
   const [duplicados, setDuplicados] = useState([])
 
   const cargar = async () => {
-    const [cat, proc, pag] = await Promise.all([
+    const [cat, proc] = await Promise.all([
       axios.get(`${API_PROC}/catalogo`),
-      axios.get(`${API_PROC}/paciente/${paciente.id}`),
-      axios.get(`${API_PAGOS}/paciente/${paciente.id}`)
+      axios.get(`${API_PROC}/paciente/${paciente.id}`)
     ])
     setCatalogo(cat.data)
     setProcedimientos(proc.data)
-    setPagos(pag.data)
+    if (verFinanzas) {
+      try {
+        const pag = await axios.get(`${API_PAGOS}/paciente/${paciente.id}`)
+        setPagos(pag.data)
+      } catch { setPagos([]) }
+    }
 
     // Detectar duplicados automáticamente
     const vistos = {}
@@ -67,7 +72,7 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
   const guardar = async (forzar = false) => {
     const e = {}
     if (!form.nombre.trim()) e.nombre = 'El nombre es obligatorio'
-    if (!form.monto || isNaN(form.monto) || Number(form.monto) <= 0) e.monto = 'Ingresa un monto válido'
+    if (verFinanzas && (!form.monto || isNaN(form.monto) || Number(form.monto) <= 0)) e.monto = 'Ingresa un monto válido'
     if (Object.keys(e).length > 0) { setErrores(e); return }
     if (guardando) return
 
@@ -86,6 +91,7 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
     try {
       await axios.post(API_PROC, {
         ...form,
+        monto: form.monto === '' || form.monto === null ? 0 : form.monto,
         paciente_id: paciente.id,
         profesional_id: localStorage.getItem('profesional_id') || null,
         cita_id: citaId || null
@@ -142,27 +148,29 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
         {/* Header */}
         <div className="bg-gradient-to-r from-green-700 to-green-600 px-6 py-4 flex items-center justify-between shrink-0">
           <div>
-            <h3 className="text-lg font-bold text-white">Procedimientos y pagos</h3>
+            <h3 className="text-lg font-bold text-white">{verFinanzas ? 'Procedimientos y pagos' : 'Procedimientos'}</h3>
             <p className="text-green-200 text-sm">{paciente.nombre} {paciente.apellido}</p>
           </div>
           <button onClick={onCerrar} className="text-white hover:text-green-200 text-2xl leading-none">✕</button>
         </div>
 
         {/* Resumen rápido */}
-        <div className="grid grid-cols-3 gap-3 px-6 py-3 bg-gray-50 border-b border-gray-100 shrink-0">
-          <div className="text-center">
-            <p className="text-xs text-gray-500">Procedimientos</p>
-            <p className="font-bold text-gray-800">{formatCLP(totalProc)}</p>
+        {verFinanzas && (
+          <div className="grid grid-cols-3 gap-3 px-6 py-3 bg-gray-50 border-b border-gray-100 shrink-0">
+            <div className="text-center">
+              <p className="text-xs text-gray-500">Procedimientos</p>
+              <p className="font-bold text-gray-800">{formatCLP(totalProc)}</p>
+            </div>
+            <div className="text-center border-x border-gray-200">
+              <p className="text-xs text-gray-500">Pagado</p>
+              <p className="font-bold text-green-700">{formatCLP(totalPagos - totalPendiente)}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-xs text-gray-500">Pendiente</p>
+              <p className="font-bold text-yellow-600">{formatCLP(totalPendiente)}</p>
+            </div>
           </div>
-          <div className="text-center border-x border-gray-200">
-            <p className="text-xs text-gray-500">Pagado</p>
-            <p className="font-bold text-green-700">{formatCLP(totalPagos - totalPendiente)}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-xs text-gray-500">Pendiente</p>
-            <p className="font-bold text-yellow-600">{formatCLP(totalPendiente)}</p>
-          </div>
-        </div>
+        )}
 
         {duplicados.length > 0 && (
           <div className="px-6 py-3 bg-red-50 border-b border-red-200 shrink-0">
@@ -179,16 +187,18 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
         )}
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-200 shrink-0">
-          <button onClick={() => setTab('procedimientos')}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors ${tab === 'procedimientos' ? 'text-green-700 border-b-2 border-green-700' : 'text-gray-400 hover:text-gray-600'}`}>
-            🩺 Procedimientos ({procedimientos.length})
-          </button>
-          <button onClick={() => setTab('pagos')}
-            className={`flex-1 py-3 text-sm font-semibold transition-colors ${tab === 'pagos' ? 'text-green-700 border-b-2 border-green-700' : 'text-gray-400 hover:text-gray-600'}`}>
-            💰 Pagos ({pagos.length})
-          </button>
-        </div>
+        {verFinanzas && (
+          <div className="flex border-b border-gray-200 shrink-0">
+            <button onClick={() => setTab('procedimientos')}
+              className={`flex-1 py-3 text-sm font-semibold transition-colors ${tab === 'procedimientos' ? 'text-green-700 border-b-2 border-green-700' : 'text-gray-400 hover:text-gray-600'}`}>
+              🩺 Procedimientos ({procedimientos.length})
+            </button>
+            <button onClick={() => setTab('pagos')}
+              className={`flex-1 py-3 text-sm font-semibold transition-colors ${tab === 'pagos' ? 'text-green-700 border-b-2 border-green-700' : 'text-gray-400 hover:text-gray-600'}`}>
+              💰 Pagos ({pagos.length})
+            </button>
+          </div>
+        )}
 
         {/* Contenido scrolleable */}
         <div className="flex-1 overflow-y-auto px-6 py-4">
@@ -214,21 +224,28 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
                   <select className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                     name="catalogo_procedimiento_id" value={form.catalogo_procedimiento_id} onChange={handleChange}>
                     <option value="">Seleccionar del catálogo...</option>
-                    {catalogo.map(c => <option key={c.id} value={c.id}>{c.nombre} — {formatCLP(c.monto)}</option>)}
+                    {catalogo.map(c => <option key={c.id} value={c.id}>{c.nombre}{verFinanzas ? ` — ${formatCLP(c.monto)}` : ''}</option>)}
                   </select>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex flex-col">
-                      <input className={`border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 ${errores.nombre ? 'border-red-400' : 'border-gray-200'}`}
-                        name="nombre" placeholder="Nombre *" value={form.nombre} onChange={handleChange} />
-                      {errores.nombre && <span className="text-red-500 text-xs mt-1">{errores.nombre}</span>}
-                    </div>
-                    <div className="flex flex-col">
-                      <input className={`border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 ${errores.monto ? 'border-red-400' : 'border-gray-200'}`}
-                        name="monto" type="number" placeholder="Monto *" value={form.monto} onChange={handleChange} />
-                      {errores.monto && <span className="text-red-500 text-xs mt-1">{errores.monto}</span>}
-                    </div>
+                  <div className="flex flex-col">
+                    <input className={`border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 ${errores.nombre ? 'border-red-400' : 'border-gray-200'}`}
+                      name="nombre" placeholder="Nombre *" value={form.nombre} onChange={handleChange} />
+                    {errores.nombre && <span className="text-red-500 text-xs mt-1">{errores.nombre}</span>}
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  {verFinanzas && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex flex-col">
+                        <input className={`border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 ${errores.monto ? 'border-red-400' : 'border-gray-200'}`}
+                          name="monto" type="number" placeholder="Monto *" value={form.monto} onChange={handleChange} />
+                        {errores.monto && <span className="text-red-500 text-xs mt-1">{errores.monto}</span>}
+                      </div>
+                      <select className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                        name="estado" value={form.estado} onChange={handleChange}>
+                        <option value="pagado">Pagado</option>
+                        <option value="pendiente">Pendiente</option>
+                      </select>
+                    </div>
+                  )}
+                  {verFinanzas && (
                     <select className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                       name="metodo" value={form.metodo} onChange={handleChange}>
                       <option value="debito">💳 Débito</option>
@@ -237,18 +254,13 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
                       <option value="fonasa">🏥 Fonasa</option>
                       <option value="credito">💳 Crédito</option>
                     </select>
-                    <select className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
-                      name="estado" value={form.estado} onChange={handleChange}>
-                      <option value="pagado">Pagado</option>
-                      <option value="pendiente">Pendiente</option>
-                    </select>
-                  </div>
+                  )}
                   <div className="flex flex-col">
                     <label className="text-xs text-gray-500 mb-1">Fecha de atención</label>
                     <input type="date" className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                       name="fecha_atencion" value={form.fecha_atencion} onChange={handleChange} />
                   </div>
-                    {form.metodo === 'fonasa' && (
+                    {verFinanzas && form.metodo === 'fonasa' && (
                       <input className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                         name="numero_bono" placeholder="🏥 Número de bono" value={form.numero_bono || ''} onChange={handleChange} />
                     )}
@@ -272,17 +284,19 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
                         <div className="flex flex-col gap-2">
                           <div className="grid grid-cols-2 gap-2">
                             <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" placeholder="Nombre" value={formEdit.nombre} onChange={e => setFormEdit({ ...formEdit, nombre: e.target.value })} />
-                            <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" type="number" placeholder="Monto" value={formEdit.monto} onChange={e => setFormEdit({ ...formEdit, monto: e.target.value })} />
+                            {verFinanzas && <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" type="number" placeholder="Monto" value={formEdit.monto} onChange={e => setFormEdit({ ...formEdit, monto: e.target.value })} />}
                           </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" value={formEdit.metodo} onChange={e => setFormEdit({ ...formEdit, metodo: e.target.value })}>
-                              <option value="debito">Débito</option><option value="efectivo">Efectivo</option>
-                              <option value="transferencia">Transferencia</option><option value="fonasa">Fonasa</option><option value="credito">Crédito</option>
-                            </select>
-                            <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" value={formEdit.estado} onChange={e => setFormEdit({ ...formEdit, estado: e.target.value })}>
-                              <option value="pagado">Pagado</option><option value="pendiente">Pendiente</option>
-                            </select>
-                          </div>
+                          {verFinanzas && (
+                            <div className="grid grid-cols-2 gap-2">
+                              <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" value={formEdit.metodo} onChange={e => setFormEdit({ ...formEdit, metodo: e.target.value })}>
+                                <option value="debito">Débito</option><option value="efectivo">Efectivo</option>
+                                <option value="transferencia">Transferencia</option><option value="fonasa">Fonasa</option><option value="credito">Crédito</option>
+                              </select>
+                              <select className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" value={formEdit.estado} onChange={e => setFormEdit({ ...formEdit, estado: e.target.value })}>
+                                <option value="pagado">Pagado</option><option value="pendiente">Pendiente</option>
+                              </select>
+                            </div>
+                          )}
                           <input className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm" placeholder="Notas" value={formEdit.notas} onChange={e => setFormEdit({ ...formEdit, notas: e.target.value })} />
                           <div className="flex gap-2">
                             <button onClick={() => guardarEditProc(p.id)} className="flex-1 bg-green-700 text-white py-1.5 rounded-lg text-sm font-medium">Guardar</button>
@@ -293,12 +307,12 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
                         <div className="flex items-center justify-between">
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-gray-800 text-sm">{p.nombre}</p>
-                            <p className="text-xs text-gray-400">{formatFecha(p.fecha)} · {metodoIcono[p.metodo]} {p.metodo}</p>
+                            <p className="text-xs text-gray-400">{formatFecha(p.fecha)}{verFinanzas ? ` · ${metodoIcono[p.metodo]} ${p.metodo}` : ''}</p>
                             {p.notas && <p className="text-xs text-gray-400">{p.notas}</p>}
                           </div>
                           <div className="flex items-center gap-2 ml-3 shrink-0">
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${p.estado === 'pagado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado}</span>
-                            <span className="font-bold text-gray-800 text-sm">{formatCLP(p.monto)}</span>
+                            {verFinanzas && <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${p.estado === 'pagado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{p.estado}</span>}
+                            {verFinanzas && <span className="font-bold text-gray-800 text-sm">{formatCLP(p.monto)}</span>}
                             <button onClick={() => { setEditandoProc(p.id); setFormEdit({ nombre: p.nombre, monto: p.monto, metodo: p.metodo, estado: p.estado, notas: p.notas || '' }) }} className="text-blue-600 hover:underline text-xs">Editar</button>
                             <button onClick={() => eliminarProc(p.id)} className="text-red-500 hover:underline text-xs">Eliminar</button>
                           </div>
@@ -306,10 +320,12 @@ export default function ModalProcedimientos({ paciente, citaId, onCerrar }) {
                       )}
                     </div>
                   ))}
-                  <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                    <span className="text-sm font-semibold text-gray-600">Total</span>
-                    <span className="text-lg font-bold text-green-800">{formatCLP(totalProc)}</span>
-                  </div>
+                  {verFinanzas && (
+                    <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                      <span className="text-sm font-semibold text-gray-600">Total</span>
+                      <span className="text-lg font-bold text-green-800">{formatCLP(totalProc)}</span>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
