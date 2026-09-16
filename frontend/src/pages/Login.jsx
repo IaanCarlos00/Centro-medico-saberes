@@ -23,6 +23,7 @@ export default function Login({ onLogin }) {
       localStorage.setItem('email', res.data.email)
       localStorage.setItem('profesional_id', res.data.profesional_id !== null && res.data.profesional_id !== undefined ? String(res.data.profesional_id) : '')
       localStorage.setItem('id', res.data.id)
+      localStorage.setItem('ver_finanzas', res.data.ver_finanzas ? '1' : '')
       onLogin(res.data)
     } catch (err) {
       setError('Email o contraseña incorrectos')

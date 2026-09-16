@@ -15,7 +15,7 @@ export default function Usuarios() {
   const [usuarios, setUsuarios] = useState([])
   const [profesionales, setProfesionales] = useState([])
   const [modalForm, setModalForm] = useState(false)
-  const [form, setForm] = useState({ nombre: '', email: '', password: '', rol: 'secretaria', profesional_id: '' })
+  const [form, setForm] = useState({ nombre: '', email: '', password: '', rol: 'secretaria', profesional_id: '', ver_finanzas: false })
   const [errores, setErrores] = useState({})
   const [mensaje, setMensaje] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -53,8 +53,8 @@ export default function Usuarios() {
     const e = validar()
     if (Object.keys(e).length > 0) { setErrores(e); return }
     try {
-      await axios.post(API, { ...form, profesional_id: form.rol === 'matrona' ? form.profesional_id : null })
-      setForm({ nombre: '', email: '', password: '', rol: 'secretaria', profesional_id: '' })
+      await axios.post(API, { ...form, profesional_id: form.rol === 'matrona' ? form.profesional_id : null, ver_finanzas: form.rol === 'matrona' ? form.ver_finanzas : true })
+      setForm({ nombre: '', email: '', password: '', rol: 'secretaria', profesional_id: '', ver_finanzas: false })
       setErrores({})
       setModalForm(false)
       setMensaje('Usuario creado exitosamente')
@@ -70,6 +70,11 @@ export default function Usuarios() {
     cargar()
   }
 
+  const toggleVerFinanzas = async (id, verFinanzas) => {
+    await axios.put(`${API}/${id}`, { ver_finanzas: !verFinanzas })
+    cargar()
+  }
+
   const eliminar = async id => {
     if (!confirm('¿Eliminar este usuario? Esta acción no se puede deshacer.')) return
     try {
@@ -82,7 +87,7 @@ export default function Usuarios() {
 
   const cerrarModal = () => {
     setModalForm(false)
-    setForm({ nombre: '', email: '', password: '', rol: 'secretaria', profesional_id: '' })
+    setForm({ nombre: '', email: '', password: '', rol: 'secretaria', profesional_id: '', ver_finanzas: false })
     setErrores({})
   }
 
@@ -167,6 +172,18 @@ export default function Usuarios() {
                   {profesionales.length === 0 && (
                     <span className="text-xs text-orange-600 mt-1">Aún no hay fichas de profesionales creadas. Ve primero a "Profesionales" y agrégala ahí, luego vuelve aquí a crear su acceso.</span>
                   )}
+                  <label className="flex items-start gap-2 mt-3 p-3 rounded-xl bg-gray-50 border border-gray-200 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5"
+                      checked={form.ver_finanzas}
+                      onChange={e => setForm(f => ({ ...f, ver_finanzas: e.target.checked }))}
+                    />
+                    <span className="text-xs text-gray-600">
+                      <span className="font-semibold text-gray-700 block">Puede ver dinero (Pagos y Reportes)</span>
+                      Por defecto una matrona nueva NO ve esta información. Actívalo solo si corresponde.
+                    </span>
+                  </label>
                 </div>
               )}
             </div>
@@ -268,10 +285,15 @@ export default function Usuarios() {
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <button onClick={() => toggleActivo(u.id, u.activo)} className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${u.activo ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-700 hover:bg-green-100'}`}>
                       {u.activo ? 'Desactivar' : 'Activar'}
                     </button>
+                    {u.rol === 'matrona' && (
+                      <button onClick={() => toggleVerFinanzas(u.id, u.ver_finanzas)} className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${u.ver_finanzas ? 'bg-amber-50 text-amber-700 hover:bg-amber-100' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+                        {u.ver_finanzas ? '💰 Quitar acceso a dinero' : '💰 Dar acceso a dinero'}
+                      </button>
+                    )}
                     <button onClick={() => eliminar(u.id)} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">
                       Eliminar
                     </button>
@@ -309,10 +331,15 @@ export default function Usuarios() {
               <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${rolConfig[u.rol]?.badge || 'bg-gray-100 text-gray-600'}`}>
                 {rolConfig[u.rol]?.icon} {rolConfig[u.rol]?.label || u.rol}
               </span>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button onClick={() => toggleActivo(u.id, u.activo)} className={`text-xs font-semibold px-3 py-1.5 rounded-lg ${u.activo ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
                   {u.activo ? 'Desactivar' : 'Activar'}
                 </button>
+                {u.rol === 'matrona' && (
+                  <button onClick={() => toggleVerFinanzas(u.id, u.ver_finanzas)} className={`text-xs font-semibold px-3 py-1.5 rounded-lg ${u.ver_finanzas ? 'bg-amber-50 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>
+                    {u.ver_finanzas ? '💰 Quitar dinero' : '💰 Dar dinero'}
+                  </button>
+                )}
                 <button onClick={() => eliminar(u.id)} className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600">
                   Eliminar
                 </button>

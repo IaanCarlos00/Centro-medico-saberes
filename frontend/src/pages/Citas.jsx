@@ -81,6 +81,7 @@ export default function Agenda() {
   const [motivoBloqueo, setMotivoBloqueo] = useState('')
   const [profesionalBloqueo, setProfesionalBloqueo] = useState('')
   const usuarioRol = localStorage.getItem('rol')
+  const verFinanzas = usuarioRol !== 'matrona' || localStorage.getItem('ver_finanzas') === '1'
   const usuarioProfesionalId = localStorage.getItem('profesional_id')
   const usuarioId = localStorage.getItem('id')
   const dropdownRef = useRef(null)
@@ -566,7 +567,7 @@ export default function Agenda() {
         procedimientoSeleccionado={procedimientoSeleccionado}
         setProcedimientoSeleccionado={setProcedimientoSeleccionado}
         catalogo={catalogo}
-        usuarioRol={usuarioRol}
+        verFinanzas={verFinanzas}
         metodoPago={metodoPago}
         setMetodoPago={setMetodoPago}
         numeroBono={numeroBono}

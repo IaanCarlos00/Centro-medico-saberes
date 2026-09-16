@@ -206,6 +206,7 @@ function BottomNav({ links, onLogout, darkMode, setDarkMode }) {
 function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
   const [menuAbierto, setMenuAbierto] = useState(false)
   const rol = usuario.rol
+  const verFinanzas = rol !== 'matrona' || !!usuario.ver_finanzas
 
   // Navbar flotante: se oculta al hacer scroll hacia abajo y reaparece al subir,
   // o si el mouse se acerca al borde superior de la pantalla.
@@ -280,11 +281,13 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
     { to: '/', label: 'Mi Agenda' },
     { to: '/pacientes', label: 'Pacientes' },
     { to: '/citas', label: 'Agenda' },
+    ...(verFinanzas ? [{ to: '/pagos', label: 'Pagos' }] : []),
     { to: '/pap', label: 'PAP' },
     { to: '/flujos', label: 'Flujos' },
     { to: '/pcr-vph', label: 'PCR VPH' },
     { to: '/horarios', label: 'Horarios' },
     { to: '/encuestas', label: 'Encuestas' },
+    ...(verFinanzas ? [{ to: '/reportes', label: 'Reportes' }] : []),
   ]
 
   const linksRecepcionista = [
@@ -409,11 +412,13 @@ function Layout({ usuario, onLogout, darkMode, setDarkMode }) {
             <Route index element={<InicioMatrona usuario={usuario} />} />
             <Route path="pacientes" element={<Pacientes />} />
             <Route path="citas" element={<Agenda />} />
+            {verFinanzas && <Route path="pagos" element={<Pagos />} />}
             <Route path="cambiar-password" element={<CambiarPassword />} />
             <Route path="pap" element={<Pap />} />
             <Route path="flujos" element={<Flujos />} />
             <Route path="pcr-vph" element={<PcrVph />} />
             <Route path="encuestas" element={<Encuestas />} />
+            {verFinanzas && <Route path="reportes" element={<Reportes />} />}
             <Route path="horarios" element={<HorariosMatronas />} />
             <Route path="*" element={<Navigate to="/" />} />
           </>}
@@ -440,7 +445,8 @@ function App() {
     const token = localStorage.getItem('token')
     const nombre = localStorage.getItem('nombre')
     const rol = localStorage.getItem('rol')
-    if (token && nombre) setUsuario({ token, nombre, rol })
+    const ver_finanzas = localStorage.getItem('ver_finanzas') === '1'
+    if (token && nombre) setUsuario({ token, nombre, rol, ver_finanzas })
   }, [])
 
   useEffect(() => {
@@ -458,6 +464,7 @@ function App() {
     localStorage.removeItem('token')
     localStorage.removeItem('nombre')
     localStorage.removeItem('rol')
+    localStorage.removeItem('ver_finanzas')
     setUsuario(null)
   }
 
