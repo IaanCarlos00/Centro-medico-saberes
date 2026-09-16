@@ -132,7 +132,10 @@ export default function InicioMatrona({ usuario }) {
     setCitasSinFinalizar(sinFinalizar)
   }, [citas])
 
+  const verFinanzas = localStorage.getItem('rol') !== 'matrona' || localStorage.getItem('ver_finanzas') === '1'
+
   useEffect(() => {
+    if (!verFinanzas) return
     axios.get('https://centro-medico-saberes-production.up.railway.app/dashboard/atenciones-profesional')
       .then(res => setAtencionesProf(res.data))
       .catch(() => {})

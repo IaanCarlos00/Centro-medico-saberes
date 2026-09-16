@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const pool = require('../db')
 const { hoyChile } = require('../utils/fecha')
+const bloquearMatrona = require('../middleware/bloquearMatrona')
 
 router.get('/', async (req, res) => {
   try {
@@ -192,7 +193,7 @@ router.get('/', async (req, res) => {
 })
 
 
-router.get('/atenciones-profesional', async (req, res) => {
+router.get('/atenciones-profesional', bloquearMatrona, async (req, res) => {
   try {
     const { fecha, desde, hasta } = req.query
 

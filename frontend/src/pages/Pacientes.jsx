@@ -161,10 +161,19 @@ export default function Pacientes() {
   const verFinanzas = rol !== 'matrona' || localStorage.getItem('ver_finanzas') === '1'
 
   const cargar = async () => {
-    const [p, pg] = await Promise.all([axios.get(API), axios.get(API_PAGOS)])
+    const p = await axios.get(API)
     setPacientes(p.data)
-    const ids = pg.data.filter(p => p.estado === 'pendiente').map(p => p.paciente_id)
-    setDeudores([...new Set(ids)])
+    if (verFinanzas) {
+      try {
+        const pg = await axios.get(API_PAGOS)
+        const ids = pg.data.filter(p => p.estado === 'pendiente').map(p => p.paciente_id)
+        setDeudores([...new Set(ids)])
+      } catch {
+        setDeudores([])
+      }
+    } else {
+      setDeudores([])
+    }
   }
 
   useEffect(() => { cargar() }, [])
@@ -267,19 +276,25 @@ export default function Pacientes() {
   const verHistorial = async p => {
     setModalHistorial(p)
     setCargandoHistorial(true)
-    const [citas, proc, pap, flujos, pagos] = await Promise.all([
+    const [citas, proc, pap, flujos] = await Promise.all([
       axios.get(API_CITAS),
       axios.get(`${API_PROC}/paciente/${p.id}`),
       axios.get(`${API_PAP}/paciente/${p.id}`),
-      axios.get(`${API_FLUJOS}/paciente/${p.id}`),
-      axios.get(API_PAGOS)
+      axios.get(`${API_FLUJOS}/paciente/${p.id}`)
     ])
+    let pagosData = []
+    if (verFinanzas) {
+      try {
+        const pagos = await axios.get(API_PAGOS)
+        pagosData = pagos.data.filter(pg => pg.paciente_id === p.id).slice(0, 10)
+      } catch { pagosData = [] }
+    }
     setHistorial({
       citas: citas.data.filter(c => c.paciente_id === p.id).slice(0, 10),
       procedimientos: proc.data,
       pap: pap.data,
       flujos: flujos.data,
-      pagos: pagos.data.filter(pg => pg.paciente_id === p.id).slice(0, 10)
+      pagos: pagosData
     })
     setCargandoHistorial(false)
   }
